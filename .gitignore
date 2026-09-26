@@ -1,6 +1,6 @@
 .git/
-*.bkp
+.cache/
 *.log
-database.sqlite*
-.DS_Store
-printer-*.cfg
+*.bak
+*.tmp
+*backup*/
