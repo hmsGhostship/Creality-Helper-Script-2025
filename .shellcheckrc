@@ -1,0 +1,21 @@
+# The scripts declare #!/bin/sh but run on the printer's busybox ash, which
+# is built with bash-compat and accepts the non-POSIX idioms used throughout
+# the repo. Each disabled code below is either a deliberate idiom that works
+# on the target shell, or a cross-file pattern shellcheck cannot follow.
+# Everything else at warning severity and above still fails CI.
+
+# Busybox-ash idioms used repo-wide:
+# SC2112: the 'function' keyword (every script defines functions with it)
+# SC3037: echo -e / echo -n (busybox echo supports both)
+# SC3043: local (supported by busybox ash)
+# SC3045: read -p (supported by busybox read)
+# SC3010: [[ ]] tests (busybox ash bash-compat)
+# SC3014: == inside [ ] (busybox test supports it)
+# SC3020: &> redirection (busybox ash bash-compat)
+disable=SC2112,SC3037,SC3043,SC3045,SC3010,SC3014,SC3020
+
+# Cross-file patterns shellcheck cannot follow:
+# SC1090: scripts source helper files via variables/relative paths
+# SC2154: variables assigned in sourced files (colors and paths from helper.sh)
+# SC2034: variables consumed by the scripts that source this one
+disable=SC1090,SC2154,SC2034

@@ -1,0 +1,161 @@
+#!/bin/sh
+# supervisorctl shim - originally by destinal (C0DEbrained helper-script fork)
+# A fake supervisorctl: enough for Moonraker's [machine] provider:supervisord_cli
+# to list services, report RUNNING/STOPPED, and start/stop/restart them by name
+# via the matching CrealityOS init.d script -- no real supervisord/systemd needed.
+#
+# Patched for the CrealityOS K1C 2025 (Arlo, 2026-07-01). Two upstream bugs on
+# the 2025 fixed here:
+#   1. INITD_PATH detection. Upstream gates on
+#        [ "$(get_sn_mac.sh model || get_sn_mac.sh model_str)" = "K1C" ]
+#      but on the 2025 `get_sn_mac.sh model` prints nothing yet returns rc 0, so
+#      the `||` short-circuits and the model_str fallback ("K1C") never runs ->
+#      INITD_PATH stays /etc/init.d (empty on the 2025) -> zero services found.
+#      Replaced with content-based detection: pick whichever init.d dir actually
+#      holds the moonraker service script.
+#   2. Service-name discovery. CrealityOS names klipper CS55klipper_service
+#      (C-prefixed); upstream's `S*` / `S[0-9][0-9]name` globs never match it.
+#      Discovery now also matches a leading capital before the runlevel and
+#      ignores .bak/.bkp/.orig backups left in init.d.
+
+if [ -t 1 ]; then  # colorize only if we're on a terminal
+  GREEN='\033[32m'
+  RED='\033[31m'
+  ENDCOLOR='\033[0m'
+fi
+
+# --- locate the init.d directory that actually holds the service scripts ---
+INITD_PATH="/etc/init.d"
+for _p in /usr/apps/etc/init.d /etc/appetc/init.d /etc/init.d; do
+  if ls "$_p"/*moonraker_service >/dev/null 2>&1; then
+    INITD_PATH="$_p"
+    break
+  fi
+done
+
+# strip dir, leading runlevel prefix (S56, CS55, ...) and _service suffix
+_svc_name() {
+  sed 's#.*/##; s/^[A-Za-z][A-Za-z]*[0-9][0-9]*//; s/_service$//'
+}
+
+get_services() {
+  moonraker_pid="$(cat /var/run/moonraker.pid 2>/dev/null)"
+  # if moonraker is running, confirm via its PID file before reporting
+  if [ -f /var/run/moonraker.pid ] && [ -d /proc/"$moonraker_pid" ] ; then
+    # init scripts have fixed alphanumeric names, so ls | grep is safe here
+    # shellcheck disable=SC2010
+    services=$(ls -1 ${INITD_PATH}/S[0-9][0-9]* ${INITD_PATH}/[A-Z]S[0-9][0-9]* 2>/dev/null \
+               | grep -vE '\.(bak|bkp|orig)' | _svc_name | sort -u)
+    echo $services
+  else
+    echo "Error: Invalid or missing PID file /var/run/moonraker.pid" >&2
+    exit 1
+  fi
+}
+
+is_running() {
+  service="$1"
+  daemon="$service"
+  [ "$service" == "klipper" ] && daemon="klippy"
+
+  # Check known PID-file locations. CrealityOS writes klipper's pid to
+  # /home/creality/run/klippy.pid (not /var/run); moonraker/nginx use /var/run.
+  for pid_file in "/var/run/$daemon.pid" "/home/creality/run/$daemon.pid"; do
+    if [ -f "$pid_file" ] && [ -d "/proc/$(cat "$pid_file" 2>/dev/null)" ]; then
+      return 0  # Running
+    fi
+  done
+
+  # Fallback to pidof in case the service doesn't use a pid file
+  if pidof "$daemon" &>/dev/null; then
+      return 0  # Running
+  fi
+  return 1  # Not running
+}
+
+print_process_status() {
+  if is_running "$service"; then
+    printf "%-33s$GREEN""RUNNING$ENDCOLOR\n" "$service"
+  else
+    printf "%-33s$RED""STOPPED$ENDCOLOR\n" "$service"
+  fi
+}
+
+print_usage() {
+  echo "supervisorctl shim - provide minimal support for moonraker so CrealityOS moonraker can start/stop without systemd"
+  echo "Usage: $0 [command] <service>"
+  echo "commands include status stop start restart"
+}
+
+get_script_path() {
+  service="$1"
+  # init scripts have fixed alphanumeric names, so ls | grep is safe here
+  # shellcheck disable=SC2010
+  script_path="$(ls -1 ${INITD_PATH}/S[0-9][0-9]${service}_service \
+                       ${INITD_PATH}/[A-Z]S[0-9][0-9]${service}_service \
+                       ${INITD_PATH}/S[0-9][0-9]${service} \
+                       ${INITD_PATH}/[A-Z]S[0-9][0-9]${service} \
+                       ${INITD_PATH}/S[0-9][0-9]${service}* \
+                       ${INITD_PATH}/[A-Z]S[0-9][0-9]${service}* 2>/dev/null \
+                  | grep -vE '\.(bak|bkp|orig)' | head -1)"
+  echo "$script_path"
+}
+
+stop() {
+  service="$1"
+  script_path="$(get_script_path $service)"
+  # Check if the script exists and stop the service
+  if [[ -f "$script_path" ]]; then
+    "$script_path" stop
+  fi
+}
+
+start() {
+  service="$1"
+  script_path="$(get_script_path $service)"
+  # Check if the script exists and start the service
+  if [[ -f "$script_path" ]]; then
+    "$script_path" start
+  fi
+}
+
+restart() {
+  service="$1"
+  script_path="$(get_script_path $service)"
+  # Check if the script exists and restart the service
+  if [[ -f "$script_path" ]]; then
+    "$script_path" restart
+  fi
+}
+
+main() {
+  # echo "$0 $@" >> /tmp/supervisorctl.log
+  action="$1"; shift
+  case "$action" in
+    status)
+      if [ "$#" -lt 1 ]; then  # just status, no arguments
+        for service in $(get_services); do
+          print_process_status $service
+        done
+      else
+        for service in "$@"; do # loop through the arguments provided
+          print_process_status $service
+        done
+      fi
+      ;;
+    start)
+      start "$1"
+      ;;
+    stop)
+      stop "$1"
+      ;;
+    restart)
+      restart "$1"
+      ;;
+    *)
+      print_usage
+      exit 1
+  esac
+}
+
+main "$@"

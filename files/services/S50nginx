@@ -1,0 +1,36 @@
+#!/bin/sh
+#
+# Nginx Service
+#
+
+NGINX="/usr/data/nginx/sbin/nginx"
+PIDFILE="/var/run/nginx.pid"
+NGINX_ARGS="-c /usr/data/nginx/nginx/nginx.conf"
+
+case "$1" in
+  start)
+    echo "Starting nginx..."
+	mkdir -p /var/log/nginx /var/tmp/nginx
+	start-stop-daemon -S -p "$PIDFILE" --exec "$NGINX" -- $NGINX_ARGS
+	;;
+  stop)
+    echo "Stopping nginx..."
+	start-stop-daemon -K -x "$NGINX" -p "$PIDFILE" -o
+	;;
+  reload|force-reload)
+    echo "Reloading nginx..."
+	# NGINX_ARGS, not bare: without -c nginx opens /etc/nginx/nginx.conf, which
+	# does not exist on this board. The reload then fails and leaves the OLD
+	# config live while reporting nothing, so a config change looks applied and
+	# Fluidd 502s until somebody works out why.
+	"$NGINX" $NGINX_ARGS -s reload
+	;;
+  restart)
+	"$0" stop
+	sleep 1
+	"$0" start
+	;;
+  *)
+	echo "Usage: $0 {start|stop|restart|reload|force-reload}"
+	exit 1
+esac

@@ -1,0 +1,23 @@
+name: Shellcheck
+on:
+  - pull_request
+jobs:
+  sh-checker:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Run the sh-checker
+        uses: luizm/action-sh-checker@master
+        env:
+          # Fail on warning severity and above. The deliberate busybox-ash
+          # idioms the scripts rely on (function keyword, local, echo -e, ...)
+          # are disabled per-code in .shellcheckrc with justifications; the
+          # remaining warning-level findings were fixed, so the tree is green
+          # and a red check means the PR introduced a new problem.
+          SHELLCHECK_OPTS: -S warning
+        with:
+          # shfmt cannot run on this tree: in posix mode it rejects the
+          # `function` keyword used by every script, and in bash mode all
+          # 93 files differ from its canonical formatting. Enabling it
+          # would require a repo-wide reformat.
+          sh_checker_shfmt_disable: true

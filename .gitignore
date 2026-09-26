@@ -1,0 +1,6 @@
+.git/
+*.bkp
+*.log
+database.sqlite*
+.DS_Store
+printer-*.cfg
