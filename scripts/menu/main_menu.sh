@@ -19,7 +19,9 @@ function version_line() {
 
 function script_title() {
   local title
-  if [ "$model" = "K1" ]; then
+  if [ "$model" = "K1_2025_CFS-C" ]; then
+    title="K1 2025 CFS-C MOD"
+  elif [ "$model" = "K1" ]; then
     title="K1 SERIES"
   elif [ "$model" = "3V3" ]; then
     title="ENDER-3 V3 SERIES"
@@ -72,6 +74,8 @@ function main_menu() {
            install_menu_k1
          elif [ "$model" = "K1_2025" ]; then
            install_menu_k1_2025
+         elif [ "$model" = "K1_2025_CFS-C" ]; then 
+           install_menu_k1_2025_cfs_c
          elif [ "$model" = "3V3" ]; then
            install_menu_3v3
          elif [ "$model" = "3KE" ]; then
@@ -87,6 +91,8 @@ function main_menu() {
            remove_menu_k1
          elif [ "$model" = "K1_2025" ]; then
            remove_menu_k1_2025
+         elif [ "$model" = "K1_2025_CFS-C" ]; then 
+           remove_menu_k1_2025_cfs_c
          elif [ "$model" = "3V3" ]; then
            remove_menu_3v3
          elif [ "$model" = "3KE" ]; then
@@ -102,6 +108,8 @@ function main_menu() {
            customize_menu_k1
          elif [ "$model" = "K1_2025" ]; then
            customize_menu_k1_2025
+         elif [ "$model" = "K1_2025_CFS-C" ]; then 
+           customize_menu_k1_2025_cfs_c
          elif [ "$model" = "3V3" ]; then
            customize_menu_3v3
          elif [ "$model" = "3KE" ]; then
@@ -120,6 +128,8 @@ function main_menu() {
            tools_menu_k1
          elif [ "$model" = "K1_2025" ]; then
            tools_menu_k1_2025
+         elif [ "$model" = "K1_2025_CFS-C" ]; then 
+           tools_menu_k1_2025_cfs_c
          elif [ "$model" = "3V3" ]; then
            tools_menu_3v3
          elif [ "$model" = "3KE" ]; then
@@ -135,6 +145,8 @@ function main_menu() {
            info_menu_k1
          elif [ "$model" = "K1_2025" ]; then
            info_menu_k1_2025
+         elif [ "$model" = "K1_2025_CFS-C" ]; then 
+           info_menu_k1_2025_cfs_c
          elif [ "$model" = "3V3" ]; then
            info_menu_3v3
          elif [ "$model" = "3KE" ]; then

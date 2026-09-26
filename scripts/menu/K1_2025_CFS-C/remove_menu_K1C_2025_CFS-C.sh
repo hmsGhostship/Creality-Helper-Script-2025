@@ -2,8 +2,9 @@
 
 set -e
 
-function remove_menu_ui_k1_2025() {
+function remove_menu_ui_k1_2025_cfs_c() {
   top_line
+  title "• CREALITY $(script_title) •" "${blue}"
   title '[ REMOVE MENU ]' "${yellow}"
   inner_line
   hr
@@ -27,6 +28,7 @@ function remove_menu_ui_k1_2025() {
   menu_option '11' 'Remove' 'Restore Input Shapers'
   menu_option '12' 'Remove' 'Extended Gcode Params'
   menu_option '13' 'Remove' 'Start Print Calibration'
+  menu_option '14' 'Remove' 'DXC Filament Sensor'
 #  hr
 #  subtitle '•IMPROVEMENTS:'
 #  disabled_menu_option ' 6' 'Remove' 'Klipper Adaptive Meshing & Purging'
@@ -62,9 +64,9 @@ function remove_menu_ui_k1_2025() {
   bottom_line
 }
 
-function remove_menu_k1_2025() {
+function remove_menu_k1_2025_cfs_c() {
   clear
-  remove_menu_ui_k1_2025
+  remove_menu_ui_k1_2025_cfs_c
   local remove_menu_opt
   while true; do
     read -p " ${white}Type your choice and validate with Enter: ${yellow}" remove_menu_opt
@@ -75,7 +77,7 @@ function remove_menu_k1_2025() {
         elif [ -d "$GUPPY_SCREEN_FOLDER" ]; then
           error_msg "Moonraker is needed to use Guppy Screen, please uninstall it first!"
         else
-         run "remove_moonraker_nginx" "remove_menu_ui_k1_2025"
+         run "remove_moonraker_nginx" "remove_menu_ui_k1_2025_cfs_c"
         fi;;
       2)
         if [ ! -d "$FLUIDD_FOLDER" ]; then
@@ -85,7 +87,7 @@ function remove_menu_k1_2025() {
           echo -e " ${darkred}Please restore Creality Web Interface first if you want to remove Fluidd.${white}"
           echo
         else
-          run "remove_fluidd" "remove_menu_ui_k1_2025"
+          run "remove_fluidd" "remove_menu_ui_k1_2025_cfs_c"
         fi;;
       3)
         if [ ! -d "$MAINSAIL_FOLDER" ]; then
@@ -95,7 +97,7 @@ function remove_menu_k1_2025() {
           echo -e " ${darkred}Please restore Creality Web Interface first if you want to remove Mainsail.${white}"
           echo
         else
-          run "remove_mainsail" "remove_menu_ui_k1_2025"
+          run "remove_mainsail" "remove_menu_ui_k1_2025_cfs_c"
         fi;;
       4)
         if [ ! -f "$ENTWARE_FILE" ]; then
@@ -113,7 +115,7 @@ function remove_menu_k1_2025() {
         elif [ -f "$BUILTIN_CAMERA_FILE" ] || [ -f "$BUILTIN_CAMERA_LEGACY_FILE" ]; then
           error_msg "Entware is needed to use Built-in Camera Fix, please uninstall it first!"
         else
-          run "remove_entware" "remove_menu_ui_k1_2025"
+          run "remove_entware" "remove_menu_ui_k1_2025_cfs_c"
         fi;;
       5)
         if [ ! -f "$KLIPPER_SHELL_FILE" ]; then
@@ -131,190 +133,196 @@ function remove_menu_k1_2025() {
         elif [ -f "$USEFUL_MACROS_FILE" ]; then
           error_msg "Klipper Gcode Shell Command is needed to use Useful Macros, please uninstall it first!"
         else
-          run "remove_gcode_shell_command" "remove_menu_ui_k1_2025"
+          run "remove_gcode_shell_command" "remove_menu_ui_k1_2025_cfs_c"
         fi;;
 
       6)
         if [ ! -f "$GO2RTC_FILE" ]; then
           error_msg "Go2rtc is not installed!"
         else
-          run "remove_go2rtc" "remove_menu_ui_k1_2025"
+          run "remove_go2rtc" "remove_menu_ui_k1_2025_cfs_c"
         fi;;
       7)
         if [ ! -f "$USB_CAMERA_FILE" ] && [ ! -f "$USB_CAMERA_LEGACY_FILE" ]; then
           error_msg "USB Camera Support is not installed!"
         else
-          run "remove_usb_camera" "remove_menu_ui_k1_2025"
+          run "remove_usb_camera" "remove_menu_ui_k1_2025_cfs_c"
         fi;;
       8)
         if [ ! -f "$BUILTIN_CAMERA_FILE" ] && [ ! -f "$BUILTIN_CAMERA_LEGACY_FILE" ]; then
           error_msg "Built-in Camera Fix is not installed!"
         else
-          run "remove_builtin_camera" "remove_menu_ui_k1_2025"
+          run "remove_builtin_camera" "remove_menu_ui_k1_2025_cfs_c"
         fi;;
       9)
         if [ ! -f "$CAMERA_SETTINGS_FILE" ]; then
           error_msg "Camera Settings Control is not installed!"
         else
-          run "remove_camera_settings_control" "remove_menu_ui_k1_2025"
+          run "remove_camera_settings_control" "remove_menu_ui_k1_2025_cfs_c"
         fi;;
       10)
         if [ ! -f "$TIMELAPSE_FILE" ]; then
           error_msg "Moonraker Timelapse is not installed!"
         else
-          run "remove_moonraker_timelapse" "remove_menu_ui_k1_2025"
+          run "remove_moonraker_timelapse" "remove_menu_ui_k1_2025_cfs_c"
         fi;;
       11)
         if [ ! -f "$SHAPER_DEFS_FILE" ]; then
           error_msg "Restore Input Shapers is not installed!"
         else
-          run "remove_restore_input_shapers" "remove_menu_ui_k1_2025"
+          run "remove_restore_input_shapers" "remove_menu_ui_k1_2025_cfs_c"
         fi;;
       12)
         if [ ! -f "$EXTENDED_GCODE_PARAMS_FILE" ]; then
           error_msg "Extended Gcode Params is not installed!"
         else
-          run "remove_extended_gcode_params" "remove_menu_ui_k1_2025"
+          run "remove_extended_gcode_params" "remove_menu_ui_k1_2025_cfs_c"
         fi;;
       13)
         if ! grep -q "^\[gcode_macro SDCARD_PRINT_FILE\]" "$PRINTER_CFG" 2>/dev/null; then
           error_msg "Start Print Calibration is not installed!"
         else
-          run "remove_start_print_calibration" "remove_menu_ui_k1_2025"
+          run "remove_start_print_calibration" "remove_menu_ui_k1_2025_cfs_c"
         fi;;
-
+      14)
+        if [ ! -f "/usr/data/printer_data/config/Helper-Script/dxc_sensor.cfg" ]; then
+          error_msg "DXC Filament Sensor is not installed!"
+        else
+          # REPARIERT: Nativer C0DEbrained-Aufruf mit dem Parameter "remove"
+          run "dxc_sensor remove" "remove_menu_ui_k1_2025_cfs_c"
+        fi;;
 #      6)
 #        disabled_feature;;
 #        if [ ! -d "$KAMP_FOLDER" ]; then
 #          error_msg "Klipper Adaptive Meshing & Purging is not installed!"
 #        else
-#          run "remove_kamp" "remove_menu_ui_k1_2025"
+#          run "remove_kamp" "remove_menu_ui_k1_2025_cfs_c"
 #        fi;;
 #      7)
 #        disabled_feature;;
 ##        if [ ! -f "$BUZZER_FILE" ]; then
 ##          error_msg "Buzzer Support is not installed!"
 ##        else
-##          run "remove_buzzer_support" "remove_menu_ui_k1_2025"
+##          run "remove_buzzer_support" "remove_menu_ui_k1_2025_cfs_c"
 ##        fi;;
 #      8)
 #        disabled_feature;;
 ##        if [ ! -d "$NOZZLE_CLEANING_FOLDER" ]; then
 ##          error_msg "Nozzle Cleaning Fan Control is not installed!"
 ##        else
-##          run "remove_nozzle_cleaning_fan_control" "remove_menu_ui_k1_2025"
+##          run "remove_nozzle_cleaning_fan_control" "remove_menu_ui_k1_2025_cfs_c"
 ##        fi;;
 #      9)
 #        disabled_feature;;
 ##        if [ ! -f "$FAN_CONTROLS_FILE" ]; then
 ##          error_msg "Fans Control Macros are not installed!"
 ##        else
-##          run "remove_fans_control_macros" "remove_menu_ui_k1_2025"
+##          run "remove_fans_control_macros" "remove_menu_ui_k1_2025_cfs_c"
 ##        fi;;
 #      10)
 #        disabled_feature;;
 ##        if [ ! -d "$IMP_SHAPERS_FOLDER" ]; then
 ##          error_msg "Improved Shapers Calibrations are not installed!"
 ##        else
-##          run "remove_improved_shapers" "remove_menu_ui_k1_2025"
+##          run "remove_improved_shapers" "remove_menu_ui_k1_2025_cfs_c"
 ##        fi;;
 #      11)
 #        disabled_feature;;
 ##        if [ ! -f "$USEFUL_MACROS_FILE" ]; then
 ##          error_msg "Useful Macros are not installed!"
 ##        else
-##          run "remove_useful_macros" "remove_menu_ui_k1_2025"
+##          run "remove_useful_macros" "remove_menu_ui_k1_2025_cfs_c"
 ##        fi;;
 #      12)
 #        disabled_feature;;
 ##        if [ ! -f "$SAVE_ZOFFSET_FILE" ]; then
 ##          error_msg "Save Z-Offset Macros are not installed!"
 ##        else
-##          run "remove_save_zoffset_macros" "remove_menu_ui_k1_2025"
+##          run "remove_save_zoffset_macros" "remove_menu_ui_k1_2025_cfs_c"
 ##        fi;;
 #      13)
 #        disabled_feature;;
 ##        if [ ! -f "$SCREWS_ADJUST_FILE" ]; then
 ##          error_msg "Screws Tilt Adjust Support is not installed!"
 ##        else
-##          run "remove_screws_tilt_adjust" "remove_menu_ui_k1_2025"
+##          run "remove_screws_tilt_adjust" "remove_menu_ui_k1_2025_cfs_c"
 ##        fi;;
 #      14)
 #        disabled_feature;;
 ##        if [ ! -f "$M600_SUPPORT_FILE" ]; then
 ##          error_msg "M600 Support is not installed!"
 ##        else
-##          run "remove_m600_support" "remove_menu_ui_k1_2025"
+##          run "remove_m600_support" "remove_menu_ui_k1_2025_cfs_c"
 ##        fi;;
 #      15)
 #        disabled_feature;;
 ##        if [ ! -f "$GIT_BACKUP_FILE" ]; then
 ##          error_msg "Git Backup is not installed!"
 ##        else
-##          run "remove_git_backup" "remove_menu_ui_k1_2025"
+##          run "remove_git_backup" "remove_menu_ui_k1_2025_cfs_c"
 ##        fi;;
 #      16)
 #        disabled_feature;;
 ##        if [ ! -f "$TIMELAPSE_FILE" ]; then
 ##          error_msg "Moonraker Timelapse is not installed!"
 ##        else
-##          run "remove_moonraker_timelapse" "remove_menu_ui_k1_2025"
+##          run "remove_moonraker_timelapse" "remove_menu_ui_k1_2025_cfs_c"
 ##        fi;;
 #      17)
 #        disabled_feature;;
 ##        if [ ! -f "$CAMERA_SETTINGS_FILE" ]; then
 ##          error_msg "Camera Settings Control is not installed!"
 ##        else
-##          run "remove_camera_settings_control" "remove_menu_ui_k1_2025"
+##          run "remove_camera_settings_control" "remove_menu_ui_k1_2025_cfs_c"
 ##        fi;;
 #      18)
 #        disabled_feature;;
 ##        if [ ! -f "$USB_CAMERA_FILE" ]; then
 ##          error_msg "USB Camera Support is not installed!"
 ##        else
-##          run "remove_usb_camera" "remove_menu_ui_k1_2025"
+##          run "remove_usb_camera" "remove_menu_ui_k1_2025_cfs_c"
 ##        fi;;
 #      19)
 #        disabled_feature;;
 ##        if [ ! -d "$OCTOEVERYWHERE_FOLDER" ]; then
 ##          error_msg "OctoEverywhere is not installed!"
 ##        else
-##          run "remove_octoeverywhere" "remove_menu_ui_k1_2025"
+##          run "remove_octoeverywhere" "remove_menu_ui_k1_2025_cfs_c"
 ##        fi;;
 #      20)
 #        disabled_feature;;
 ##        if [ ! -d "$MOONRAKER_OBICO_FOLDER" ]; then
 ##          error_msg "Moonraker Obico is not installed!"
 ##        else
-##          run "remove_moonraker_obico" "remove_menu_ui_k1_2025"
+##          run "remove_moonraker_obico" "remove_menu_ui_k1_2025_cfs_c"
 ##        fi;;
 #      21)
 #        disabled_feature;;
 ##        if [ ! -d "$GUPPYFLO_FOLDER" ]; then
 ##          error_msg "GuppyFLO is not installed!"
 ##        else
-##          run "remove_guppyflo" "remove_menu_ui_k1_2025"
+##          run "remove_guppyflo" "remove_menu_ui_k1_2025_cfs_c"
 ##        fi;;
 #      22)
 #        disabled_feature;;
 ##        if [ ! -d "$MOBILERAKER_COMPANION_FOLDER" ]; then
 ##          error_msg "Mobileraker Companion is not installed!"
 ##        else
-##          run "remove_mobileraker_companion" "remove_menu_ui_k1_2025"
+##          run "remove_mobileraker_companion" "remove_menu_ui_k1_2025_cfs_c"
 ##        fi;;
 #      23)
 #        disabled_feature;;
 ##        if [ ! -d "$OCTOAPP_COMPANION_FOLDER" ]; then
 ##          error_msg "OctoApp Companion is not installed!"
 ##        else
-##          run "remove_octoapp_companion" "remove_menu_ui_k1_2025"
+##          run "remove_octoapp_companion" "remove_menu_ui_k1_2025_cfs_c"
 ##        fi;;
 #      24)
 #        disabled_feature;;
 ##        if ! grep -q "\[simplyprint\]" "$MOONRAKER_CFG"; then
 ##          error_msg "SimplyPrint is not installed!"
 ##        else
-##          run "remove_simplyprint" "remove_menu_ui_k1_2025"
+##          run "remove_simplyprint" "remove_menu_ui_k1_2025_cfs_c"
 ##        fi;;
       B|b)
         clear; main_menu; break;;
@@ -324,5 +332,5 @@ function remove_menu_k1_2025() {
         error_msg "Please select a correct choice!";;
     esac
   done
-  remove_menu_k1_2025
+  remove_menu_k1_2025_cfs_c
 }

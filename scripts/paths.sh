@@ -16,7 +16,7 @@ function set_paths() {
 
   # System #
   CURL="${HELPER_SCRIPT_FOLDER}/files/fixes/curl"
-  if [ "$model" = "K1_2025" ]; then
+  if [ "$model" = "K1_2025" ] || [ "$model" = "K1_2025_CFS-C" ]; then
     INITD_FOLDER="/usr/apps/etc/init.d"
     BIN_FOLDER="/usr/apps/usr/bin"
   else

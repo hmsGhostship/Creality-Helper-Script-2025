@@ -2,8 +2,9 @@
 
 set -e
 
-function install_menu_ui_k1_2025() {
+function install_menu_ui_k1_2025_cfs_c() {
   top_line
+  title "• CREALITY $(script_title) •" "${blue}"
   title '[ INSTALL MENU ]' "${yellow}"
   inner_line
   hr
@@ -27,6 +28,7 @@ function install_menu_ui_k1_2025() {
   menu_option '11' 'Install' 'Restore Input Shapers'
   menu_option '12' 'Install' 'Extended Gcode Params'
   menu_option '13' 'Install' 'Start Print Calibration'
+  menu_option '14' 'Install' 'DXC Filament Sensor'
 #  hr
 #  subtitle '•IMPROVEMENTS:'
 #  disabled_menu_option ' 6' 'Install' 'Klipper Adaptive Meshing & Purging'
@@ -62,9 +64,9 @@ function install_menu_ui_k1_2025() {
   bottom_line
 }
 
-function install_menu_k1_2025() {
+function install_menu_k1_2025_cfs_c() {
   clear
-  install_menu_ui_k1_2025
+  install_menu_ui_k1_2025_cfs_c
   local install_menu_opt
   while true; do
     read -p " ${white}Type your choice and validate with Enter: ${yellow}" install_menu_opt
@@ -83,7 +85,7 @@ function install_menu_k1_2025() {
             echo "Installing git from opkg..."
             opkg install git git-http
           fi
-          run "install_moonraker_nginx" "install_menu_ui_k1_2025"
+          run "install_moonraker_nginx" "install_menu_ui_k1_2025_cfs_c"
         fi;;
       2)
         if [ -d "$FLUIDD_FOLDER" ]; then  
@@ -91,7 +93,7 @@ function install_menu_k1_2025() {
         elif [ ! -d "$MOONRAKER_FOLDER" ] && [ ! -d "$NGINX_FOLDER" ]; then
           error_msg "Moonraker and Nginx are needed, please install them first!"
         else
-          run "install_fluidd" "install_menu_ui_k1_2025"
+          run "install_fluidd" "install_menu_ui_k1_2025_cfs_c"
         fi;;
       3)
         if [ -d "$MAINSAIL_FOLDER" ]; then  
@@ -99,25 +101,25 @@ function install_menu_k1_2025() {
         elif [ ! -d "$MOONRAKER_FOLDER" ] && [ ! -d "$NGINX_FOLDER" ]; then
           error_msg "Moonraker and Nginx are needed, please install them first!"
         else
-          run "install_mainsail" "install_menu_ui_k1_2025"
+          run "install_mainsail" "install_menu_ui_k1_2025_cfs_c"
         fi;;
       4)
         if [ -f "$ENTWARE_FILE" ]; then
           error_msg "Entware is already installed!"
         else
-          run "install_entware" "install_menu_ui_k1_2025"
+          run "install_entware" "install_menu_ui_k1_2025_cfs_c"
         fi;;
       5)
         if [ -f "$KLIPPER_SHELL_FILE" ]; then
           error_msg "Klipper Gcode Shell Command is already installed!"
         else
-          run "install_gcode_shell_command" "install_menu_ui_k1_2025"
+          run "install_gcode_shell_command" "install_menu_ui_k1_2025_cfs_c"
         fi;;
       6)
         if [ -f "$GO2RTC_FILE" ]; then
           error_msg "Go2rtc is already installed!"
         else
-          run "install_go2rtc" "install_menu_ui_k1_2025"
+          run "install_go2rtc" "install_menu_ui_k1_2025_cfs_c"
         fi;;
       7)
         if [ -f "$USB_CAMERA_FILE" ]; then
@@ -129,7 +131,7 @@ function install_menu_k1_2025() {
         elif ! v4l2-ctl --list-devices | grep -A1 usb | sed 's/^[[:space:]]*//g' | grep '^/dev' | grep -vq '^/dev/video0$'; then
           error_msg "No third party USB camera found!"
         else
-          run "install_usb_camera" "install_menu_ui_k1_2025"
+          run "install_usb_camera" "install_menu_ui_k1_2025_cfs_c"
         fi;;
       8)
         if [ -f "$BUILTIN_CAMERA_FILE" ]; then
@@ -139,7 +141,7 @@ function install_menu_k1_2025() {
         elif [ ! -d "$MOONRAKER_FOLDER" ] || [ ! -d "$NGINX_FOLDER" ]; then
           error_msg "Moonraker and Nginx are needed, please install them first!"
         else
-          run "install_builtin_camera" "install_menu_ui_k1_2025"
+          run "install_builtin_camera" "install_menu_ui_k1_2025_cfs_c"
         fi;;
       9)
         if [ -f "$CAMERA_SETTINGS_FILE" ]; then
@@ -147,7 +149,7 @@ function install_menu_k1_2025() {
         elif [ ! -f "$KLIPPER_SHELL_FILE" ]; then
           error_msg "Klipper Gcode Shell Command is needed, please install it first!"
         else
-          run "install_camera_settings_control" "install_menu_ui_k1_2025"
+          run "install_camera_settings_control" "install_menu_ui_k1_2025_cfs_c"
         fi;;
       10)
         if [ -f "$TIMELAPSE_FILE" ]; then
@@ -157,32 +159,39 @@ function install_menu_k1_2025() {
         elif [ ! -d "$MOONRAKER_FOLDER" ] || [ ! -d "$NGINX_FOLDER" ]; then
           error_msg "Moonraker and Nginx are needed, please install them first!"
         else
-          run "install_moonraker_timelapse" "install_menu_ui_k1_2025"
+          run "install_moonraker_timelapse" "install_menu_ui_k1_2025_cfs_c"
         fi;;
       11)
         if [ -f "$SHAPER_DEFS_FILE" ]; then
           error_msg "Restore Input Shapers is already installed!"
         else
-          run "install_restore_input_shapers" "install_menu_ui_k1_2025"
+          run "install_restore_input_shapers" "install_menu_ui_k1_2025_cfs_c"
         fi;;
       12)
         if [ -f "$EXTENDED_GCODE_PARAMS_FILE" ]; then
           error_msg "Extended Gcode Params is already installed!"
         else
-          run "install_extended_gcode_params" "install_menu_ui_k1_2025"
+          run "install_extended_gcode_params" "install_menu_ui_k1_2025_cfs_c"
         fi;;
       13)
         if grep -q "^\[gcode_macro SDCARD_PRINT_FILE\]" "$PRINTER_CFG" 2>/dev/null; then
           error_msg "printer.cfg already has a [gcode_macro SDCARD_PRINT_FILE] block!"
         else
-          run "install_start_print_calibration" "install_menu_ui_k1_2025"
+          run "install_start_print_calibration" "install_menu_ui_k1_2025_cfs_c"
+        fi;;
+      14)
+        if [ -f "/usr/data/printer_data/config/Helper-Script/dxc_sensor.cfg" ]; then
+          error_msg "DXC Filament Sensor is already installed!"
+        else
+          # REPARIERT: Von "install_dxc_sensor" auf den nativen C0DEbrained-Aufruf umstellen
+          run "dxc_sensor install" "install_menu_ui_k1_2025_cfs_c"
         fi;;
 #      7)
 #        disabled_feature;;
 ##        if [ -d "$KAMP_FOLDER" ]; then
 ##          error_msg "Klipper Adaptive Meshing & Purging is already installed!"
 ##        else
-##          run "install_kamp" "install_menu_ui_k1_2025"
+##          run "install_kamp" "install_menu_ui_k1_2025_cfs_c"
 ##        fi;;
 #      8)
 #          disabled_feature;;
@@ -191,21 +200,21 @@ function install_menu_k1_2025() {
 ##        elif [ ! -f "$KLIPPER_SHELL_FILE" ]; then
 ##          error_msg "Klipper Gcode Shell Command is needed, please install it first!"
 ##        else
-##          run "install_buzzer_support" "install_menu_ui_k1_2025"
+##          run "install_buzzer_support" "install_menu_ui_k1_2025_cfs_c"
 ##        fi;;
 #      9)
 #        disabled_feature;;
 ##        if [ -d "$NOZZLE_CLEANING_FOLDER" ]; then
 ##          error_msg "Nozzle Cleaning Fan Control is already installed!"
 ##        else
-##          run "install_nozzle_cleaning_fan_control" "install_menu_ui_k1_2025"
+##          run "install_nozzle_cleaning_fan_control" "install_menu_ui_k1_2025_cfs_c"
 ##        fi;;
 #      10)
 #        disabled_feature;;
 ##        if [ -f "$FAN_CONTROLS_FILE" ]; then
 ##          error_msg "Fans Control Macros are already installed!"
 ##        else
-##          run "install_fans_control_macros" "install_menu_ui_k1_2025"
+##          run "install_fans_control_macros" "install_menu_ui_k1_2025_cfs_c"
 ##        fi;;
 #      11)
 #        disabled_feature;;
@@ -216,7 +225,7 @@ function install_menu_k1_2025() {
 ##        elif [ ! -f "$KLIPPER_SHELL_FILE" ]; then
 ##          error_msg "Klipper Gcode Shell Command is needed, please install it first!"
 ##        else
-##          run "install_improved_shapers" "install_menu_ui_k1_2025"
+##          run "install_improved_shapers" "install_menu_ui_k1_2025_cfs_c"
 ##        fi;;
 #      12)
 #        disabled_feature;;
@@ -225,28 +234,28 @@ function install_menu_k1_2025() {
 ##        elif [ ! -f "$KLIPPER_SHELL_FILE" ]; then
 ##          error_msg "Klipper Gcode Shell Command is needed, please install it first!"
 ##        else
-##          run "install_useful_macros" "install_menu_ui_k1_2025"
+##          run "install_useful_macros" "install_menu_ui_k1_2025_cfs_c"
 ##        fi;;
 #      13)
 #        disabled_feature;;
 ##        if [ -f "$SAVE_ZOFFSET_FILE" ]; then
 ##          error_msg "Save Z-Offset Macros are already installed!"
 ##        else
-##          run "install_save_zoffset_macros" "install_menu_ui_k1_2025"
+##          run "install_save_zoffset_macros" "install_menu_ui_k1_2025_cfs_c"
 ##        fi;;
 #      14)
 #        disabled_feature;;
 ##        if [ -f "$SCREWS_ADJUST_FILE" ]; then
 ##          error_msg "Screws Tilt Adjust Support is already installed!"
 ##        else
-##          run "install_screws_tilt_adjust" "install_menu_ui_k1_2025"
+##          run "install_screws_tilt_adjust" "install_menu_ui_k1_2025_cfs_c"
 ##        fi;;
 #      15)
 #        disabled_feature;;
 ##        if [ -f "$M600_SUPPORT_FILE" ]; then
 ##          error_msg "M600 Support is already installed!"
 ##        else
-##          run "install_m600_support" "install_menu_ui_k1_2025"
+##          run "install_m600_support" "install_menu_ui_k1_2025_cfs_c"
 ##        fi;;
 #      16)
 #        disabled_feature;;
@@ -257,7 +266,7 @@ function install_menu_k1_2025() {
 ##        elif [ ! -f "$KLIPPER_SHELL_FILE" ]; then
 ##          error_msg "Klipper Gcode Shell Command is needed, please install it first!"
 ##        else
-##          run "install_git_backup" "install_menu_ui_k1_2025"
+##          run "install_git_backup" "install_menu_ui_k1_2025_cfs_c"
 ##        fi;;
 #      17)
 #        disabled_feature;;
@@ -266,7 +275,7 @@ function install_menu_k1_2025() {
 ##        elif [ ! -f "$ENTWARE_FILE" ]; then
 ##          error_msg "Entware is needed, please install it first!"
 ##        else
-##          run "install_moonraker_timelapse" "install_menu_ui_k1_2025"
+##          run "install_moonraker_timelapse" "install_menu_ui_k1_2025_cfs_c"
 ##        fi;;
 #      18)
 #        disabled_feature;;
@@ -277,7 +286,7 @@ function install_menu_k1_2025() {
 ##        elif [ ! -f "$KLIPPER_SHELL_FILE" ]; then
 ##          error_msg "Klipper Gcode Shell Command is needed, please install it first!"
 ##        else
-##          run "install_camera_settings_control" "install_menu_ui_k1_2025"
+##          run "install_camera_settings_control" "install_menu_ui_k1_2025_cfs_c"
 ##        fi;;
 #      19)
 #        disabled_feature;;
@@ -286,7 +295,7 @@ function install_menu_k1_2025() {
 ##        elif [ ! -f "$ENTWARE_FILE" ]; then
 ##          error_msg "Entware is needed, please install it first!"
 ##        else
-##          run "install_usb_camera" "install_menu_ui_k1_2025"
+##          run "install_usb_camera" "install_menu_ui_k1_2025_cfs_c"
 ##        fi;;
 #      20)
 #        disabled_feature;;
@@ -297,7 +306,7 @@ function install_menu_k1_2025() {
 ##        elif [ ! -f "$ENTWARE_FILE" ]; then
 ##          error_msg "Entware is needed, please install it first!"
 ##        else
-##          run "install_octoeverywhere" "install_menu_ui_k1_2025"
+##          run "install_octoeverywhere" "install_menu_ui_k1_2025_cfs_c"
 ##        fi;;
 #      21)
 #        disabled_feature;;
@@ -308,14 +317,14 @@ function install_menu_k1_2025() {
 ##        elif [ ! -f "$ENTWARE_FILE" ]; then
 ##          error_msg "Entware is needed, please install it first!"
 ##        else
-##          run "install_moonraker_obico" "install_menu_ui_k1_2025"
+##          run "install_moonraker_obico" "install_menu_ui_k1_2025_cfs_c"
 ##        fi;;
 #      22)
 #        disabled_feature;;
 ##        if [ ! -d "$MOONRAKER_FOLDER" ] && [ ! -d "$NGINX_FOLDER" ]; then
 ##          error_msg "Moonraker and Nginx are needed, please install them first!"
 ##        else
-##          run "install_guppyflo" "install_menu_ui_k1_2025"
+##          run "install_guppyflo" "install_menu_ui_k1_2025_cfs_c"
 ##        fi;;
 #      23)
 #        disabled_feature;;
@@ -328,7 +337,7 @@ function install_menu_k1_2025() {
 ##        elif [ ! -f "$ENTWARE_FILE" ]; then
 ##          error_msg "Entware is needed, please install it first!"
 ##        else
-##          run "install_mobileraker_companion" "install_menu_ui_k1_2025"
+##          run "install_mobileraker_companion" "install_menu_ui_k1_2025_cfs_c"
 ##        fi;;
 #      24)
 #        disabled_feature;;
@@ -341,7 +350,7 @@ function install_menu_k1_2025() {
 ##        elif [ ! -f "$ENTWARE_FILE" ]; then
 ##          error_msg "Entware is needed, please install it first!"
 ##        else
-##          run "install_octoapp_companion" "install_menu_ui_k1_2025"
+##          run "install_octoapp_companion" "install_menu_ui_k1_2025_cfs_c"
 ##        fi;;
 #      25)
 #        disabled_feature;;
@@ -352,7 +361,7 @@ function install_menu_k1_2025() {
 ##        elif [ ! -d "$FLUIDD_FOLDER" ] && [ ! -d "$MAINSAIL_FOLDER" ]; then
 ##          error_msg "Fluidd or Mainsail is needed, please install one of them first!"
 ##        else
-##          run "install_simplyprint" "install_menu_ui_k1_2025"
+##          run "install_simplyprint" "install_menu_ui_k1_2025_cfs_c"
 ##        fi;;
       B|b)
         clear; main_menu; break;;
@@ -362,5 +371,5 @@ function install_menu_k1_2025() {
         error_msg "Please select a correct choice!";;
     esac
   done
-  install_menu_k1_2025
+  install_menu_k1_2025_cfs_c
 }

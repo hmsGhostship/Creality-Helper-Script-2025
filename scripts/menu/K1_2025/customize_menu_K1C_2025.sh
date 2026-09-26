@@ -11,22 +11,10 @@ function customize_menu_ui_k1_2025() {
   hr
   menu_option '2' 'Install' 'Block Creality Cloud Telemetry'
   menu_option '3' 'Remove' 'Block Creality Cloud Telemetry'
-  
-  # ABSTURZSICHER: Original-Textlaengen beibehalten!
-  if grep -q "mb-料盒" /usr/data/printer_data/config/printer.cfg 2>/dev/null; then
-    disabled_menu_option '4' 'Disable' 'Creality Stock Services'
-  else
-    menu_option '4' 'Disable' 'Creality Stock Services'
-  fi
+  menu_option '4' 'Disable' 'Creality Stock Services'
   menu_option '5' 'Restore' 'Creality Stock Services'
   hr
-  
-  # ABSTURZSICHER: Original-Textlaengen beibehalten!
-  if grep -q "mb-料盒" /usr/data/printer_data/config/printer.cfg 2>/dev/null; then
-    disabled_menu_option '6' 'Retire' 'Nexusp Backend'
-  else
-    menu_option '6' 'Retire' 'Nexusp Backend'
-  fi
+  menu_option '6' 'Retire' 'Nexusp Backend'
   menu_option '7' 'Restore' 'Nexusp Backend'
   hr
   inner_line
@@ -66,16 +54,13 @@ function customize_menu_k1_2025() {
           run "remove_block_creality_cloud" "customize_menu_ui_k1_2025"
         fi;;
       4)
-        if grep -q "mb-料盒" /usr/data/printer_data/config/printer.cfg 2>/dev/null; then
-          disabled_feature
-        elif creality_services_absent; then
+        if creality_services_absent; then
           error_msg "No Creality stock services were found on this firmware!"
         elif ! creality_services_pending; then
           error_msg "Creality Stock Services are already disabled!"
         else
           run "disable_creality_services" "customize_menu_ui_k1_2025"
-        fi
-        ;;
+        fi;;
       5)
         if creality_services_absent; then
           error_msg "No Creality stock services were found on this firmware!"
@@ -85,16 +70,16 @@ function customize_menu_k1_2025() {
           run "restore_creality_services" "customize_menu_ui_k1_2025"
         fi;;
       6)
-        if grep -q "mb-料盒" /usr/data/printer_data/config/printer.cfg 2>/dev/null; then
-          disabled_feature
-        elif nexusp_absent; then
+        if nexusp_absent; then
           error_msg "No nexusp service was found on this firmware!"
         elif nexusp_retired && ! nexusp_resurrected; then
           error_msg "Nexusp Backend is already retired!"
         else
+          # nexusp_resurrected falls through on purpose: a firmware update put
+          # the service file back and retire_nexusp offers to re-apply the
+          # rename, which is the only repair for it.
           run "retire_nexusp" "customize_menu_ui_k1_2025"
-        fi
-        ;;
+        fi;;
       7)
         if nexusp_absent; then
           error_msg "No nexusp service was found on this firmware!"

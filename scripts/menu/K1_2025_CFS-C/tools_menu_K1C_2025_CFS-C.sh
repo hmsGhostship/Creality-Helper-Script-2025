@@ -2,8 +2,9 @@
 
 set -e
 
-function tools_menu_ui_k1_2025() {
+function tools_menu_ui_k1_2025_cfs_c() {
   top_line
+  title "• CREALITY $(script_title) •" "${blue}"
   title '[ TOOLS MENU ]' "${yellow}"
   inner_line
   hr
@@ -28,6 +29,9 @@ function tools_menu_ui_k1_2025() {
   hr
   disabled_menu_option '14' 'Reset' 'factory settings'
   hr
+  menu_option '15' 'Enable' 'Creality Calibration Toolbox (BED MESH)'
+  menu_option '16' 'Disable' 'Creality Calibration Toolbox (BED MESH)'
+  hr
   inner_line
   hr
   bottom_menu_option 'b' 'Back to [Main Menu]' "${yellow}"
@@ -37,9 +41,9 @@ function tools_menu_ui_k1_2025() {
   bottom_line
 }
 
-function tools_menu_k1_2025() {
+function tools_menu_k1_2025_cfs_c() {
   clear
-  tools_menu_ui_k1_2025
+  tools_menu_ui_k1_2025_cfs_c
   local tools_menu_opt
   while true; do
     read -p " ${white}Type your choice and validate with Enter: ${yellow}" tools_menu_opt
@@ -48,18 +52,18 @@ function tools_menu_k1_2025() {
         if [ -f "$INITD_FOLDER"/disabled.S55klipper_service ] || [ -f "$INITD_FOLDER"/disabled.CS55klipper_service ]; then
           error_msg "Updating Klipper configuration files is already prevented!"
         else
-          run "prevent_updating_klipper_files" "tools_menu_ui_k1_2025"
+          run "prevent_updating_klipper_files" "tools_menu_ui_k1_2025_cfs_c"
         fi;;
       2)
         if [ ! -f "$INITD_FOLDER"/disabled.S55klipper_service ] && [ ! -f "$INITD_FOLDER"/disabled.CS55klipper_service ]; then
           error_msg "Updating Klipper configuration files is already allowed!"
         else
-          run "allow_updating_klipper_files" "tools_menu_ui_k1_2025"
+          run "allow_updating_klipper_files" "tools_menu_ui_k1_2025_cfs_c"
         fi;;
       3)
         disabled_feature;;
 #        if [ -f "$KLIPPER_KLIPPY_FOLDER"/gcode.py ]; then
-#          run "printing_gcode_from_folder" "tools_menu_ui_k1_2025"
+#          run "printing_gcode_from_folder" "tools_menu_ui_k1_2025_cfs_c"
 #        fi;;
       4)
         if [ ! -f "$BUILTIN_CAMERA_FILE" ] && [ ! -f "$BUILTIN_CAMERA_LEGACY_FILE" ] && [ ! -f "$USB_CAMERA_FILE" ] && [ ! -f "$USB_CAMERA_LEGACY_FILE" ]; then
@@ -67,54 +71,75 @@ function tools_menu_k1_2025() {
         elif grep -q "^\[webcam chassis\]\|^\[webcam usb\]" "$MOONRAKER_CFG"; then
           error_msg "Camera settings are already enabled in Moonraker!"
         else
-          run "enable_camera_settings" "tools_menu_ui_k1_2025"
+          run "enable_camera_settings" "tools_menu_ui_k1_2025_cfs_c"
         fi;;
       5)
         if ! grep -q "^\[webcam chassis\]\|^\[webcam usb\]" "$MOONRAKER_CFG"; then
           error_msg "Camera settings are already disabled in Moonraker!"
         else
-          run "disable_camera_settings" "tools_menu_ui_k1_2025"
+          run "disable_camera_settings" "tools_menu_ui_k1_2025_cfs_c"
         fi;;
       6)
         if grep -q "^\[output_pin LED\]" "$PRINTER_CFG"; then
           error_msg "Chassis light control is already present in printer.cfg!"
         else
-          run "add_chassis_light_control" "tools_menu_ui_k1_2025"
+          run "add_chassis_light_control" "tools_menu_ui_k1_2025_cfs_c"
         fi;;
       7)
         if [ ! -d "$NGINX_FOLDER" ]; then
           error_msg "Nginx is not installed!"
         else
-          run "restart_nginx_action" "tools_menu_ui_k1_2025"
+          run "restart_nginx_action" "tools_menu_ui_k1_2025_cfs_c"
         fi;;
       8)
         if [ ! -d "$MOONRAKER_FOLDER" ]; then
           error_msg "Moonraker is not installed!"
         else
-          run "restart_moonraker_action" "tools_menu_ui_k1_2025"
+          run "restart_moonraker_action" "tools_menu_ui_k1_2025_cfs_c"
         fi;;
       9)
         if [ ! -f "$INITD_FOLDER"/CS55klipper_service ] && [ ! -f "$INITD_FOLDER"/S55klipper_service ]; then
           error_msg "Klipper service is not present!"
         else
-          run "restart_klipper_action" "tools_menu_ui_k1_2025"
+          run "restart_klipper_action" "tools_menu_ui_k1_2025_cfs_c"
         fi;;
       10)
         if [ ! -f "$ENTWARE_FILE" ]; then
           error_msg "Entware is not installed!"
         else
-          run "update_entware_packages" "tools_menu_ui_k1_2025"
+          run "update_entware_packages" "tools_menu_ui_k1_2025_cfs_c"
         fi;;
       11)
-        run "clear_cache" "tools_menu_ui_k1_2025";;
+        run "clear_cache" "tools_menu_ui_k1_2025_cfs_c";;
       12)
-        run "clear_logs" "tools_menu_ui_k1_2025";;
+        run "clear_logs" "tools_menu_ui_k1_2025_cfs_c";;
       13)
         disabled_feature;;
-#        run "restore_previous_firmware" "tools_menu_ui_k1_2025";;
+#        run "restore_previous_firmware" "tools_menu_ui_k1_2025_cfs_c";;
       14)
         disabled_feature;;
-#        run "reset_factory_settings" "tools_menu_ui_k1_2025";;
+#        run "reset_factory_settings" "tools_menu_ui_k1_2025_cfs_c";;
+      15)
+        # TÜRSTEHER FÜR INSTALLATION: Wenn das Include bereits aktiv ist, blockieren wir!
+        if grep -q "^\[include Helper-Script/calib_tool_box.cfg\]" /usr/data/printer_data/config/printer.cfg 2>/dev/null; then
+          error_msg "Creality Calibration Toolbox ist bereits installiert und aktiv!"
+        else
+          # Startet die Installation über dein Skript scripts/calib_toolbox.sh
+          run "install_calib_toolbox" "tools_menu_ui_k1_2025_cfs_c"
+        fi
+        ;;
+      16)
+        # TÜRSTEHER FÜR DEINSTALLATION: Wir fangen den Status sicher in einer Variablen ab
+        grep -q "^\[include Helper-Script/calib_tool_box.cfg\]" /usr/data/printer_data/config/printer.cfg 2>/dev/null && calib_res=0 || calib_res=1
+        
+        # Wenn calib_res ungleich 0 ist (also 1 = nicht gefunden), gibt es nichts zu entfernen
+        if [ "${calib_res}" -ne 0 ]; then
+          error_msg "Creality Calibration Toolbox ist gar nicht aktiv oder bereits entfernt!"
+        else
+          # Startet das Deinstallieren über dein Skript scripts/calib_toolbox.sh
+          run "remove_calib_toolbox" "tools_menu_ui_k1_2025_cfs_c"
+        fi
+        ;;
       B|b)
         clear; main_menu; break;;
       Q|q)
@@ -123,5 +148,5 @@ function tools_menu_k1_2025() {
          error_msg "Please select a correct choice!";;
     esac
   done
-  tools_menu_k1_2025
+  tools_menu_k1_2025_cfs_c
 }

@@ -8,8 +8,9 @@ set -e
 # /etc/version contents (it substring-matches the firmware build). Keep that
 # branch verbatim - don't reformat or strip it without updating the gate.
 function check_fw_version() {
-  if [ "$model" = "K1_2025" ]; then
+  if [ "$model" = "K1_2025" ] || [ "$model" = "K1_2025_CFS-C" ]; then
     cat /etc/version 2>/dev/null || echo -e "N/A"
+
   else
     file="/usr/data/creality/userdata/config/system_version.json"
     if [ -e "$file" ]; then
@@ -65,7 +66,7 @@ function system_menu_ui() {
   uptime=`cat /proc/uptime | cut -f1 -d.`
   formatted_uptime=$(format_uptime $uptime)
   load=`awk -v cpus=2 '{printf "%.2f%% (1 min) | %.2f%% (5 min) | %.2f%% (15 min)\n", $1*100/cpus, $2*100/cpus, $3*100/cpus}' /proc/loadavg`
-  if [ "$model" = "K1_2025" ]; then
+  if [ "$model" = "K1_2025" ] || [ "$model" = "K1_2025_CFS-C" ]; then
     # 2025 firmware dropped system_config.json (same as system_version.json); SN/MAC
     # come from get_sn_mac.sh, the helper detect_model already uses.
     device_sn=$(get_sn_mac.sh sn 2>/dev/null)
@@ -82,6 +83,13 @@ function system_menu_ui() {
   system_line "     System" "$(uname -s) (Kernel $(uname -r))" "${green}"
   system_line "   Firmware" "$(check_fw_version)"
   system_line "   Hostname" "$(uname -n)"
+  # Clean English CFS-C Status with visual pop
+  if [ "$model" = "K1_2025_CFS-C" ]; then
+    system_line " CFS-C Menu" "${cyan}Active${green}"
+  else
+    system_line " CFS-C Menu" "Inactive"
+  fi
+  system_line "MAC Address" "$mac_address"
   system_line "  Device SN" "$device_sn"
   system_line " IP Address" "$(check_connection)"
   system_line "MAC Address" "$mac_address"
