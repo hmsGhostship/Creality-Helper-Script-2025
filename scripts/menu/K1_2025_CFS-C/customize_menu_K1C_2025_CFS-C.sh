@@ -34,6 +34,12 @@ function customize_menu_ui_k1_2025_cfs_c() {
   # DEINE NEUE RESET OPTION
   menu_option '8' 'Remove' 'CFS-C recognition (back to K1_2025)'
   hr
+
+  # HIER REIHEN SICH DEINE FLOWTECH FIX OPTIONEN EIN
+  menu_option '9' 'Install' 'CFS-C FlowTech Volume Prime Fix (E50/F120)'
+  menu_option '10' 'Remove' 'CFS-C FlowTech Volume Prime Fix'
+  hr
+
   inner_line
   hr
   bottom_menu_option 'b' 'Back to [Main Menu]' "${yellow}"
@@ -42,6 +48,7 @@ function customize_menu_ui_k1_2025_cfs_c() {
   version_line "$(get_script_version)"
   bottom_line
 }
+
 
 # DEINE NEUE ENTFERNEN-FUNKTION
 function disable_cfsc_menu() {
@@ -145,6 +152,21 @@ function customize_menu_k1_2025_cfs_c() {
         clear
         disable_cfsc_menu
         break;;
+      9)
+        # NUTZT NUN DIE VARIABLE AUS DEINER PATH.SH / PRÜFT AUF DAS WORK-BACKUP
+        if [ -f "$PYC_ORIG" ]; then
+          error_msg "CFS-C FlowTech Fix is already installed!"
+        else
+          # Führt deine im Speicher liegende Funktion mit dem Parameter 'install' aus
+          run "cfs_flowtech_prime_fix install" "customize_menu_ui_k1_2025_cfs_c"
+        fi;;
+      10)
+        if [ ! -f "$PYC_ORIG" ]; then
+          error_msg "CFS-C FlowTech Fix is not installed!"
+        else
+          # Führt deine im Speicher liegende Funktion mit dem Parameter 'remove' aus
+          run "cfs_flowtech_prime_fix remove" "customize_menu_ui_k1_2025_cfs_c"
+        fi;;
       B|b)
         clear; main_menu; break;;
       Q|q)

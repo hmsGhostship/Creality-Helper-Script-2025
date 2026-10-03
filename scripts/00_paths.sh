@@ -43,10 +43,6 @@ function set_paths() {
   # Klippy Extra Python Files # 
   BOX_CONTROL="${KLIPPY_EXTRAS}/box_control.pyc"
   
-  # Backup Path for FlowTech Patch #
-  PYC_ORIG="${HS_BACKUP_FOLDER}/box_control.pyc.orig"
-  BOX_CFG_ORIG="${HS_BACKUP_FOLDER}/box.cfg.orig"
-  
   # Moonraker #
   MOONRAKER_FOLDER="${USR_DATA}/moonraker"
   MOONRAKER_ENV_PYTHON="${MOONRAKER_FOLDER}/moonraker-env/bin/python3"
