@@ -18,11 +18,52 @@ This modified version by @hmsGhostship introduces full automation for K1 2025 pr
 
 This repository is tailored and tested for advanced hardware modifications:
 
-* **Patheus DXC Extruder Integration:** Fully compatible with custom extruder configurations and fine-tuned macro settings.
+* **Phaetus DXC Extruder Integration:** Fully compatible with custom extruder configurations and fine-tuned macro settings.
+* **MicroSwiss FlowTech Hotend Patch:** Available in the **Customize Menu**, this patch fixes crucial multi-material issues. It eliminates the 20% empty extrusion inside the Purge Tower during toolchanges and optimizes the filament feeding speed. This prevents torn lines, stabilizes the Purge Tower structure, and dramatically reduces material waste by allowing a much smaller tower size. 
+  * *⚠️ Note: This specific patch is strictly verified and tested for the combination of the MicroSwiss FlowTech Hotend and the Phaetus DXC Extruder only!*
 * **Creality Calibration Toolbox (Bed Mesh):** Optimized paths and enhanced support for precise Bed Mesh calibrations, ensuring perfect first layers with advanced probing.
+
+### ⚙️ Orca Slicer Configuration & Tips (v2.5.0_dev & Phaetus DXC)
+
+Recommended machine and profile settings for optimal integration with the CFS-C Multi-Material system:
+
+#### 1. Machine Start G-code
+Copy and paste the following macro into your Orca Slicer Printer Settings -> **Machine Start G-code**:
+
+```gcode
+; --- START MELODY AND SYSTEM READY ---
+MUSIC_TO_START
+BOX_ENABLE_CFS_PRINT ENABLE=1
+
+; --- CORRECT 2025 CFS-C MAPPING LINE ---
+BOX_MODIFY_TN T[initial_no_support_extruder]=T[initial_no_support_extruder]
+
+; --- ORIGINAL CREALITY START CHAIN ---
+START_PRINT EXTRUDER_TEMP=[nozzle_temperature_initial_layer] BED_TEMP=[bed_temperature_initial_layer_single]
+
+T[initial_no_support_extruder]
+M204 S2000
+M104 S[nozzle_temperature_initial_layer]
+G1 Z3 F600
+M83
+G92 E0
+G1 Z1 F600
+```
+
+#### 2. Change Filament G-code
+* Leave this field completely **empty** (clear all text).
+
+#### 3. Template Custom G-code
+* Leave this field completely **empty** (clear all text).
+
+#### 4. Flushing Volumes & Multiplier
+* To drastically save material while maintaining clean color transitions, open the **Flushing Volumes** configuration in Orca Slicer.
+* Set the **Flush multiplier** to a minimal value of **`0.4`** and recalculate. This prevents color bleeding on critical switches (e.g., Black to White) without wasting filament on giant purge towers.
 
 ---
 *Disclaimer: This software is provided "as is" without warranty of any kind. Use it at your own risk.*
+
+
 
 Additional support for K1 2025 by @C0DEbrained.
 
