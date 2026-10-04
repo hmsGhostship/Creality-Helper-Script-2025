@@ -29,6 +29,8 @@ function install_menu_ui_k1_2025_cfs_c() {
   menu_option '12' 'Install' 'Extended Gcode Params'
   menu_option '13' 'Install' 'Start Print Calibration'
   menu_option '14' 'Install' 'DXC Filament Sensor'
+  menu_option '15' 'Install' 'CFS-C Universal Purge Speed Fix'
+  menu_option '16' 'Install' 'Micro-Swiss FlowTech Volumetric Extension'
 #  hr
 #  subtitle '•IMPROVEMENTS:'
 #  disabled_menu_option ' 6' 'Install' 'Klipper Adaptive Meshing & Purging'
@@ -185,6 +187,18 @@ function install_menu_k1_2025_cfs_c() {
         else
           # REPARIERT: Von "install_dxc_sensor" auf den nativen C0DEbrained-Aufruf umstellen
           run "dxc_sensor install" "install_menu_ui_k1_2025_cfs_c"
+        fi;;
+      15)
+        if [ -f "$HS_BACKUP_FOLDER/box_control.pyc.orig" ]; then
+          error_msg "CFS-C Universal Purge Speed Fix is already installed!"
+        else
+          run "cfs_c_speed_fix install" "install_menu_ui_k1_2025_cfs_c"
+        fi;;
+      16)
+        if [ -f "$HS_BACKUP_FOLDER/box.cfg.orig" ]; then
+          error_msg "Micro-Swiss FlowTech Volumetric Extension is already installed!"
+        else
+          run "cfs_c_flowtech_extension install" "install_menu_ui_k1_2025_cfs_c"
         fi;;
 #      7)
 #        disabled_feature;;
