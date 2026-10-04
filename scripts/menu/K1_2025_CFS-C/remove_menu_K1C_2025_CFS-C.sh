@@ -189,44 +189,50 @@ function remove_menu_k1_2025_cfs_c() {
         fi;;
       14)
         clear
-        # 1. GEGEN-SCHLOSS: Wenn das LLL Plus aktiv ist, blockieren wir das Entfernen sofort!
+        # GEGEN-SCHLOSS: Wenn das LLL Plus aktiv ist, blockieren wir das Entfernen sofort!
         if [ -f "/usr/data/printer_data/config/Helper-Script/cfs_lll_safety.cfg" ]; then
-            # REPARIERT: Wir zeichnen ERST das Menü auf den Bildschirm...
             remove_menu_ui_k1_2025_cfs_c
-            
-            # ...und setzen die Warnung unübersehbar DIREKT darunter!
             echo
             error_msg "REMOVE-SPERRE: DXC Filament Sensor blockiert!"
             echo -e "  Der Pin PD7 wird aktuell aktiv vom LLL Plus verwendet."
             echo -e "  Bitte entferne zuerst das FLY-LLL PLUS Safetysystem (Option 17)!"
             echo
-            
-        # 2. DEIN ORIGINALER CODE: Führt die Deinstallation aus, wenn die Luft rein ist
+        # NATIVE DEINSTALLATION: Wenn frei, dann loeschen
         elif [ ! -f "/usr/data/printer_data/config/Helper-Script/dxc_sensor.cfg" ]; then
+            remove_menu_ui_k1_2025_cfs_c
+            echo
             error_msg "DXC Filament Sensor is not installed!"
+            echo
         else
-            # Nativer C0DEbrained-Aufruf mit dem Parameter "remove"
-            run "dxc_sensor remove" "remove_menu_ui_k1_2025_cfs_c"
+          run "dxc_sensor remove" "remove_menu_ui_k1_2025_cfs_c"
         fi
         ;;
       15)
+        clear
         if [ ! -f "$HS_BACKUP_FOLDER/box_control.pyc.orig" ]; then
+          remove_menu_ui_k1_2025_cfs_c
+          echo
           error_msg "CFS-C Universal Purge Speed Fix is not installed!"
+          echo
         else
           run "cfs_c_speed_fix remove" "remove_menu_ui_k1_2025_cfs_c"
-        fi;;
+        fi
+        ;;
       16)
+        clear
         if [ ! -f "$HS_BACKUP_FOLDER/box.cfg.orig" ]; then
+          remove_menu_ui_k1_2025_cfs_c
+          echo
           error_msg "Micro-Swiss FlowTech Volumetric Extension is not installed!"
+          echo
         else
           run "cfs_c_flowtech_extension remove" "remove_menu_ui_k1_2025_cfs_c"
-        fi;;
+        fi
+        ;;
       17)
         clear
         if [ ! -f "/usr/data/printer_data/config/Helper-Script/cfs_lll_safety.cfg" ]; then
-            # Erst das Menü zeichnen, wenn das System gar nicht da ist
             remove_menu_ui_k1_2025_cfs_c
-            
             echo
             error_msg "FLY-LLL PLUS Safetysystem is not installed!"
             echo
@@ -241,7 +247,8 @@ function remove_menu_k1_2025_cfs_c() {
             echo -e "  Starte Klipper-Service automatisch neu..."
             echo
             run "restart_klipper" "remove_menu_ui_k1_2025_cfs_c"
-        fi;;
+        fi
+        ;;
 #      6)
 #        disabled_feature;;
 #        if [ ! -d "$KAMP_FOLDER" ]; then

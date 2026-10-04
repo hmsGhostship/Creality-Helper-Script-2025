@@ -183,52 +183,61 @@ function install_menu_k1_2025_cfs_c() {
           run "install_start_print_calibration" "install_menu_ui_k1_2025_cfs_c"
         fi;;
       14)
+        clear
         if [ -f "/usr/data/printer_data/config/Helper-Script/dxc_sensor.cfg" ]; then
+          # Erst das Menü neu zeichnen, dann die Fehlermeldung darunter platzieren!
+          install_menu_ui_k1_2025_cfs_c
+          echo
           error_msg "DXC Filament Sensor is already installed!"
+          echo
         else
           run "dxc_sensor install" "install_menu_ui_k1_2025_cfs_c"
-        fi;;
+        fi
+        ;;
       15)
+        clear
         if [ -f "$HS_BACKUP_FOLDER/box_control.pyc.orig" ]; then
+          install_menu_ui_k1_2025_cfs_c
+          echo
           error_msg "CFS-C Universal Purge Speed Fix is already installed!"
+          echo
         else
           run "cfs_c_speed_fix install" "install_menu_ui_k1_2025_cfs_c"
-        fi;;
+        fi
+        ;;
       16)
+        clear
         if [ -f "$HS_BACKUP_FOLDER/box.cfg.orig" ]; then
+          install_menu_ui_k1_2025_cfs_c
+          echo
           error_msg "Micro-Swiss FlowTech Volumetric Extension is already installed!"
+          echo
         else
           run "cfs_c_flowtech_extension install" "install_menu_ui_k1_2025_cfs_c"
-        fi;;
+        fi
+        ;;
       17)
         clear
-        # 1. PRÜF-SCHLOSS: Wenn der DXC-Sensor fehlt, blockieren wir die Installation!
+        # PRÜF-SCHLOSS: Wenn der DXC-Sensor fehlt, blockieren wir die Installation!
         if [ ! -f "/usr/data/printer_data/config/Helper-Script/dxc_sensor.cfg" ]; then
-            # Zuerst das Menü sauber auf den Bildschirm zeichnen
             install_menu_ui_k1_2025_cfs_c
-            
             echo
             error_msg "INSTALL-SPERRE: DXC Filament Sensor fehlt!"
             echo -e "  Der originale Filament-Sensor belegt aktuell noch den Pin PD7."
             echo -e "  Bitte installiere zuerst den DXC Filament Sensor (Option 14)!"
             echo
-            
-        # 2. DOPPEL-INSTALLATIONS-SCHUTZ
+        # DOPPEL-INSTALLATIONS-SCHUTZ
         elif [ -f "/usr/data/printer_data/config/Helper-Script/cfs_lll_safety.cfg" ]; then
-            # Auch hier erst das Menü neu zeichnen
             install_menu_ui_k1_2025_cfs_c
-            
             echo
             error_msg "FLY-LLL PLUS Safetysystem is already installed!"
             echo
-            
-        # 3. NATIVE INSTALLATION & AUTOMATISCHER RESTART
+        # NATIVE INSTALLATION & RESTART
         else
             title "[ INSTALL: FLY-LLL PLUS SAFETYSYSTEM ]" "${yellow}"
             echo -e "  Kopiere Konfigurationsdateien..."
             cp /usr/data/helper-script/files/cfs-lll-plus-safety/cfs_lll_safety.cfg /usr/data/printer_data/config/Helper-Script/
             
-            # include in die printer.cfg schreiben, falls noch nicht vorhanden
             if ! grep -q "cfs_lll_safety.cfg" "$PRINTER_CFG" 2>/dev/null; then
                 echo -e "\n[include Helper-Script/cfs_lll_safety.cfg]" >> "$PRINTER_CFG"
             fi
@@ -238,7 +247,8 @@ function install_menu_k1_2025_cfs_c() {
             echo -e "  Starte Klipper-Service automatisch neu..."
             echo
             run "restart_klipper" "install_menu_ui_k1_2025_cfs_c"
-        fi;;
+        fi
+        ;;
 #      7)
 #        disabled_feature;;
 ##        if [ -d "$KAMP_FOLDER" ]; then
