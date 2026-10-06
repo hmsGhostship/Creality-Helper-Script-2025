@@ -196,9 +196,11 @@ function set_paths() {
   GUPPYFLO_FOLDER="${USR_DATA}/guppyflo"
   GUPPYFLO_URL="https://github.com/ballaswag/guppyflo/releases/latest/download/guppyflo_mipsle.zip"
   
-  # Mobileraker Companion #
+  # Mobileraker Companion Paths (K1C 2025 Layout)
   MOBILERAKER_COMPANION_FOLDER="${USR_DATA}/mobileraker_companion"
   MOBILERAKER_COMPANION_URL="https://github.com/Clon1998/mobileraker_companion.git"
+  MOBILERAKER_ENV_FOLDER="$USR_DATA/mobileraker-env"
+  MOBILERAKER_INIT_SCRIPT="/opt/etc/init.d/S98mobileraker"
   
   # OctoApp Companion #
   OCTOAPP_COMPANION_FOLDER="${USR_DATA}/octoapp"

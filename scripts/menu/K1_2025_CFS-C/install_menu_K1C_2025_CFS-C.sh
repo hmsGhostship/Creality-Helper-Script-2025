@@ -27,11 +27,10 @@ function install_menu_ui_k1_2025_cfs_c() {
   subtitle '•IMPROVEMENTS:'
   menu_option '11' 'Install' 'Restore Input Shapers'
   menu_option '12' 'Install' 'Extended Gcode Params'
-  menu_option '13' 'Install' 'Start Print Calibration'
-  menu_option '14' 'Install' 'DXC Filament Sensor'
-  menu_option '15' 'Install' 'CFS-C Universal Purge Speed Fix'
-  menu_option '16' 'Install' 'Micro-Swiss FlowTech Volumetric Extension'
-  menu_option '17' 'Install' 'FLY-LLL PLUS Safetysystem (Einschalt-Sperre)'
+  menu_option '13' 'Install' 'DXC Filament Sensor'
+  menu_option '14' 'Install' 'CFS-C Universal Purge Speed Fix'
+  menu_option '15' 'Install' 'Micro-Swiss FlowTech Volumetric Extension'
+  menu_option '16' 'Install' 'FLY-LLL PLUS Safetysystem (Einschalt-Sperre)'
 #  hr
 #  subtitle '•IMPROVEMENTS:'
 #  disabled_menu_option ' 6' 'Install' 'Klipper Adaptive Meshing & Purging'
@@ -49,12 +48,12 @@ function install_menu_ui_k1_2025_cfs_c() {
 #  disabled_menu_option '16' 'Install' 'Moonraker Timelapse'
 #  disabled_menu_option '17' 'Install' 'Camera Settings Control'
 #  disabled_menu_option '18' 'Install' 'USB Camera Support'
-#  hr
-#  subtitle '•REMOTE ACCESS:'
+   hr
+   subtitle '•REMOTE ACCESS:'
 #  disabled_menu_option '19' 'Install' 'OctoEverywhere'
 #  disabled_menu_option '20' 'Install' 'Moonraker Obico'
 #  disabled_menu_option '21' 'Install' 'GuppyFLO'
-#  disabled_menu_option '22' 'Install' 'Mobileraker Companion'
+   menu_option '22' 'Install' 'Mobileraker Companion'
 #  disabled_menu_option '23' 'Install' 'OctoApp Companion'
 #  disabled_menu_option '24' 'Install' 'SimplyPrint'
   hr
@@ -165,36 +164,40 @@ function install_menu_k1_2025_cfs_c() {
           run "install_moonraker_timelapse" "install_menu_ui_k1_2025_cfs_c"
         fi;;
       11)
-        if [ -f "$SHAPER_DEFS_FILE" ]; then
-          error_msg "Restore Input Shapers is already installed!"
+        clear
+        # REPARIERT: Sucht nach der echten [input_shaper] Sektion in deiner printer.cfg
+        if grep -q "^\[input_shaper\]" "$PRINTER_CFG" 2>/dev/null; then
+          install_menu_ui_k1_2025_cfs_c
+          echo
+          error_msg "Restore Input Shapers is already active in printer.cfg!"
+          echo
         else
           run "install_restore_input_shapers" "install_menu_ui_k1_2025_cfs_c"
         fi;;
       12)
-        if [ -f "$EXTENDED_GCODE_PARAMS_FILE" ]; then
-          error_msg "Extended Gcode Params is already installed!"
+        clear
+        # REPARIERT: Sucht nach der echten [extended_gcode_params] Sektion
+        if grep -q "^\[extended_gcode_params\]" "$PRINTER_CFG" 2>/dev/null; then
+          install_menu_ui_k1_2025_cfs_c
+          echo
+          error_msg "Extended Gcode Params is already active in printer.cfg!"
+          echo
         else
           run "install_extended_gcode_params" "install_menu_ui_k1_2025_cfs_c"
         fi;;
       13)
-        if grep -q "^\[gcode_macro SDCARD_PRINT_FILE\]" "$PRINTER_CFG" 2>/dev/null; then
-          error_msg "printer.cfg already has a [gcode_macro SDCARD_PRINT_FILE] block!"
-        else
-          run "install_start_print_calibration" "install_menu_ui_k1_2025_cfs_c"
-        fi;;
-      14)
         clear
-        if [ -f "/usr/data/printer_data/config/Helper-Script/dxc_sensor.cfg" ]; then
-          # Erst das Menü neu zeichnen, dann die Fehlermeldung darunter platzieren!
+        # PRÜFUNG: Ist das Include AKTIV in der aktuellen printer.cfg?
+        if grep -q "^\[include Helper-Script/dxc_sensor.cfg\]" "$PRINTER_CFG" 2>/dev/null; then
           install_menu_ui_k1_2025_cfs_c
           echo
-          error_msg "DXC Filament Sensor is already installed!"
+          error_msg "DXC Filament Sensor is already active in printer.cfg!"
           echo
         else
+          # Wenn das Include fehlt (z.B. nach einem Firmware-Update), darfst du es IMMER installieren!
           run "dxc_sensor install" "install_menu_ui_k1_2025_cfs_c"
-        fi
-        ;;
-      15)
+        fi;;
+      14)
         clear
         if [ -f "$HS_BACKUP_FOLDER/box_control.pyc.orig" ]; then
           install_menu_ui_k1_2025_cfs_c
@@ -203,9 +206,8 @@ function install_menu_k1_2025_cfs_c() {
           echo
         else
           run "cfs_c_speed_fix install" "install_menu_ui_k1_2025_cfs_c"
-        fi
-        ;;
-      16)
+        fi;;
+      15)
         clear
         if [ -f "$HS_BACKUP_FOLDER/box.cfg.orig" ]; then
           install_menu_ui_k1_2025_cfs_c
@@ -214,23 +216,22 @@ function install_menu_k1_2025_cfs_c() {
           echo
         else
           run "cfs_c_flowtech_extension install" "install_menu_ui_k1_2025_cfs_c"
-        fi
-        ;;
-      17)
+        fi;;
+      16)
         clear
-        # PRÜF-SCHLOSS: Wenn der DXC-Sensor fehlt, blockieren wir die Installation!
-        if [ ! -f "/usr/data/printer_data/config/Helper-Script/dxc_sensor.cfg" ]; then
+        # DAS INTELLIGENTE PRÜF-SCHLOSS: Schaut starr auf den Live-Zustand des DXC-Sensors!
+        if ! grep -q "^\[include Helper-Script/dxc_sensor.cfg\]" "$PRINTER_CFG" 2>/dev/null; then
             install_menu_ui_k1_2025_cfs_c
             echo
-            error_msg "INSTALL-SPERRE: DXC Filament Sensor fehlt!"
+            error_msg "INSTALL-SPERRE: DXC Filament Sensor ist nicht aktiv!"
             echo -e "  Der originale Filament-Sensor belegt aktuell noch den Pin PD7."
             echo -e "  Bitte installiere zuerst den DXC Filament Sensor (Option 14)!"
             echo
         # DOPPEL-INSTALLATIONS-SCHUTZ
-        elif [ -f "/usr/data/printer_data/config/Helper-Script/cfs_lll_safety.cfg" ]; then
+        elif grep -q "^\[include Helper-Script/cfs_lll_safety.cfg\]" "$PRINTER_CFG" 2>/dev/null; then
             install_menu_ui_k1_2025_cfs_c
             echo
-            error_msg "FLY-LLL PLUS Safetysystem is already installed!"
+            error_msg "FLY-LLL PLUS Safetysystem is already active in printer.cfg!"
             echo
         # NATIVE INSTALLATION & RESTART
         else
@@ -247,8 +248,51 @@ function install_menu_k1_2025_cfs_c() {
             echo -e "  Starte Klipper-Service automatisch neu..."
             echo
             run "restart_klipper" "install_menu_ui_k1_2025_cfs_c"
-        fi
-        ;;
+        fi;;
+      19)
+        if [ ! -d "$MOONRAKER_FOLDER" ]; then
+          error_msg "Moonraker and Nginx are needed, please install them first!"
+        elif [ ! -d "$FLUIDD_FOLDER" ] && [ ! -d "$MAINSAIL_FOLDER" ]; then
+          error_msg "Fluidd or Mainsail is needed, please install one of them first!"
+        elif [ ! -f "$ENTWARE_FILE" ]; then
+          error_msg "Entware is needed, please install it first!"
+        else
+          run "install_octoeverywhere" "install_menu_ui_k1_2025_cfs_c"
+          echo -e "\n${yellow} Press Enter to return to the menu...${white}" && read -r _
+        fi;;
+      22)
+        if [ -d "$MOBILERAKER_COMPANION_FOLDER" ]; then
+          # JETZT KORRIGIERT: Blockiert und gibt die Meldung aus!
+          error_msg "Mobileraker Companion is already installed!"
+        elif [ ! -d "$MOONRAKER_FOLDER" ]; then
+          error_msg "Moonraker and Nginx are needed, please install them first!"
+        elif [ ! -d "$FLUIDD_FOLDER" ] && [ ! -d "$MAINSAIL_FOLDER" ]; then
+          error_msg "Fluidd or Mainsail is needed, please install one of them first!"
+        elif [ ! -f "$ENTWARE_FILE" ]; then
+          error_msg "Entware is needed, please install it first!"
+        else
+          # Startet die eigentliche Installation
+          run "install_mobileraker_companion" "install_menu_ui_k1_2025_cfs_c"
+          
+          # Countdown und Reboot nach erfolgreichem Durchlauf
+          if [ -d "$MOBILERAKER_COMPANION_FOLDER" ]; then
+            echo -e "${yellow}"
+            echo -e " ┌────────────────────────────────────────────────────────┐"
+            echo -e " │  WARNUNG: Um den freigegebenen Arbeitsspeicher (RAM)   │"
+            echo -e " │  wieder sauber aufzufüllen, startet der Drucker nun    │"
+            echo -e " │  automatisch neu.                                      │"
+            echo -e " └────────────────────────────────────────────────────────┘"
+            
+            for i in 10 9 8 7 6 5 4 3 2 1; do
+                echo -e "    Drucker startet neu in $i Sekunden... \r\c"
+                sleep 1
+            done
+            echo -e "${white}\nInfo: Starte System neu..."
+            reboot
+          else
+            echo -e "\n${yellow} Press Enter to return to the menu...${white}" && read -r _
+          fi
+        fi;;
 #      7)
 #        disabled_feature;;
 ##        if [ -d "$KAMP_FOLDER" ]; then
@@ -360,17 +404,6 @@ function install_menu_k1_2025_cfs_c() {
 ##        else
 ##          run "install_usb_camera" "install_menu_ui_k1_2025_cfs_c"
 ##        fi;;
-#      20)
-#        disabled_feature;;
-##        if [ ! -d "$MOONRAKER_FOLDER" ]; then
-##          error_msg "Moonraker and Nginx are needed, please install them first!"
-##        elif [ ! -d "$FLUIDD_FOLDER" ] && [ ! -d "$MAINSAIL_FOLDER" ]; then
-##          error_msg "Fluidd or Mainsail is needed, please install one of them first!"
-##        elif [ ! -f "$ENTWARE_FILE" ]; then
-##          error_msg "Entware is needed, please install it first!"
-##        else
-##          run "install_octoeverywhere" "install_menu_ui_k1_2025_cfs_c"
-##        fi;;
 #      21)
 #        disabled_feature;;
 ##        if [ ! -d "$MOONRAKER_FOLDER" ]; then
@@ -388,19 +421,6 @@ function install_menu_k1_2025_cfs_c() {
 ##          error_msg "Moonraker and Nginx are needed, please install them first!"
 ##        else
 ##          run "install_guppyflo" "install_menu_ui_k1_2025_cfs_c"
-##        fi;;
-#      23)
-#        disabled_feature;;
-##        if [ -d "$MOBILERAKER_COMPANION_FOLDER" ]; then
-##          error_msg "Mobileraker Companion is already installed!"
-##        elif [ ! -d "$MOONRAKER_FOLDER" ]; then
-##          error_msg "Moonraker and Nginx are needed, please install them first!"
-##        elif [ ! -d "$FLUIDD_FOLDER" ] && [ ! -d "$MAINSAIL_FOLDER" ]; then
-##          error_msg "Fluidd or Mainsail is needed, please install one of them first!"
-##        elif [ ! -f "$ENTWARE_FILE" ]; then
-##          error_msg "Entware is needed, please install it first!"
-##        else
-##          run "install_mobileraker_companion" "install_menu_ui_k1_2025_cfs_c"
 ##        fi;;
 #      24)
 #        disabled_feature;;

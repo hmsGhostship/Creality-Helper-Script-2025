@@ -27,11 +27,10 @@ function remove_menu_ui_k1_2025_cfs_c() {
   subtitle '•IMPROVEMENTS:'
   menu_option '11' 'Remove' 'Restore Input Shapers'
   menu_option '12' 'Remove' 'Extended Gcode Params'
-  menu_option '13' 'Remove' 'Start Print Calibration'
-  menu_option '14' 'Remove' 'DXC Filament Sensor'
-  menu_option '15' 'Remove' 'CFS-C Universal Purge Speed Fix'
-  menu_option '16' 'Remove' 'Micro-Swiss FlowTech Volumetric Extension'
-  menu_option '17' 'Remove' 'FLY-LLL PLUS Safetysystem'
+  menu_option '13' 'Remove' 'DXC Filament Sensor'
+  menu_option '14' 'Remove' 'CFS-C Universal Purge Speed Fix'
+  menu_option '15' 'Remove' 'Micro-Swiss FlowTech Volumetric Extension'
+  menu_option '16' 'Remove' 'FLY-LLL PLUS Safetysystem'
 #  hr
 #  subtitle '•IMPROVEMENTS:'
 #  disabled_menu_option ' 6' 'Remove' 'Klipper Adaptive Meshing & Purging'
@@ -49,12 +48,12 @@ function remove_menu_ui_k1_2025_cfs_c() {
 #  disabled_menu_option '16' 'Remove' 'Moonraker Timelapse'
 #  disabled_menu_option '17' 'Remove' 'Camera Settings Control'
 #  disabled_menu_option '18' 'Remove' 'USB Camera Support'
-#  hr
-#  subtitle '•REMOTE ACCESS:'
+   hr
+   subtitle '•REMOTE ACCESS:'
 #  disabled_menu_option '19' 'Remove' 'OctoEverywhere'
 #  disabled_menu_option '20' 'Remove' 'Moonraker Obico'
 #  disabled_menu_option '21' 'Remove' 'GuppyFLO'
-#  disabled_menu_option '22' 'Remove' 'Mobileraker Companion'
+   menu_option '22' 'Remove' 'Mobileraker Companion'
 #  disabled_menu_option '23' 'Remove' 'OctoApp Companion'
 #  disabled_menu_option '24' 'Remove' 'SimplyPrint'
   hr
@@ -170,44 +169,47 @@ function remove_menu_k1_2025_cfs_c() {
           run "remove_moonraker_timelapse" "remove_menu_ui_k1_2025_cfs_c"
         fi;;
       11)
-        if [ ! -f "$SHAPER_DEFS_FILE" ]; then
-          error_msg "Restore Input Shapers is not installed!"
+        clear
+        if ! grep -q "^\[input_shaper\]" "$PRINTER_CFG" 2>/dev/null; then
+          remove_menu_ui_k1_2025_cfs_c
+          echo
+          error_msg "Restore Input Shapers is not active in printer.cfg!"
+          echo
         else
           run "remove_restore_input_shapers" "remove_menu_ui_k1_2025_cfs_c"
         fi;;
       12)
-        if [ ! -f "$EXTENDED_GCODE_PARAMS_FILE" ]; then
-          error_msg "Extended Gcode Params is not installed!"
+        clear
+        if ! grep -q "^\[extended_gcode_params\]" "$PRINTER_CFG" 2>/dev/null; then
+          remove_menu_ui_k1_2025_cfs_c
+          echo
+          error_msg "Extended Gcode Params is not active in printer.cfg!"
+          echo
         else
           run "remove_extended_gcode_params" "remove_menu_ui_k1_2025_cfs_c"
         fi;;
       13)
-        if ! grep -q "^\[gcode_macro SDCARD_PRINT_FILE\]" "$PRINTER_CFG" 2>/dev/null; then
-          error_msg "Start Print Calibration is not installed!"
-        else
-          run "remove_start_print_calibration" "remove_menu_ui_k1_2025_cfs_c"
-        fi;;
-      14)
         clear
-        # GEGEN-SCHLOSS: Wenn das LLL Plus aktiv ist, blockieren wir das Entfernen sofort!
-        if [ -f "/usr/data/printer_data/config/Helper-Script/cfs_lll_safety.cfg" ]; then
+        # 1. GEGEN-SCHLOSS: Wenn das LLL Plus live aktiv ist, blockieren wir das Entfernen sofort!
+        if grep -q "^\[include Helper-Script/cfs_lll_safety.cfg\]" "$PRINTER_CFG" 2>/dev/null; then
             remove_menu_ui_k1_2025_cfs_c
             echo
             error_msg "REMOVE-SPERRE: DXC Filament Sensor blockiert!"
             echo -e "  Der Pin PD7 wird aktuell aktiv vom LLL Plus verwendet."
             echo -e "  Bitte entferne zuerst das FLY-LLL PLUS Safetysystem (Option 17)!"
             echo
-        # NATIVE DEINSTALLATION: Wenn frei, dann loeschen
-        elif [ ! -f "/usr/data/printer_data/config/Helper-Script/dxc_sensor.cfg" ]; then
+        # 2. LIVE-PRÜFUNG: Ist der DXC-Sensor überhaupt aktiv eingebunden?
+        elif ! grep -q "^\[include Helper-Script/dxc_sensor.cfg\]" "$PRINTER_CFG" 2>/dev/null; then
             remove_menu_ui_k1_2025_cfs_c
             echo
-            error_msg "DXC Filament Sensor is not installed!"
+            error_msg "DXC Filament Sensor is not active in printer.cfg!"
             echo
         else
-          run "dxc_sensor remove" "remove_menu_ui_k1_2025_cfs_c"
+            # Startet deine neue dxc_sensor.sh mit der dynamischen Backup-Wiederherstellung
+            run "dxc_sensor remove" "remove_menu_ui_k1_2025_cfs_c"
         fi
         ;;
-      15)
+      14)
         clear
         if [ ! -f "$HS_BACKUP_FOLDER/box_control.pyc.orig" ]; then
           remove_menu_ui_k1_2025_cfs_c
@@ -218,7 +220,7 @@ function remove_menu_k1_2025_cfs_c() {
           run "cfs_c_speed_fix remove" "remove_menu_ui_k1_2025_cfs_c"
         fi
         ;;
-      16)
+      15)
         clear
         if [ ! -f "$HS_BACKUP_FOLDER/box.cfg.orig" ]; then
           remove_menu_ui_k1_2025_cfs_c
@@ -229,12 +231,13 @@ function remove_menu_k1_2025_cfs_c() {
           run "cfs_c_flowtech_extension remove" "remove_menu_ui_k1_2025_cfs_c"
         fi
         ;;
-      17)
+      16)
         clear
-        if [ ! -f "/usr/data/printer_data/config/Helper-Script/cfs_lll_safety.cfg" ]; then
+        # PRÜFUNG: Ist das LLL Plus überhaupt live aktiv?
+        if ! grep -q "^\[include Helper-Script/cfs_lll_safety.cfg\]" "$PRINTER_CFG" 2>/dev/null; then
             remove_menu_ui_k1_2025_cfs_c
             echo
-            error_msg "FLY-LLL PLUS Safetysystem is not installed!"
+            error_msg "FLY-LLL PLUS Safetysystem is not active in printer.cfg!"
             echo
         else
             title "[ REMOVE: FLY-LLL PLUS SAFETYSYSTEM ]" "${yellow}"
@@ -247,8 +250,21 @@ function remove_menu_k1_2025_cfs_c() {
             echo -e "  Starte Klipper-Service automatisch neu..."
             echo
             run "restart_klipper" "remove_menu_ui_k1_2025_cfs_c"
-        fi
-        ;;
+        fi;;
+      19)
+        if [ ! -d "$OCTOEVERYWHERE_FOLDER" ]; then
+          error_msg "OctoEverywhere is not installed!"
+        else
+          run "remove_octoeverywhere" "remove_menu_ui_k1_2025_cfs_c"
+          echo -e "\n${yellow} Press Enter to return to the menu...${white}" && read -r _
+        fi;;
+      22)
+        if [ ! -d "$MOBILERAKER_COMPANION_FOLDER" ]; then
+          error_msg "Mobileraker Companion is not installed!"
+        else
+          # Führt die Deinstallation aus und baut danach SOFORT das Menü samt Eingabezeile wieder auf
+          run "remove_mobileraker_companion" "remove_menu_ui_k1_2025_cfs_c"
+        fi;;
 #      6)
 #        disabled_feature;;
 #        if [ ! -d "$KAMP_FOLDER" ]; then

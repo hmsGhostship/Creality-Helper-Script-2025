@@ -20,6 +20,17 @@ function check_file_k1_2025() {
   fi
 }
 
+# REPARIERT & NEU: Die einzig wahre Universal-Prüfung für Klipper (Sektionen & Includes)
+function check_live_status_k1_2025() {
+  if [ ! -f "$PRINTER_CFG" ]; then
+    echo -e "${red}✗"
+  elif grep -q "$1" "$PRINTER_CFG" 2>/dev/null; then
+    echo -e "${green}✓"
+  else
+    echo -e "${red}✗"
+  fi
+}
+
 function check_any_file_k1_2025() {
   local file_path
   for file_path in "$@"; do
@@ -51,8 +62,6 @@ function check_simplyprint_k1_2025() {
   fi
 }
 
-# Tri-state: the camera gate makes a partial disable a normal outcome, so a plain
-# tick would report a half-done state as finished. mDNS is opt-in and excluded.
 function check_creality_services_k1_2025() {
   local svc any_disabled any_enabled
   any_disabled=""
@@ -73,16 +82,8 @@ function check_creality_services_k1_2025() {
   fi
 }
 
-# Tri-state. `~` is not "half done" here, it is the state a firmware update
-# leaves behind: the service file recreated beside the disabled copy, losing the
-# race for port 7125 to Moonraker at every boot. Retire Nexusp Backend offers
-# the repair.
 function check_nexusp_retired_k1_2025() {
   if nexusp_absent; then
-    # This firmware ships no nexusp in either form, so there is nothing to
-    # retire. A red cross here would read as an unfinished action on a printer
-    # where the action does not apply - the Customize menu already checks
-    # nexusp_absent first for the same reason.
     echo -e "${cyan}-"
   elif nexusp_resurrected; then
     echo -e "${yellow}~"
@@ -93,10 +94,6 @@ function check_nexusp_retired_k1_2025() {
   fi
 }
 
-# The port Moonraker actually listens on, which is the whole point of retiring
-# nexusp - and the one thing a user needs to know before pasting any command
-# from a Klipper forum at this printer. Plain text, no colour escapes: info_line
-# pads on ${#status} and a second escaped field would push the box out of shape.
 function check_moonraker_port_k1_2025() {
   local port
   port="$(nexusp_moonraker_port)"
@@ -122,19 +119,27 @@ function info_menu_ui_k1_2025_cfs_c() {
   info_line "$(check_file_k1_2025 "$ENTWARE_FILE")" 'Entware'
   info_line "$(check_file_k1_2025 "$KLIPPER_SHELL_FILE")" 'Klipper Gcode Shell Command'
   hr
-  subtitle '•IMPROVEMENTS:'
-  info_line "$(check_folder_k1_2025 "$KAMP_FOLDER")" 'Klipper Adaptive Meshing & Purging'
-  info_line "$(check_file_k1_2025 "$BUZZER_FILE")" 'Buzzer Support'
-  info_line "$(check_folder_k1_2025 "$NOZZLE_CLEANING_FOLDER")" 'Nozzle Cleaning Fan Control'
-  info_line "$(check_file_k1_2025 "$FAN_CONTROLS_FILE")" 'Fans Control Macros'
-  info_line "$(check_folder_k1_2025 "$IMP_SHAPERS_FOLDER")" 'Improved Shapers Calibrations'
-  info_line "$(check_file_k1_2025 "$SHAPER_DEFS_FILE")" 'Restore Input Shapers'
-  info_line "$(check_file_k1_2025 "$EXTENDED_GCODE_PARAMS_FILE")" 'Extended Gcode Params'
-  info_line "$(check_start_print_calibration_k1_2025)" 'Start Print Calibration'
-  info_line "$(check_file_k1_2025 "$USEFUL_MACROS_FILE")" 'Useful Macros'
-  info_line "$(check_file_k1_2025 "$SAVE_ZOFFSET_FILE")" 'Save Z-Offset Macros'
-  info_line "$(check_file_k1_2025 "$SCREWS_ADJUST_FILE")" 'Screws Tilt Adjust Support'
-  info_line "$(check_file_k1_2025 "$M600_SUPPORT_FILE")" 'M600 Support'
+  subtitle '•IMPROVEMENTS & EXPANSIONS:'
+  # BEREINIGT: Sucht jetzt starr nach der echten Klipper-Sektion [input_shaper]
+  info_line "$(check_live_status_k1_2025 "^\[input_shaper\]")" 'Restore Input Shapers'
+  # BEREINIGT: Nur noch ein einziger, exakter Eintrag fuer die Python-Erweiterung!
+  info_line "$(check_live_status_k1_2025 "^\[extended_gcode_params\]")" 'Extended Gcode Params'
+  info_line "$(check_live_status_k1_2025 "^\[include Helper-Script/dxc_sensor.cfg\]")" 'DXC Filament Sensor'
+  info_line "$(check_file_k1_2025 "$HS_BACKUP_FOLDER/box_control.pyc.orig")" 'CFS-C Universal Purge Speed Fix'
+  info_line "$(check_file_k1_2025 "$HS_BACKUP_FOLDER/box.cfg.orig")" 'Micro-Swiss FlowTech Volumetric Extension'
+  info_line "$(check_live_status_k1_2025 "^\[include Helper-Script/cfs_lll_safety.cfg\]")" 'FLY-LLL PLUS Safetysystem'
+  hr
+  subtitle '•TOOLS & CALIBRATION:'
+  info_line "$(check_live_status_k1_2025 "^\[include Helper-Script/calib_tool_box.cfg\]")" 'Creality Calibration Toolbox (BED MESH)'
+  # info_line "$(check_folder_k1_2025 "$KAMP_FOLDER")" 'Klipper Adaptive Meshing & Purging'
+  # info_line "$(check_file_k1_2025 "$BUZZER_FILE")" 'Buzzer Support'
+  # info_line "$(check_folder_k1_2025 "$NOZZLE_CLEANING_FOLDER")" 'Nozzle Cleaning Fan Control'
+  # info_line "$(check_file_k1_2025 "$FAN_CONTROLS_FILE")" 'Fans Control Macros'
+  # info_line "$(check_folder_k1_2025 "$IMP_SHAPERS_FOLDER")" 'Improved Shapers Calibrations'
+  # info_line "$(check_file_k1_2025 "$USEFUL_MACROS_FILE")" 'Useful Macros'
+  # info_line "$(check_file_k1_2025 "$SAVE_ZOFFSET_FILE")" 'Save Z-Offset Macros'
+  # info_line "$(check_file_k1_2025 "$SCREWS_ADJUST_FILE")" 'Screws Tilt Adjust Support'
+  # info_line "$(check_file_k1_2025 "$M600_SUPPORT_FILE")" 'M600 Support'
   info_line "$(check_file_k1_2025 "$GIT_BACKUP_FILE")" 'Git Backup'
   hr
   subtitle '•CAMERA:'
@@ -174,11 +179,17 @@ function info_menu_k1_2025_cfs_c() {
     read -p " ${white}Type your choice and validate with Enter: ${yellow}" info_menu_opt
     case "${info_menu_opt}" in
       B|b)
-        clear; main_menu; break;;
+        clear
+        main_menu
+        break
+        ;;
       Q|q)
-         clear; exit 0;;
+        clear
+        exit 0
+        ;;
       *)
-        error_msg "Please select a correct choice!";;
+        error_msg "Please select a correct choice!"
+        ;;
     esac
   done
   info_menu_k1_2025_cfs_c
