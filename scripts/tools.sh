@@ -221,7 +221,7 @@ function enable_camera_settings(){
     case "${yn}" in
       Y|y)
         echo -e "${white}"
-        if [ "$model" = "K1_2025" ]; then
+        if [[ "$model" == K1_2025* ]]; then
           if [ -f "$BUILTIN_CAMERA_FILE" ] || [ -f "$BUILTIN_CAMERA_LEGACY_FILE" ]; then
             configure_builtin_camera_k1_2025
           fi
@@ -266,7 +266,7 @@ function disable_camera_settings(){
     case "${yn}" in
       Y|y)
         echo -e "${white}"
-        if [ "$model" = "K1_2025" ]; then
+        if [[ "$model" == K1_2025* ]]; then
           if grep -q "^\[webcam chassis\]\|^\[webcam usb\]" "$MOONRAKER_CFG"; then
             echo -e "Info: Disabling camera settings in moonraker.conf file..."
             sed -i '/^\[webcam chassis\]/,/^$/d' "$MOONRAKER_CFG"

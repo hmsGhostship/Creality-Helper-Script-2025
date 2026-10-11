@@ -46,7 +46,7 @@ EOF
         echo -e "Info: Adding Nginx proxy for go2rtc in $nginx_conf..."
         sed -i '/location ~ \^\/(printer|api|access|machine|server)\/ {/i\
         location /go2rtc/ {\
-            proxy_pass http://127.0.0.1:1984/;\
+            proxy_pass http://127.0.0;\
             proxy_http_version 1.1;\
             proxy_set_header Host $http_host;\
             proxy_set_header X-Real-IP $remote_addr;\
@@ -82,7 +82,8 @@ function install_go2rtc(){
         if [ ! -f "$GO2RTC_CONFIG_FILE" ]; then
           cp "$GO2RTC_CONFIG_FILE_URL" "$GO2RTC_CONFIG_FILE"
         fi
-        if [ "$model" = "K1_2025" ] && [ -d "$MOONRAKER_FOLDER" ]; then
+        # FÜR FORK KORRIGIERT: Zündet nun auch zuverlässig beim K1_2025_CFS-C Modell!
+        if [[ "$model" == K1_2025* ]] && [ -d "$MOONRAKER_FOLDER" ]; then
           configure_go2rtc_k1_2025
           stop_moonraker
           start_moonraker

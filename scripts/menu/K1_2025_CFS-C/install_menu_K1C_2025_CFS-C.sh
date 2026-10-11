@@ -31,6 +31,7 @@ function install_menu_ui_k1_2025_cfs_c() {
   menu_option '14' 'Install' 'CFS-C Universal Purge Speed Fix'
   menu_option '15' 'Install' 'Micro-Swiss FlowTech Volumetric Extension'
   menu_option '16' 'Install' 'FLY-LLL PLUS Safetysystem (Einschalt-Sperre)'
+#  disabled_menu_option '17' 'Install' 'Klipper Adaptive Meshing & Purging'
 #  hr
 #  subtitle '•IMPROVEMENTS:'
 #  disabled_menu_option ' 6' 'Install' 'Klipper Adaptive Meshing & Purging'
@@ -51,10 +52,10 @@ function install_menu_ui_k1_2025_cfs_c() {
    hr
    subtitle '•REMOTE ACCESS:'
 #  disabled_menu_option '19' 'Install' 'OctoEverywhere'
-#  disabled_menu_option '20' 'Install' 'Moonraker Obico'
+   menu_option '20' 'Install' 'Moonraker Obico'
 #  disabled_menu_option '21' 'Install' 'GuppyFLO'
    menu_option '22' 'Install' 'Mobileraker Companion'
-#  disabled_menu_option '23' 'Install' 'OctoApp Companion'
+   menu_option '23' 'Install' 'OctoApp Companion'
 #  disabled_menu_option '24' 'Install' 'SimplyPrint'
   hr
   inner_line
@@ -249,17 +250,39 @@ function install_menu_k1_2025_cfs_c() {
             echo
             run "restart_klipper" "install_menu_ui_k1_2025_cfs_c"
         fi;;
-      19)
-        if [ ! -d "$MOONRAKER_FOLDER" ]; then
-          error_msg "Moonraker and Nginx are needed, please install them first!"
-        elif [ ! -d "$FLUIDD_FOLDER" ] && [ ! -d "$MAINSAIL_FOLDER" ]; then
-          error_msg "Fluidd or Mainsail is needed, please install one of them first!"
-        elif [ ! -f "$ENTWARE_FILE" ]; then
-          error_msg "Entware is needed, please install it first!"
+      17)
+        clear
+        if [ -d "$KAMP_FOLDER" ]; then
+          install_menu_ui_k1_2025_cfs_c
+          echo
+          error_msg "Klipper Adaptive Meshing & Purging is already installed!"
+          echo
         else
-          run "install_octoeverywhere" "install_menu_ui_k1_2025_cfs_c"
-          echo -e "\n${yellow} Press Enter to return to the menu...${white}" && read -r _
+          # Startet deine kamp.sh Installations-Funktion
+          run "install_kamp" "install_menu_ui_k1_2025_cfs_c"
         fi;;
+#      19)
+#        if [ ! -d "$MOONRAKER_FOLDER" ]; then
+#          error_msg "Moonraker and Nginx are needed, please install them first!"
+#        elif [ ! -d "$FLUIDD_FOLDER" ] && [ ! -d "$MAINSAIL_FOLDER" ]; then#
+#          error_msg "Fluidd or Mainsail is needed, please install one of them first!"
+#        elif [ ! -f "$ENTWARE_FILE" ]; then
+#          error_msg "Entware is needed, please install it first!"
+#        else
+#          run "install_octoeverywhere" "install_menu_ui_k1_2025_cfs_c"
+#          echo -e "\n${yellow} Press Enter to return to the menu...${white}" && read -r _
+#        fi;;
+       20)
+         clear
+         if [ ! -d "$MOONRAKER_FOLDER" ]; then
+           error_msg "Moonraker and Nginx are needed, please install them first!"
+         elif [ ! -d "$FLUIDD_FOLDER" ] && [ ! -d "$MAINSAIL_FOLDER" ]; then
+           error_msg "Fluidd or Mainsail is needed, please install one of them first!"
+         elif [ ! -f "$ENTWARE_FILE" ]; then
+           error_msg "Entware is needed, please install it first!"
+         else
+           run "install_moonraker_obico" "install_menu_ui_k1_2025_cfs_c"
+         fi;;
       22)
         if [ -d "$MOBILERAKER_COMPANION_FOLDER" ]; then
           # JETZT KORRIGIERT: Blockiert und gibt die Meldung aus!
@@ -292,6 +315,18 @@ function install_menu_k1_2025_cfs_c() {
           else
             echo -e "\n${yellow} Press Enter to return to the menu...${white}" && read -r _
           fi
+        fi;;
+      23)
+        if [ -d "$OCTOAPP_COMPANION_FOLDER" ]; then
+          error_msg "OctoApp Companion is already installed!"
+        elif [ ! -d "$MOONRAKER_FOLDER" ]; then
+          error_msg "Moonraker and Nginx are needed, please install them first!"
+        elif [ ! -d "$FLUIDD_FOLDER" ] && [ ! -d "$MAINSAIL_FOLDER" ]; then
+          error_msg "Fluidd or Mainsail is needed, please install one of them first!"
+        elif [ ! -f "$ENTWARE_FILE" ]; then
+          error_msg "Entware is needed, please install it first!"
+        else
+          run "install_octoapp_companion" "install_menu_ui_k1_2025_cfs_c"
         fi;;
 #      7)
 #        disabled_feature;;

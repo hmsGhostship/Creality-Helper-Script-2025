@@ -1,0 +1,76 @@
+# =========================================================================
+# 1. NATIVES KLIPPER-SPEICHER-SYSTEM (Update-sicher im Konfig-Ordner)
+# =========================================================================
+# Hier nutzen wir Klippers eigenes System, aber auf dem absolut sicheren Pfad!
+[save_variables]
+filename: /usr/data/printer_data/config/variables.cfg
+
+# =========================================================================
+# 2. DER LIVE-INDIKATOR (RAM-Gedächtnis)
+# =========================================================================
+[gcode_macro _ORCA_CALIB_DATA]
+variable_active: 0
+gcode:
+  # Interner Speicher, bleibt stumm
+
+# =========================================================================
+# 3. DER TASTER (Alphabetisch oben, schaltet RAM & Klipper-Festplatte)
+# =========================================================================
+[gcode_macro A_BED_MESH_CALIB]
+description: Click to switch OrcaSlicer Calibration ON or OFF
+gcode:
+  {% set current_state = printer["gcode_macro _ORCA_CALIB_DATA"].active|int %}
+  {% if current_state == 0 %}
+    SET_GCODE_VARIABLE MACRO=_ORCA_CALIB_DATA VARIABLE=active VALUE=1
+    SAVE_VARIABLE VARIABLE=orca_calib_state VALUE=1
+    M117 🟩 Bed Mesh Calibration: ACTIVE 🟩
+    RESPOND MSG="CFS-C & Lidar Calibration: ENABLED"
+  {% else %}
+    SET_GCODE_VARIABLE MACRO=_ORCA_CALIB_DATA VARIABLE=active VALUE=0
+    SAVE_VARIABLE VARIABLE=orca_calib_state VALUE=0
+    M117 🟥 Bed Mesh Calibration: OFF 🟥
+    RESPOND MSG="CFS-C & Lidar Calibration: DISABLED"
+  {% endif %}
+
+# =========================================================================
+# 4. DAS API-MAKRO (Absolut sicher vor OrcaSlicer-Resets beim Senden)
+# =========================================================================
+[gcode_macro SDCARD_PRINT_FILE]
+rename_existing: SDCARD_PRINT_FILE_BASE
+gcode:
+  {% set calib_enabled = printer["gcode_macro _ORCA_CALIB_DATA"].active|int %}
+  
+  # PROTECTIVE WALL: Für Creality Print
+  {% if 'ISCONTINUEPRINT' in rawparams or 'CALIBRATEMODE' in rawparams %}
+    SDCARD_PRINT_FILE_BASE {rawparams}
+  
+  # ORCASLICER: Wenn aktiv
+  {% elif calib_enabled == 1 %}
+    RESPOND MSG="OrcA-Druck startet: Kalibrierungs-Parameter aktiv!"
+    SDCARD_PRINT_FILE_BASE {rawparams} ISCONTINUEPRINT=0 CALIBRATEMODE=1
+  {% else %}
+    RESPOND MSG="OrcA-Druck startet: Keine Zusatzkalibrierung."
+    SDCARD_PRINT_FILE_BASE {rawparams}
+  {% endif %}
+
+# =========================================================================
+# 5. AUTOMATISCHER SYNC BEIM START (Liest die Datei vollautomatisch beim Booten)
+# =========================================================================
+[delayed_gcode _INIT_ORCA_CALIB_TEXT]
+initial_duration: 2.0
+gcode:
+  # Klipper liest den Zustand hier direkt aus dem nativen Speicher
+  {% set sv = printer.save_variables.variables %}
+  {% set saved_state = sv.orca_calib_state|default(0)|int %}
+  
+  # Synchronisiert die RAM-Variable sofort mit dem echten Wert von der Platte
+  SET_GCODE_VARIABLE MACRO=_ORCA_CALIB_DATA VARIABLE=active VALUE={saved_state}
+  
+  # Aktualisiert die M117 Kachel passend
+  {% if saved_state == 1 %}
+    M117 🟩 Bed Mesh Calibration: ACTIVE 🟩
+    RESPOND MSG="Printer Booted - OrcA Calibration is ACTIVE (Loaded from disk)"
+  {% else %}
+    M117 🟥 Bed Mesh Calibration: OFF 🟥
+    RESPOND MSG="Printer Booted - OrcA Calibration is OFF (Loaded from disk)"
+  {% endif %}

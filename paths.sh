@@ -74,7 +74,7 @@ function set_paths() {
   KLIPPER_EXTRAS_FOLDER="/usr/share/klipper/klippy/extras"
   KLIPPER_CONFIG_FOLDER="${PRINTER_DATA_FOLDER}/config"
   KLIPPER_KLIPPY_FOLDER="/usr/share/klipper/klippy"
-  if [ "$model" = "K1_2025" ]; then
+  if [ "$model" = "K1_2025" ] || [ "$model" = "K1_2025_CFS-C" ]; then
     KLIPPER_SERVICE_URL="${HS_FILES}/services/CS55klipper_service_minimal"
   else
     KLIPPER_SERVICE_URL="${HS_FILES}/services/S55klipper_service"
@@ -171,7 +171,7 @@ function set_paths() {
   CAMERA_SETTINGS_K1_2025_URL="${HS_FILES}/camera-settings/camera-settings-k1c-2025.cfg"
   
   # USB Camera Support
-  if [ "$model" = "K1_2025" ]; then
+  if [ "$model" = "K1_2025" ] || [ "$model" = "K1_2025_CFS-C" ]; then
     USB_CAMERA_FILE="${INITD_FOLDER}/S58usb_camera"
   else
     USB_CAMERA_FILE="${INITD_FOLDER}/S50usb_camera"

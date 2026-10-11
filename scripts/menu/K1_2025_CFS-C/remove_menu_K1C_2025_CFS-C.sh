@@ -31,6 +31,7 @@ function remove_menu_ui_k1_2025_cfs_c() {
   menu_option '14' 'Remove' 'CFS-C Universal Purge Speed Fix'
   menu_option '15' 'Remove' 'Micro-Swiss FlowTech Volumetric Extension'
   menu_option '16' 'Remove' 'FLY-LLL PLUS Safetysystem'
+#  disabled_menu_option '17' 'Remove' 'Klipper Adaptive Meshing & Purging'
 #  hr
 #  subtitle '•IMPROVEMENTS:'
 #  disabled_menu_option ' 6' 'Remove' 'Klipper Adaptive Meshing & Purging'
@@ -51,10 +52,10 @@ function remove_menu_ui_k1_2025_cfs_c() {
    hr
    subtitle '•REMOTE ACCESS:'
 #  disabled_menu_option '19' 'Remove' 'OctoEverywhere'
-#  disabled_menu_option '20' 'Remove' 'Moonraker Obico'
+   menu_option '20' 'Remove' 'Moonraker Obico'
 #  disabled_menu_option '21' 'Remove' 'GuppyFLO'
    menu_option '22' 'Remove' 'Mobileraker Companion'
-#  disabled_menu_option '23' 'Remove' 'OctoApp Companion'
+   menu_option '23' 'Remove' 'OctoApp Companion'
 #  disabled_menu_option '24' 'Remove' 'SimplyPrint'
   hr
   inner_line
@@ -251,12 +252,29 @@ function remove_menu_k1_2025_cfs_c() {
             echo
             run "restart_klipper" "remove_menu_ui_k1_2025_cfs_c"
         fi;;
-      19)
-        if [ ! -d "$OCTOEVERYWHERE_FOLDER" ]; then
-          error_msg "OctoEverywhere is not installed!"
+      17)
+        clear
+        if [ ! -d "$KAMP_FOLDER" ]; then
+          remove_menu_ui_k1_2025_cfs_c
+          echo
+          error_msg "Klipper Adaptive Meshing & Purging is not installed!"
+          echo
         else
-          run "remove_octoeverywhere" "remove_menu_ui_k1_2025_cfs_c"
-          echo -e "\n${yellow} Press Enter to return to the menu...${white}" && read -r _
+          # Startet deine kamp.sh Deinstallations-Funktion
+          run "remove_kamp" "remove_menu_ui_k1_2025_cfs_c"
+        fi;;
+#      19)
+#        if [ ! -d "$OCTOEVERYWHERE_FOLDER" ]; then
+#          error_msg "OctoEverywhere is not installed!"
+#        else
+#          run "remove_octoeverywhere" "remove_menu_ui_k1_2025_cfs_c"
+#          echo -e "\n${yellow} Press Enter to return to the menu...${white}" && read -r _
+#        fi;;
+      20)
+        if [ ! -d "$MOONRAKER_OBICO_FOLDER" ]; then
+          error_msg "Moonraker Obico is not installed!"
+        else
+          run "remove_moonraker_obico" "remove_menu_ui_k1_2025_cfs_c"
         fi;;
       22)
         if [ ! -d "$MOBILERAKER_COMPANION_FOLDER" ]; then
@@ -264,6 +282,12 @@ function remove_menu_k1_2025_cfs_c() {
         else
           # Führt die Deinstallation aus und baut danach SOFORT das Menü samt Eingabezeile wieder auf
           run "remove_mobileraker_companion" "remove_menu_ui_k1_2025_cfs_c"
+        fi;;
+      23)
+        if [ ! -d "$OCTOAPP_COMPANION_FOLDER" ]; then
+          error_msg "OctoApp Companion is not installed!"
+        else
+          run "remove_octoapp_companion" "remove_menu_ui_k1_2025_cfs_c"
         fi;;
 #      6)
 #        disabled_feature;;

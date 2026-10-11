@@ -12,7 +12,8 @@ function install_helper_shims(){
   # K1C 2025: BIN_FOLDER (/usr/apps/usr/bin) is only on Moonraker's PATH at boot.
   # The launcher always prepends /opt/bin (Entware), so a copy there is found on
   # manual restarts too. Guarded on Entware being mounted; no-op on other models.
-  if [ "$model" = "K1_2025" ] && [ -d /opt/bin ]; then
+  # FÜR FORK KORRIGIERT: Greift jetzt auch beim K1_2025_CFS-C
+  if [[ "$model" == K1_2025* ]] && [ -d /opt/bin ]; then
     cp -f "$SUPERVISOR_URL" "$SUPERVISOR_OPT_FILE"
     chmod 755 "$SUPERVISOR_OPT_FILE"
   fi
@@ -25,7 +26,8 @@ function install_helper_shims(){
 
 function remove_helper_shims(){
   rm -f "$SUPERVISOR_FILE" "$SUDO_FILE" "$SYSTEMCTL_FILE"
-  [ "$model" = "K1_2025" ] && rm -f "$SUPERVISOR_OPT_FILE"
+  # FÜR FORK KORRIGIERT: Wildcard-Prüfung zum sauberen Aufräumen
+  [[ "$model" == K1_2025* ]] && rm -f "$SUPERVISOR_OPT_FILE"
 }
 
 function moonraker_nginx_message(){
@@ -111,7 +113,8 @@ function install_moonraker_nginx(){
           rm -f "$PRINTER_DATA_FOLDER"/moonraker.asvc
         fi
         cp "$MOONRAKER_URL3" "$PRINTER_DATA_FOLDER"/moonraker.asvc
-        if [ "$model" = "K1_2025" ]; then
+        # FÜR FORK KORRIGIERT: Zündet nun auch beim K1_2025_CFS-C, damit der Touchscreen aktiv bleibt!
+        if [[ "$model" == K1_2025* ]]; then
           configure_moonraker_nginx_k1_2025
         fi
         echo -e "Info: Applying changes from official repo..."
@@ -145,9 +148,9 @@ function remove_moonraker_nginx(){
         # On a retired box the touchscreen's ONLY backend is this Moonraker.
         # Removing it while nexusp stays disabled leaves nothing bound to :7125
         # - not now and not after any reboot - so the screen dies permanently
-        # with nothing connecting it to this menu entry. install_moonraker_nginx
-        # got this guard; the adjacent removal needs it just as much.
-        if [ "$model" = "K1_2025" ] && nexusp_retired && ! nexusp_present; then
+        # with nothing connecting it to this menu entry.
+        # FÜR FORK KORRIGIERT: Schützt das CFS-C Display zuverlässig vor dem Blackscreen
+        if [[ "$model" == K1_2025* ]] && nexusp_retired && ! nexusp_present; then
           error_msg "Nexusp Backend is retired, so this Moonraker is the touchscreen's only backend!"
           echo -e " ${darkred}Removing it now would leave nothing answering port 7125 and${white}"
           echo -e " ${darkred}the touchscreen dead permanently.${white}"

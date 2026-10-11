@@ -5,15 +5,16 @@ clear
 trap 'echo -en "\033[m"' EXIT INT
 
 HELPER_SCRIPT_FOLDER="$(dirname "$(readlink -f "$0")")"
+
+# EXZISTENZIELL: Grundlegende Pfade und Strukturen sofort laden
+if [ -f "${HELPER_SCRIPT_FOLDER}/path.sh" ]; then
+  . "${HELPER_SCRIPT_FOLDER}/path.sh"
+else
+  echo "Error: Critical path.sh not found!" > /dev/stderr
+  exit 1
+fi
+
 for script in "${HELPER_SCRIPT_FOLDER}/scripts/"*.sh; do . "${script}"; done
-for script in "${HELPER_SCRIPT_FOLDER}/scripts/menu/"*.sh; do . "${script}"; done
-for script in "${HELPER_SCRIPT_FOLDER}/scripts/menu/K1/"*.sh; do . "${script}"; done
-for script in "${HELPER_SCRIPT_FOLDER}/scripts/menu/K1_2025/"*.sh; do . "${script}"; done
-for script in "${HELPER_SCRIPT_FOLDER}/scripts/menu/K1_2025_CFS-C/"*.sh; do . "${script}"; done
-for script in "${HELPER_SCRIPT_FOLDER}/scripts/menu/3V3/"*.sh; do . "${script}"; done
-for script in "${HELPER_SCRIPT_FOLDER}/scripts/menu/3KE/"*.sh; do . "${script}"; done
-for script in "${HELPER_SCRIPT_FOLDER}/scripts/menu/10SE/"*.sh; do . "${script}"; done
-for script in "${HELPER_SCRIPT_FOLDER}/scripts/menu/E5M/"*.sh; do . "${script}"; done
 
 function update_helper_script() {
   echo -e "${white}"
@@ -107,6 +108,37 @@ function detect_model() {
 }
 
 detect_model
+
+for script in "${HELPER_SCRIPT_FOLDER}/scripts/menu/"*.sh; do . "${script}"; done
+
+# 3. NUR die Menü-Skripte laden, die für das erkannte Modell relevant sind
+case "${model}" in
+  "K1")
+    for script in "${HELPER_SCRIPT_FOLDER}/scripts/menu/K1/"*.sh; do . "${script}"; done
+    ;;
+  "K1_2025")
+    for script in "${HELPER_SCRIPT_FOLDER}/scripts/menu/K1_2025/"*.sh; do . "${script}"; done
+    ;;
+  "K1_2025_CFS-C")
+    for script in "${HELPER_SCRIPT_FOLDER}/scripts/menu/K1_2025_CFS-C/"*.sh; do . "${script}"; done
+    ;;
+  "3V3")
+    for script in "${HELPER_SCRIPT_FOLDER}/scripts/menu/3V3/"*.sh; do . "${script}"; done
+    ;;
+  "3KE")
+    for script in "${HELPER_SCRIPT_FOLDER}/scripts/menu/3KE/"*.sh; do . "${script}"; done
+    ;;
+  "10SE")
+    for script in "${HELPER_SCRIPT_FOLDER}/scripts/menu/10SE/"*.sh; do . "${script}"; done
+    ;;
+  "E5M")
+    for script in "${HELPER_SCRIPT_FOLDER}/scripts/menu/E5M/"*.sh; do . "${script}"; done
+    ;;
+  *)
+    echo "Warning: No specific menu loaded for model: ${model}"
+    ;;
+esac
+
 set_paths
 
 if [ ! -L "$BIN_FOLDER"/helper ]; then
@@ -114,7 +146,7 @@ if [ ! -L "$BIN_FOLDER"/helper ]; then
 fi
 rm -rf /root/.cache
 
-if [ -z "$model" ] && [ "$model" != "K1_2025" ] && [ "$model" != "K1_2025_CFS-C" ] && [ ! -f $INITD_FOLDER/S58factoryreset ]; then
+if [ -n "$model" ] && [ "$model" != "K1_2025" ] && [ "$model" != "K1_2025_CFS-C" ] && [ ! -f $INITD_FOLDER/S58factoryreset ]; then
   cp "$HS_FILES/services/S58factoryreset" $INITD_FOLDER/S58factoryreset
   chmod 755 $INITD_FOLDER/S58factoryreset
 fi

@@ -59,7 +59,8 @@ function k1_2025_opt_mount(){
 
 # Call when cameras are (re)installed so existing printers get S48 without reinstalling Entware.
 function k1_2025_migrate_entware_boot_if_needed() {
-  [ "$model" = "K1_2025" ] || return 0
+  # FÜR FORK KORRIGIERT: Wildcard-Prüfung
+  [[ "$model" == K1_2025* ]] || return 0
   [ -f "$ENTWARE_OPT_MOUNT" ] || return 0
   k1_2025_write_entware_init_script
 }
@@ -85,7 +86,7 @@ function verify_entware_install(){
 
 # /opt/etc/opkg.conf lives on the printer's persistent /opt, which no helper
 # script update touches, so printers set up before the feed moved still point at
-# bin.tranducanh.com. That host stopped serving the repository. Repair it in
+# ://tranducanh.com. That host stopped serving the repository. Repair it in
 # place, matching on the hostname so any feed lines the user added survive.
 function migrate_entware_feed_host(){
   local conf="/opt/etc/opkg.conf"
@@ -93,7 +94,8 @@ function migrate_entware_feed_host(){
 
   # On K1 2025 /opt is a loop mount that only S48entware creates; helper.sh
   # never mounts it, so an unmounted /opt means there is nothing to migrate.
-  if [ "$model" = "K1_2025" ] && ! grep -q " /opt " /proc/mounts 2>/dev/null; then
+  # FÜR FORK KORRIGIERT: Wildcard-Prüfung
+  if [[ "$model" == K1_2025* ]] && ! grep -q " /opt " /proc/mounts 2>/dev/null; then
     return 0
   fi
   [ -f "$conf" ] || return 0
@@ -112,7 +114,7 @@ function migrate_entware_feed_host(){
   fi
 
   echo -e "${white}"
-  echo -e " ${green}Entware package feed moved to bin.entware.net (bin.tranducanh.com is gone).${white}"
+  echo -e " ${green}Entware package feed moved to bin.entware.net (://tranducanh.com is gone).${white}"
   echo -e " Run ${yellow}opkg update${white} before installing packages, so the package list is refreshed too."
   echo
   # main_menu clears the screen, so pause once to let the notice be read. Never
@@ -131,9 +133,10 @@ function install_entware(){
         echo -e "${white}"
         echo -e "Info: Running Entware installer..."
         set +e
-        if [ "$model" = "K1_2025" ]; then
+        # FÜR FORK KORRIGIERT: Wildcard-Prüfung für die 2025er Loop-Image Installation
+        if [[ "$model" == K1_2025* ]]; then
           k1_2025_opt_mount
-          $HS_FILES/fixes/curl -L "https://bin.entware.net/mipselsf-k3.4/installer/generic.sh" | sh
+          $HS_FILES/fixes/curl -L "https://entware.net" | sh
           export PATH=/opt/bin:/opt/sbin:$PATH
           opkg update
 
@@ -173,7 +176,8 @@ function remove_entware(){
     case "${yn}" in
       Y|y)
         echo -e "${white}"
-        if [ "$model" = "K1_2025" ]; then
+        # FÜR FORK KORRIGIERT: Wildcard-Prüfung zum sauberen Unmounten und Löschen der 2025er Scripte
+        if [[ "$model" == K1_2025* ]]; then
           echo -e "Info: Removing Entware boot scripts (K1 2025)..."
           rm -f "$INITD_FOLDER/S48entware" "$INITD_FOLDER/S56entware"
           if grep -q " /opt " /proc/mounts; then
