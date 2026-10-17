@@ -34,67 +34,126 @@ function customize_menu_k1_2025() {
     read -p " ${white}Type your choice and validate with Enter: ${yellow}" customize_menu_opt
     case "${customize_menu_opt}" in
       1)
+        clear
         if [ -f "$FLUIDD_LOGO_FILE" ]; then
+          customize_menu_ui_k1_2025
+          echo
           error_msg "Creality Dynamic Logos for Fluidd are already installed!"
+          echo
         elif [ ! -d "$FLUIDD_FOLDER" ]; then
+          customize_menu_ui_k1_2025
+          echo
           error_msg "Fluidd is needed, please install it first!"
+          echo
         else
           run "install_creality_dynamic_logos" "customize_menu_ui_k1_2025"
-        fi;;
+        fi
+        ;;
       2)
+        clear
         if [ -f "$CLOUD_BLOCK_SERVICE_FILE" ]; then
+          customize_menu_ui_k1_2025
+          echo
           error_msg "Block Creality Cloud Telemetry is already installed!"
+          echo
         else
           run "install_block_creality_cloud" "customize_menu_ui_k1_2025"
-        fi;;
+        fi
+        ;;
       3)
+        clear
         if [ ! -f "$CLOUD_BLOCK_SERVICE_FILE" ]; then
+          customize_menu_ui_k1_2025
+          echo
           error_msg "Block Creality Cloud Telemetry is not installed!"
+          echo
         else
           run "remove_block_creality_cloud" "customize_menu_ui_k1_2025"
-        fi;;
+        fi
+        ;;
       4)
+        clear
         if creality_services_absent; then
+          customize_menu_ui_k1_2025
+          echo
           error_msg "No Creality stock services were found on this firmware!"
+          echo
         elif ! creality_services_pending; then
+          customize_menu_ui_k1_2025
+          echo
           error_msg "Creality Stock Services are already disabled!"
+          echo
         else
           run "disable_creality_services" "customize_menu_ui_k1_2025"
-        fi;;
+        fi
+        ;;
       5)
+        clear
         if creality_services_absent; then
+          customize_menu_ui_k1_2025
+          echo
           error_msg "No Creality stock services were found on this firmware!"
+          echo
         elif ! creality_services_disabled_present; then
+          customize_menu_ui_k1_2025
+          echo
           error_msg "Creality Stock Services are not disabled!"
+          echo
         else
           run "restore_creality_services" "customize_menu_ui_k1_2025"
-        fi;;
+        fi
+        ;;
       6)
+        clear
         if nexusp_absent; then
+          customize_menu_ui_k1_2025
+          echo
           error_msg "No nexusp service was found on this firmware!"
+          echo
         elif nexusp_retired && ! nexusp_resurrected; then
+          customize_menu_ui_k1_2025
+          echo
           error_msg "Nexusp Backend is already retired!"
+          echo
         else
-          # nexusp_resurrected falls through on purpose: a firmware update put
-          # the service file back and retire_nexusp offers to re-apply the
-          # rename, which is the only repair for it.
           run "retire_nexusp" "customize_menu_ui_k1_2025"
-        fi;;
+        fi
+        ;;
       7)
+        clear
         if nexusp_absent; then
+          customize_menu_ui_k1_2025
+          echo
           error_msg "No nexusp service was found on this firmware!"
+          echo
         elif ! nexusp_retired; then
+          customize_menu_ui_k1_2025
+          echo
           error_msg "Nexusp Backend is not retired!"
+          echo
         else
           run "restore_nexusp" "customize_menu_ui_k1_2025"
-        fi;;
+        fi
+        ;;
+      8)
+        clear
+        disable_cfsc_menu
+        break
+        ;;
       B|b)
-        clear; main_menu; break;;
+        clear
+        main_menu
+        break
+        ;;
       Q|q)
-         clear; exit 0;;
+        clear
+        exit 0
+        ;;
       *)
-        error_msg "Please select a correct choice!";;
+        error_msg "Please select a correct choice!"
+        ;;
     esac
   done
+  # REPARIERT: Ruft nun rekursiv die Hauptfunktion auf, um die Eingabezeile frisch zu laden
   customize_menu_k1_2025
 }

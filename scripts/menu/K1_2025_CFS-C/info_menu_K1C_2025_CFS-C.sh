@@ -2,7 +2,7 @@
 
 set -e
 
-function check_folder_k1_2025(){
+function check_folder_k1_2025() {
   local folder_path="$1"
   if [ -d "$folder_path" ]; then
     echo -e "${green}✓"

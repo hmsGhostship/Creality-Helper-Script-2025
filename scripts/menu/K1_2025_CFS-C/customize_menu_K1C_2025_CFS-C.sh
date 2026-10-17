@@ -12,29 +12,14 @@ function customize_menu_ui_k1_2025_cfs_c() {
   hr
   menu_option '2' 'Install' 'Block Creality Cloud Telemetry'
   menu_option '3' 'Remove' 'Block Creality Cloud Telemetry'
-  
-  # ABSTURZSICHER: Original-Textlaengen beibehalten!
-  if grep -q "mb-料盒" /usr/data/printer_data/config/printer.cfg 2>/dev/null; then
-    disabled_menu_option '4' 'Disable' 'Creality Stock Services'
-  else
-    menu_option '4' 'Disable' 'Creality Stock Services'
-  fi
+  disabled_menu_option '4' 'Disable' 'Creality Stock Services'
   menu_option '5' 'Restore' 'Creality Stock Services'
   hr
-  
-  # ABSTURZSICHER: Original-Textlaengen beibehalten!
-  if grep -q "mb-料盒" /usr/data/printer_data/config/printer.cfg 2>/dev/null; then
-    disabled_menu_option '6' 'Retire' 'Nexusp Backend'
-  else
-    menu_option '6' 'Retire' 'Nexusp Backend'
-  fi
+  disabled_menu_option '6' 'Retire' 'Nexusp Backend'
   menu_option '7' 'Restore' 'Nexusp Backend'
   hr
-  
-  # DEINE NEUE RESET OPTION
   menu_option '8' 'Remove' 'CFS-C recognition (back to K1_2025)'
   hr
-
   inner_line
   hr
   bottom_menu_option 'b' 'Back to [Main Menu]' "${yellow}"
@@ -45,7 +30,7 @@ function customize_menu_ui_k1_2025_cfs_c() {
 }
 
 
-# DEINE NEUE ENTFERNEN-FUNKTION
+# Remove the CFS-C option and revert to K1C 2025.
 function disable_cfsc_menu() {
   clear
   top_line
@@ -208,6 +193,5 @@ function customize_menu_k1_2025_cfs_c() {
         ;;
     esac
   done
-  # REPARIERT: Ruft nun rekursiv die Hauptfunktion auf, um die Eingabezeile frisch zu laden
   customize_menu_k1_2025_cfs_c
 }

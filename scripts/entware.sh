@@ -49,11 +49,26 @@ function k1_2025_opt_mount(){
     mkfs.ext4 -F "$ENTWARE_OPT_MOUNT"
   fi
 
+  # 1. Write a boot script (containing the safe `|| exit 1`)
   k1_2025_write_entware_init_script
 
-  echo "Info: Mounting Entware /opt for this session..."
+  echo "Info: Testing Loop-Mount capability for this session..."
   if ! grep -q " /opt " /proc/mounts; then
-    mount -o loop "$ENTWARE_OPT_MOUNT" /opt
+    # 2. THE CLEVER, FOOLPROOF FIX:
+    # We try to mount. If it fails, the fallback kicks in!
+    mount -o loop "$ENTWARE_OPT_MOUNT" /opt || {
+      echo -e "${red}!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!${white}"
+      echo -e "${red}CRITICAL WARNING: Loop-Mount is BLOCKED by your printer firmware!${white}"
+      echo -e "${red}To protect your system from flash overflow, live install is stopped.${white}"
+      echo -e "${red}!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!${white}"
+      echo
+      echo -e "${yellow}Clever Fallback initiated:${white} The boot script S48entware was safely written."
+      echo -e "We will now force a system reboot to let the hardware init the mount."
+      echo
+      read -p "Press Enter to safely REBOOT the printer now... " _
+      reboot
+      exit 1
+    }
   fi
 }
 

@@ -6,7 +6,7 @@ trap 'echo -en "\033[m"' EXIT INT
 
 HELPER_SCRIPT_FOLDER="$(dirname "$(readlink -f "$0")")"
 
-# EXZISTENZIELL: Grundlegende Pfade und Strukturen sofort laden
+# ESSENTIAL: Instantly load fundamental paths and structures
 if [ -f "${HELPER_SCRIPT_FOLDER}/path.sh" ]; then
   . "${HELPER_SCRIPT_FOLDER}/path.sh"
 else
@@ -86,19 +86,18 @@ function detect_model() {
     elif [ -z "$get_model" ] && get_sn_mac.sh model_str 2>&1 | grep -iq 'K1'; then
       #K1 2025, K1Max 2025, ...
       model="K1_2025"
-      
-    elif echo "$get_model" | grep -iq "K1"; then
-      model="K1"
-    elif echo "$get_model" | grep -iq "F001"; then
-      model="3V3"
-    elif echo "$get_model" | grep -iq "F002"; then
-      model="3V3"
-    elif echo "$get_model" | grep -iq "F005"; then
-      model="3KE"
-    elif echo "$get_model" | grep -iq "F003"; then
-      model="10SE"
-    elif echo "$get_model" | grep -iq "F004"; then
-      model="E5M"
+#    elif echo "$get_model" | grep -iq "K1"; then
+#      model="K1"
+#    elif echo "$get_model" | grep -iq "F001"; then
+#      model="3V3"
+#    elif echo "$get_model" | grep -iq "F002"; then
+#      model="3V3"
+#    elif echo "$get_model" | grep -iq "F005"; then
+#      model="3KE"
+#    elif echo "$get_model" | grep -iq "F003"; then
+#      model="10SE"
+#    elif echo "$get_model" | grep -iq "F004"; then
+#      model="E5M"
     else
       echo "Unsupported model!" > /dev/stderr
     fi
@@ -111,7 +110,7 @@ detect_model
 
 for script in "${HELPER_SCRIPT_FOLDER}/scripts/menu/"*.sh; do . "${script}"; done
 
-# 3. NUR die Menü-Skripte laden, die für das erkannte Modell relevant sind
+# Load ONLY the menu scripts relevant to the detected model
 case "${model}" in
   "K1")
     for script in "${HELPER_SCRIPT_FOLDER}/scripts/menu/K1/"*.sh; do . "${script}"; done

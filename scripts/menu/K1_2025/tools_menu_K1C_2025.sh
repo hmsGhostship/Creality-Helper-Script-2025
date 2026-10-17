@@ -4,6 +4,7 @@ set -e
 
 function tools_menu_ui_k1_2025() {
   top_line
+  title "• CREALITY $(script_title) •" "${blue}"
   title '[ TOOLS MENU ]' "${yellow}"
   inner_line
   hr
@@ -45,83 +46,143 @@ function tools_menu_k1_2025() {
     read -p " ${white}Type your choice and validate with Enter: ${yellow}" tools_menu_opt
     case "${tools_menu_opt}" in
       1)
+        clear
         if [ -f "$INITD_FOLDER"/disabled.S55klipper_service ] || [ -f "$INITD_FOLDER"/disabled.CS55klipper_service ]; then
+          tools_menu_ui_k1_2025
+          echo
           error_msg "Updating Klipper configuration files is already prevented!"
+          echo
         else
           run "prevent_updating_klipper_files" "tools_menu_ui_k1_2025"
-        fi;;
+        fi
+        ;;
       2)
+        clear
         if [ ! -f "$INITD_FOLDER"/disabled.S55klipper_service ] && [ ! -f "$INITD_FOLDER"/disabled.CS55klipper_service ]; then
+          tools_menu_ui_k1_2025
+          echo
           error_msg "Updating Klipper configuration files is already allowed!"
+          echo
         else
           run "allow_updating_klipper_files" "tools_menu_ui_k1_2025"
-        fi;;
+        fi
+        ;;
       3)
-        disabled_feature;;
-#        if [ -f "$KLIPPER_KLIPPY_FOLDER"/gcode.py ]; then
-#          run "printing_gcode_from_folder" "tools_menu_ui_k1_2025"
-#        fi;;
+        clear
+        disabled_feature
+        ;;
       4)
+        clear
         if [ ! -f "$BUILTIN_CAMERA_FILE" ] && [ ! -f "$BUILTIN_CAMERA_LEGACY_FILE" ] && [ ! -f "$USB_CAMERA_FILE" ] && [ ! -f "$USB_CAMERA_LEGACY_FILE" ]; then
+          tools_menu_ui_k1_2025
+          echo
           error_msg "Built-in Camera Fix or USB Camera Support is needed, please install one first!"
+          echo
         elif grep -q "^\[webcam chassis\]\|^\[webcam usb\]" "$MOONRAKER_CFG"; then
+          tools_menu_ui_k1_2025
+          echo
           error_msg "Camera settings are already enabled in Moonraker!"
+          echo
         else
           run "enable_camera_settings" "tools_menu_ui_k1_2025"
-        fi;;
+        fi
+        ;;
       5)
+        clear
         if ! grep -q "^\[webcam chassis\]\|^\[webcam usb\]" "$MOONRAKER_CFG"; then
+          tools_menu_ui_k1_2025
+          echo
           error_msg "Camera settings are already disabled in Moonraker!"
+          echo
         else
           run "disable_camera_settings" "tools_menu_ui_k1_2025"
-        fi;;
+        fi
+        ;;
       6)
+        clear
         if grep -q "^\[output_pin LED\]" "$PRINTER_CFG"; then
+          tools_menu_ui_k1_2025
+          echo
           error_msg "Chassis light control is already present in printer.cfg!"
+          echo
         else
           run "add_chassis_light_control" "tools_menu_ui_k1_2025"
-        fi;;
+        fi
+        ;;
       7)
+        clear
         if [ ! -d "$NGINX_FOLDER" ]; then
+          tools_menu_ui_k1_2025
+          echo
           error_msg "Nginx is not installed!"
+          echo
         else
           run "restart_nginx_action" "tools_menu_ui_k1_2025"
-        fi;;
+        fi
+        ;;
       8)
+        clear
         if [ ! -d "$MOONRAKER_FOLDER" ]; then
+          tools_menu_ui_k1_2025
+          echo
           error_msg "Moonraker is not installed!"
+          echo
         else
           run "restart_moonraker_action" "tools_menu_ui_k1_2025"
-        fi;;
+        fi
+        ;;
       9)
+        clear
         if [ ! -f "$INITD_FOLDER"/CS55klipper_service ] && [ ! -f "$INITD_FOLDER"/S55klipper_service ]; then
+          tools_menu_ui_k1_2025
+          echo
           error_msg "Klipper service is not present!"
+          echo
         else
           run "restart_klipper_action" "tools_menu_ui_k1_2025"
-        fi;;
+        fi
+        ;;
       10)
+        clear
         if [ ! -f "$ENTWARE_FILE" ]; then
+          tools_menu_ui_k1_2025
+          echo
           error_msg "Entware is not installed!"
+          echo
         else
           run "update_entware_packages" "tools_menu_ui_k1_2025"
-        fi;;
+        fi
+        ;;
       11)
-        run "clear_cache" "tools_menu_ui_k1_2025";;
+        clear
+        run "clear_cache" "tools_menu_ui_k1_2025"
+        ;;
       12)
-        run "clear_logs" "tools_menu_ui_k1_2025";;
+        clear
+        run "clear_logs" "tools_menu_ui_k1_2025"
+        ;;
       13)
-        disabled_feature;;
-#        run "restore_previous_firmware" "tools_menu_ui_k1_2025";;
+        clear
+        disabled_feature
+        ;;
       14)
-        disabled_feature;;
-#        run "reset_factory_settings" "tools_menu_ui_k1_2025";;
+        clear
+        disabled_feature
+        ;;
       B|b)
-        clear; main_menu; break;;
+        clear
+        main_menu
+        break
+        ;;
       Q|q)
-         clear; exit 0;;
+        clear
+        exit 0
+        ;;
       *)
-         error_msg "Please select a correct choice!";;
+        error_msg "Please select a correct choice!"
+        ;;
     esac
   done
+  # REPARIERT: Ruft nun rekursiv die korrekte Hauptfunktion auf, um die Eingabezeile frisch zu laden
   tools_menu_k1_2025
 }
