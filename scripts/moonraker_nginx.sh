@@ -120,7 +120,7 @@ function install_moonraker_nginx(){
         echo -e "Info: Applying changes from official repo..."
         cd "$MOONRAKER_FOLDER"/moonraker
         chown -R root:root .
-        git stash; git checkout master; git pull
+        #git stash; git checkout master; git pull
         install_helper_shims
         echo -e "Info: Starting Nginx service..."
         start_nginx
