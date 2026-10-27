@@ -14,7 +14,14 @@ else
   exit 1
 fi
 
+# == HIER IST DIE ÄNDERUNG ==
+# Wir rufen die Erkennung und die Pfade sofort auf, BEVOR die Skripte geladen werden
+detect_model
+set_paths
+
+# Erst danach folgt die Schleife für deine Skripte (wie dxc_sensor.sh)
 for script in "${HELPER_SCRIPT_FOLDER}/scripts/"*.sh; do . "${script}"; done
+# ===========================
 
 function update_helper_script() {
   echo -e "${white}"
@@ -106,7 +113,7 @@ function detect_model() {
   echo "Detected model: $model"
 }
 
-detect_model
+#detect_model
 
 for script in "${HELPER_SCRIPT_FOLDER}/scripts/menu/"*.sh; do . "${script}"; done
 
@@ -138,7 +145,7 @@ case "${model}" in
     ;;
 esac
 
-set_paths
+#set_paths
 
 if [ ! -L "$BIN_FOLDER"/helper ]; then
   ln -sf "$HELPER_SCRIPT_FOLDER"/helper.sh "$BIN_FOLDER"/helper > /dev/null 2>&1
