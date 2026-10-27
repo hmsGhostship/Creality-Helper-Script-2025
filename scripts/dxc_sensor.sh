@@ -1,10 +1,8 @@
 #!/bin/sh
 
-STATISCHER_PFAD="/usr/data/printer_data/config/printer.cfg"
-SOURCE_FILE="/usr/data/helper-script/files/dxc-filament-sensor/dxc_sensor.cfg"
-TARGET_DIR="/usr/data/printer_data/config/Helper-Script"
-TARGET_FILE="$TARGET_DIR/dxc_sensor.cfg"
-BACKUP_FILE="$TARGET_DIR/dxc_sensor_factory_backup.cfg"
+SOURCE_FILE="$HS_FILES/dxc-filament-sensor/dxc_sensor.cfg"
+TARGET_FILE="$HS_CONFIG_FOLDER/dxc_sensor.cfg"
+BACKUP_FILE="$HS_CONFIG_FOLDER/dxc_sensor_factory_backup.cfg"
 INCLUDE_LINE="[include Helper-Script/dxc_sensor.cfg]"
 
 dxc_sensor() {
@@ -16,23 +14,23 @@ dxc_sensor() {
           return 1
       fi
       
-      mkdir -p "$TARGET_DIR"
-      chmod 755 "$TARGET_DIR"
+      mkdir -p "$HS_CONFIG_FOLDER"
+      chmod 755 "$HS_CONFIG_FOLDER"
       
       # 1. DYNAMISCHE SICHERUNG: Extrahiere den originalen Block 1:1
-      if grep -q "^\[filament_switch_sensor filament_sensor\]" "$STATISCHER_PFAD"; then
+      if grep -q "^\[filament_switch_sensor filament_sensor\]" "$PRINTER_CFG"; then
           echo "Originalen filament_sensor Block gefunden. Sichere Werkszustand..."
           # Extrahiert alles von der Sektion bis zur naechsten Sektion [
-          awk '/^\[filament_switch_sensor filament_sensor\]/,/^\[/ { if ($0 !~ /^\[/ || NR==WY) print }' "$STATISCHER_PFAD" | grep -v "^\[.*\]$" > "$BACKUP_FILE"
+          awk '/^\[filament_switch_sensor filament_sensor\]/,/^\[/ { if ($0 !~ /^\[/ || NR==WY) print }' "$PRINTER_CFG" | grep -v "^\[.*\]$" > "$BACKUP_FILE"
           # Fuege die Original-Ueberschrift oben im Backup wieder an
           sed -i '1i [filament_switch_sensor filament_sensor]' "$BACKUP_FILE"
           echo "Werkszustand dynamisch unter $BACKUP_FILE gesichert."
           
           # 2. DEAKTIVIERUNG: Den originalen Block in der printer.cfg auskommentieren
           # Wir setzen eine Raute vor jede Zeile des Blocks, bis die naechste Sektion beginnt
-          sed -i '/^\[filament_switch_sensor filament_sensor\]/,/^\[/ { /^\[/! s/^/# /; /^[[:space:]]*[^#]/ s/^/# / }' "$STATISCHER_PFAD"
+          sed -i '/^\[filament_switch_sensor filament_sensor\]/,/^\[/ { /^\[/! s/^/# /; /^[[:space:]]*[^#]/ s/^/# / }' "$PRINTER_CFG"
           # Die Hauptueberschrift separat auskommentieren
-          sed -i 's|^\[filament_switch_sensor filament_sensor\]|# [filament_switch_sensor filament_sensor]|g' "$STATISCHER_PFAD"
+          sed -i 's|^\[filament_switch_sensor filament_sensor\]|# [filament_switch_sensor filament_sensor]|g' "$PRINTER_CFG"
       else
           echo "Hinweis: Kein aktiver [filament_switch_sensor filament_sensor] Block in printer.cfg gefunden."
       fi
@@ -42,11 +40,11 @@ dxc_sensor() {
       chmod 644 "$TARGET_FILE"
       
       # Alten DXC-Include-Eintrag saeubern
-      sed -i '/^\[include Helper-Script\/dxc_sensor.cfg\]/d' "$STATISCHER_PFAD"
-      sed -i '/^#[[:space:]]*\[include Helper-Script\/dxc_sensor.cfg\]/d' "$STATISCHER_PFAD"
+      sed -i '/^\[include Helper-Script\/dxc_sensor.cfg\]/d' "$PRINTER_CFG"
+      sed -i '/^#[[:space:]]*\[include Helper-Script\/dxc_sensor.cfg\]/d' "$PRINTER_CFG"
       
       # Das neue Include in Zeile 2 einsetzen
-      sed -i "2i $INCLUDE_LINE" "$STATISCHER_PFAD"
+      sed -i "2i $INCLUDE_LINE" "$PRINTER_CFG"
       
       echo "DXC Sensor erfolgreich via Helper-Script-System installiert."
       echo "Info: Restarting Klipper service..."
@@ -57,18 +55,18 @@ dxc_sensor() {
       echo "Starte Deinstallation des DXC Filament Sensors..."
       
       # 1. DXC-INCLUDE ENTFERNEN
-      sed -i '/^\[include Helper-Script\/dxc_sensor.cfg\]/d' "$STATISCHER_PFAD"
-      sed -i '/^#[[:space:]]*\[include Helper-Script\/dxc_sensor.cfg\]/d' "$STATISCHER_PFAD"
+      sed -i '/^\[include Helper-Script\/dxc_sensor.cfg\]/d' "$PRINTER_CFG"
+      sed -i '/^#[[:space:]]*\[include Helper-Script\/dxc_sensor.cfg\]/d' "$PRINTER_CFG"
       
       # 2. ALTEN AUSKOMMENTIERTEN BLOCK LÖSCHEN
       # Wir loeschen den temporaer auskommentierten Bereich aus der printer.cfg
-      sed -i '/^# \[filament_switch_sensor filament_sensor\]/,/^\[/ { /^\[/!d }' "$STATISCHER_PFAD"
+      sed -i '/^# \[filament_switch_sensor filament_sensor\]/,/^\[/ { /^\[/!d }' "$PRINTER_CFG"
       
       # 3. DYNAMISCHE WIEDERHERSTELLUNG AUS BACKUP
       if [ -f "$BACKUP_FILE" ]; then
           echo "Stelle originalen Werkszustand aus Backup 1:1 wieder her..."
           # Wir setzen den gesicherten Inhalt direkt wieder in Zeile 3 der printer.cfg ein
-          sed -i "3r $BACKUP_FILE" "$STATISCHER_PFAD"
+          sed -i "3r $BACKUP_FILE" "$PRINTER_CFG"
           rm -f "$BACKUP_FILE"
           echo "Werkszustand erfolgreich 1:1 rekonstruiert."
       else
