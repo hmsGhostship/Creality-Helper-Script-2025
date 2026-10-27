@@ -7,10 +7,10 @@ trap 'echo -en "\033[m"' EXIT INT
 HELPER_SCRIPT_FOLDER="$(dirname "$(readlink -f "$0")")"
 
 # ESSENTIAL: Instantly load fundamental paths and structures
-if [ -f "${HELPER_SCRIPT_FOLDER}/path.sh" ]; then
-  . "${HELPER_SCRIPT_FOLDER}/path.sh"
+if [ -f "${HELPER_SCRIPT_FOLDER}/paths.sh" ]; then
+  . "${HELPER_SCRIPT_FOLDER}/paths.sh"
 else
-  echo "Error: Critical path.sh not found!" > /dev/stderr
+  echo "Error: Critical paths.sh not found!" > /dev/stderr
   exit 1
 fi
 
