@@ -14,14 +14,33 @@ else
   exit 1
 fi
 
-# == HIER IST DIE ÄNDERUNG ==
-# Wir rufen die Erkennung und die Pfade sofort auf, BEVOR die Skripte geladen werden
+# == NEU: Wir definieren die Funktion detect_model zuerst hier oben ==
+function detect_model() {
+  if (command -v get_sn_mac.sh > /dev/null); then
+    get_model=$( get_sn_mac.sh model 2>&1 || echo "")
+    
+    # Automatische CFS-C Erkennung über die printer.cfg
+    if [ -z "$get_model" ] && get_sn_mac.sh model_str 2>&1 | grep -iq 'K1' && grep -q 'mb-料盒' /usr/data/printer_data/config/printer.cfg; then
+      model="K1_2025_CFS-C"
+    
+    # Standard K1 2025 ohne CFS-C Eintrag
+    elif [ -z "$get_model" ] && get_sn_mac.sh model_str 2>&1 | grep -iq 'K1'; then
+      model="K1_2025"
+    else
+      echo "Unsupported model!" > /dev/stderr
+    fi
+  fi
+
+  echo "Detected model: $model"
+}
+
+# == JETZT rufen wir beide Funktionen auf ==
 detect_model
 set_paths
 
-# Erst danach folgt die Schleife für deine Skripte (wie dxc_sensor.sh)
+# == ERST HIER folgt die Schleife für deine Skripte ==
 for script in "${HELPER_SCRIPT_FOLDER}/scripts/"*.sh; do . "${script}"; done
-# ===========================
+# ===================================================
 
 function update_helper_script() {
   echo -e "${white}"
@@ -80,40 +99,6 @@ function update_menu() {
     done
   fi
 }
-
-function detect_model() {
-  if (command -v get_sn_mac.sh > /dev/null); then
-    get_model=$( get_sn_mac.sh model 2>&1 || echo "")
-    
-    # Automatische CFS-C Erkennung über die printer.cfg
-    if [ -z "$get_model" ] && get_sn_mac.sh model_str 2>&1 | grep -iq 'K1' && grep -q 'mb-料盒' /usr/data/printer_data/config/printer.cfg; then
-      model="K1_2025_CFS-C"
-    
-    # Standard K1 2025 ohne CFS-C Eintrag
-    elif [ -z "$get_model" ] && get_sn_mac.sh model_str 2>&1 | grep -iq 'K1'; then
-      #K1 2025, K1Max 2025, ...
-      model="K1_2025"
-#    elif echo "$get_model" | grep -iq "K1"; then
-#      model="K1"
-#    elif echo "$get_model" | grep -iq "F001"; then
-#      model="3V3"
-#    elif echo "$get_model" | grep -iq "F002"; then
-#      model="3V3"
-#    elif echo "$get_model" | grep -iq "F005"; then
-#      model="3KE"
-#    elif echo "$get_model" | grep -iq "F003"; then
-#      model="10SE"
-#    elif echo "$get_model" | grep -iq "F004"; then
-#      model="E5M"
-    else
-      echo "Unsupported model!" > /dev/stderr
-    fi
-  fi
-
-  echo "Detected model: $model"
-}
-
-#detect_model
 
 for script in "${HELPER_SCRIPT_FOLDER}/scripts/menu/"*.sh; do . "${script}"; done
 
