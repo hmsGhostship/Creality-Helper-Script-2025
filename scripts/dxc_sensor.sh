@@ -20,16 +20,17 @@ dxc_sensor() {
       cp -f "$SOURCE_FILE" "$TARGET_FILE"
       chmod 644 "$TARGET_FILE"
       
-      # 2. ALTE INCLUDE-EINTRÄGE REINIGEN (Falls vorhanden)
-      sed -i '/^\[include Helper-Script\/dxc_sensor.cfg\]/d' "$PRINTER_CFG"
-      sed -i '/^#[[:space:]]*\[include Helper-Script\/dxc_sensor.cfg\]/d' "$PRINTER_CFG"
+      # 2. ALTE INCLUDE-EINTRÄGE REINIGEN
+      sed -i '/\[include Helper-Script\/dxc_sensor.cfg\]/d' "$PRINTER_CFG"
       
-      # 3. DAS NEUE INCLUDE GANZ UNTEN ANFÜGEN
-      # Bei Klipper MUSS das Überschreib-Include UNTEN stehen, damit es Vorrang hat!
-      echo "" >> "$PRINTER_CFG"
-      echo "$INCLUDE_LINE" >> "$PRINTER_CFG"
+      # 3. DAS NEUE INCLUDE GANZ OBEN IN ZEILE 2 EINFÜGEN
+      sed -i "2i $INCLUDE_LINE" "$PRINTER_CFG"
       
-      echo "DXC Sensor erfolgreich via Klipper-Override installiert."
+      # 4. PRÄZISE DEAKTIVIERUNG (Unempfindlich gegen Leerzeichen am Zeilenanfang)
+      sed -i 's|\[filament_switch_sensor filament_sensor\]|# [filament_switch_sensor filament_sensor]|g' "$PRINTER_CFG"
+      sed -i 's|switch_pin: !PD7|# switch_pin: !PD7|g' "$PRINTER_CFG"
+      
+      echo "DXC Sensor erfolgreich ganz oben in printer.cfg installiert."
       echo "Info: Restarting Klipper service..."
       restart_klipper
       ;;
@@ -37,11 +38,14 @@ dxc_sensor() {
     remove)
       echo "Starte Deinstallation des DXC Filament Sensors..."
       
-      # 1. DXC-INCLUDE AUS DER PRINTER.CFG LÖSCHEN
-      sed -i '/^\[include Helper-Script\/dxc_sensor.cfg\]/d' "$PRINTER_CFG"
-      sed -i '/^#[[:space:]]*\[include Helper-Script\/dxc_sensor.cfg\]/d' "$PRINTER_CFG"
+      # 1. DXC-INCLUDE ENTFERNEN
+      sed -i '/\[include Helper-Script\/dxc_sensor.cfg\]/d' "$PRINTER_CFG"
       
-      # 2. DATEI LÖSCHEN
+      # 2. WERKSZUSTAND WIEDERHERSTELLEN (Entfernt die Raute direkt vor dem Text)
+      sed -i 's|#[[:space:]]*\[filament_switch_sensor filament_sensor\]|[filament_switch_sensor filament_sensor]|g' "$PRINTER_CFG"
+      sed -i 's|#[[:space:]]*switch_pin: !PD7|switch_pin: !PD7|g' "$PRINTER_CFG"
+      
+      # 3. DATEI LÖSCHEN
       rm -f "$TARGET_FILE"
       
       echo "Deinstallation abgeschlossen. Info: Restarting Klipper service..."
