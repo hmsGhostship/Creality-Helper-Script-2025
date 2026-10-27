@@ -24,7 +24,7 @@ dxc_sensor() {
       sed -i '/\[include Helper-Script\/dxc_sensor.cfg\]/d' "$PRINTER_CFG"
       
       # 3. DAS NEUE INCLUDE GANZ OBEN IN ZEILE 2 EINFÜGEN
-      sed -i "2i $INCLUDE_LINE" "$PRINTER_CFG"
+      sed -i "/^[[:space:]]*#[[:space:]]*CreateDate:.*/a $INCLUDE_LINE" "$PRINTER_CFG"
       
       # 4. PRÄZISE DEAKTIVIERUNG (Unempfindlich gegen Leerzeichen am Zeilenanfang)
       sed -i 's|\[filament_switch_sensor filament_sensor\]|# [filament_switch_sensor filament_sensor]|g' "$PRINTER_CFG"
