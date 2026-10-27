@@ -339,10 +339,8 @@ function nexusp_set_moonraker_port() {
   local want="$1" other="$2" nginx_conf
   if [ -f "$MOONRAKER_CFG" ]; then
     echo -e "Info: Setting Moonraker port to ${want}..."
-    # Guarded for the same reason the component install is: an unguarded
-    # `sed -i` failure on a full or read-only /usr/data would exit the helper
-    # here, halfway through a swap, with no rollback.
-    if ! sed -i "s/^port:[[:space:]]*${other}\$/port: ${want}/" "$MOONRAKER_CFG"; then
+    # REPARIERT: Findet jetzt "port: 7125", "port=7125" und ignoriert Leerzeichen/Tabulatoren am Zeilenanfang
+    if ! sed -i "s/^[[:space:]]*port[[:space:]]*[:=][[:space:]]*${other}\$/port: ${want}/" "$MOONRAKER_CFG"; then
       error_msg "Could not rewrite moonraker.conf - is /usr/data full?"
       return 1
     fi
@@ -350,7 +348,8 @@ function nexusp_set_moonraker_port() {
   for nginx_conf in "$NGINX_CONF_FILE" /etc/nginx/nginx.conf; do
     if [ -f "$nginx_conf" ]; then
       echo -e "Info: Pointing Nginx Moonraker upstream to port ${want}..."
-      if ! sed -i "s/server 127\.0\.0\.1:${other};/server 127.0.0.1:${want};/" "$nginx_conf"; then
+      # REPARIERT: Erlaubt beliebige Leerzeichen/Tabulatoren vor und nach "server 127.0.0.1:7125;"
+      if ! sed -i "s/[[:space:]]*server[[:space:]]*127\.0\.0\.1:${other};/      server 127.0.0.1:${want};/" "$nginx_conf"; then
         error_msg "Could not rewrite $nginx_conf!"
         return 1
       fi
@@ -358,6 +357,7 @@ function nexusp_set_moonraker_port() {
   done
   return 0
 }
+
 
 # Link the component in and enable it. Follows moonraker_timelapse.sh exactly:
 # the linked file is an untracked source file inside Moonraker's git repo, so
