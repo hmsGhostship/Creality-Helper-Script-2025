@@ -1,5 +1,5 @@
 #!/bin/sh
-export HOME=/usr/data
+#export HOME=/usr/data
 export PATH=/opt/bin:/opt/sbin:/bin:/sbin:/usr/bin:/usr/sbin
 
 TARGET_DIR="/usr/data/helper-script"
