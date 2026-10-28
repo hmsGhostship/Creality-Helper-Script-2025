@@ -35,11 +35,15 @@ echo "Starte RAM-freies Helper-Script Backup..."
 git add .
 git commit -m "Automatisches Helper-Script Backup: $(date +'%Y-%m-%d %H:%M:%S')"
 
-# Wir holen die funktionierende URL (samt Token) direkt aus dem Ordner:
-LOKALE_URL=$(git remote get-url origin)
+# 1. Wir holen die originale GitHub-URL aus deinem Ordner
+REPO_URL=$(git config --get remote.origin.url | sed 's|https://||')
 
-# Wir zwingen den Push, exakt diese funktionierende Adresse zu nutzen:
-git push -u "$LOKALE_URL" main
+# 2. Wir holen das funktionierende Passwort/Token aus dem Drucker-Speicher
+# (Die Datei .git-credentials ist die Standard-Datei, in der Git deinen Token abgelegt hat)
+TOKEN=$(cat /root/.git-credentials 2>/dev/null | grep "github.com" | sed -E 's|https://[^:]+:([^@]+)@.*|\1|')
+
+# 3. Wir pushen direkt mit dem ausgelesenen Token – ohne interaktive Abfrage
+git push -u "https://${TOKEN}@${REPO_URL}" main
 
 echo "Backup erfolgreich hochgeladen!"
 chmod -R 777 .git 2>/dev/null
