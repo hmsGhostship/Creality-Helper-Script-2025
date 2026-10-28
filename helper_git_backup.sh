@@ -9,6 +9,11 @@ if [ ! -d ".git" ]; then
     exit 1
 fi
 
+# DIE BRUTALE LÖSUNG: Wir verbieten Git den Zugriff auf /root 
+# und zwingen es, die lokale Config des Ordners als globale Config zu nutzen!
+export GIT_CONFIG_GLOBAL="$TARGET_DIR/.git/config"
+export GIT_CONFIG_NOSYSTEM=1
+
 # Altschulden loeschen
 rm -f .git/*.lock .git/refs/remotes/origin/*.lock 2>/dev/null
 chmod -R 777 .git 2>/dev/null
@@ -31,9 +36,8 @@ echo "Starte RAM-freies Helper-Script Backup..."
 git add .
 git commit -m "Automatisches Helper-Script Backup: $(date +'%Y-%m-%d %H:%M:%S')"
 
-# DIE RETTUNG: Wir ueberschreiben die Konfigurations-Pfade NUR fuer diesen einen Befehl.
-# Das hebelt die Permission Denieds aus und nutzt direkt deinen Token im Ordner.
-git --git-dir=.git --work-tree=. push -u origin main
+# Läuft jetzt ungehindert durch, da Git nicht mehr in /root blockiert wird
+git push -u origin main
 
 echo "Backup erfolgreich hochgeladen!"
 chmod -R 777 .git 2>/dev/null
