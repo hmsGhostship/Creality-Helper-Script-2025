@@ -35,8 +35,9 @@ echo "Starte RAM-freies Helper-Script Backup..."
 git add .
 git commit -m "Automatisches Helper-Script Backup: $(date +'%Y-%m-%d %H:%M:%S')"
 
-# DIE LÖSUNG: Wir zwingen Git, die lokale Config inklusive deines Tokens direkt zu laden
-git --git-dir=.git push -u origin main
+# Holt deine funktionierende URL (inkl. Token) und pusht direkt im Namen von Klipper
+LOKALE_URL=$(git config --get remote.origin.url)
+git push -u "$LOKALE_URL" main
 
 echo "Backup erfolgreich hochgeladen!"
 chmod -R 777 .git 2>/dev/null
