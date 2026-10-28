@@ -1,5 +1,11 @@
 #!/sh
+# Wir sagen dem Skript direkt hier, wer es ist und wo die Schlüssel liegen
+export HOME=/root
 export PATH=/usr/bin:/usr/sbin:/bin:/sbin:/opt/bin:/opt/sbin
+
+# Verhindert, dass Git in geschützten Systemordnern schnüffelt
+export GIT_CONFIG_NOSYSTEM=1
+export GIT_CONFIG_GLOBAL=/dev/null
 
 TARGET_DIR="/usr/data/helper-script"
 cd "$TARGET_DIR"
@@ -9,15 +15,7 @@ if [ ! -d ".git" ]; then
     exit 1
 fi
 
-# Zwingt Git, NUR diesen Ordner zu nutzen und /root komplett zu ignorieren
-# Das loest die Permission-Denied-Warnungen und den fatalen Push-Fehler!
-export GIT_CONFIG_NOSYSTEM=1
-export GIT_CONFIG_GLOBAL=/dev/null
-
-# Entfernt den fehlerhaften Cache-Eintrag aus der lokalen Config
-git config --local --unset credential.helper 2>/dev/null
-
-# Altschulden loeschen
+# Altschulden und Sperren loeschen
 rm -f .git/*.lock .git/refs/remotes/origin/*.lock 2>/dev/null
 chmod -R 777 .git 2>/dev/null
 
@@ -38,12 +36,10 @@ fi
 echo "Starte RAM-freies Helper-Script Backup..."
 git add .
 git commit -m "Automatisches Helper-Script Backup: $(date +'%Y-%m-%d %H:%M:%S')"
-# HIER DIE ÄNDERUNG: Zwingt Git, den lokalen Token direkt beim Push zu laden
-git -c credential.helper=local push -u origin main
+
+# Ganz normaler Push – durch das 'export HOME=/root' oben weiß Git 
+# jetzt auch im Klipper-Hintergrund, wo dein Token liegt.
+git push -u origin main
 
 echo "Backup erfolgreich hochgeladen!"
-# Der Push nutzt nun ausschliesslich die funktionierenden Daten des Ordners
-#git push -u origin main
-#echo "Backup erfolgreich hochgeladen!"
-
 chmod -R 777 .git 2>/dev/null
