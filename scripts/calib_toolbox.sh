@@ -1,10 +1,8 @@
 #!/bin/sh
 
-STATISCHER_PFAD="/usr/data/printer_data/config/printer.cfg"
-
 install_calib_toolbox() {
-    local SOURCE_FILE="/usr/data/helper-script/files/creality-calib-toolbox/calib_tool_box.cfg"
-    local TARGET_FILE="/usr/data/printer_data/config/Helper-Script/calib_tool_box.cfg"
+    local SOURCE_FILE="$HS_FILES/creality-calib-toolbox/calib_tool_box.cfg"
+    local TARGET_FILE="$HS_CONFIG_FOLDER/calib_tool_box.cfg"
     local INCLUDE_LINE="[include Helper-Script/calib_tool_box.cfg]"
 
     echo "Starte Installation der Creality Calibration Toolbox..."
@@ -21,15 +19,15 @@ install_calib_toolbox() {
     # -----------------------------------------------------------------
     # NEU: Das KAMP-Only Interface sofort deaktivieren, da deine Toolbox übernimmt
     # -----------------------------------------------------------------
-    sed -i '/kamp_only\.cfg/d' "$STATISCHER_PFAD"
+    sed -i '/kamp_only\.cfg/d' "$PRINTER_CFG"
     # -----------------------------------------------------------------
     
     # Alte Instanzen INKLUSIVE Zeilenumbruch sauber ausradieren (/d)
-    sed -i '/^\[include Helper-Script\/calib_tool_box.cfg\]/d' "$STATISCHER_PFAD"
-    sed -i '/^#[[:space:]]*\[include Helper-Script\/calib_tool_box.cfg\]/d' "$STATISCHER_PFAD"
+    sed -i '/^\[include Helper-Script\/calib_tool_box.cfg\]/d' "$PRINTER_CFG"
+    sed -i '/^#[[:space:]]*\[include Helper-Script\/calib_tool_box.cfg\]/d' "$PRINTER_CFG"
     
     # Das neue Include exakt in Zeile 2 einsetzen
-    sed -i "2i $INCLUDE_LINE" "$STATISCHER_PFAD"
+    sed -i "2i $INCLUDE_LINE" "$PRINTER_CFG"
     
     echo "Calibration Toolbox erfolgreich installiert."
     echo "Info: Restarting Klipper service..."
@@ -38,13 +36,13 @@ install_calib_toolbox() {
 }
 
 remove_calib_toolbox() {
-    local TARGET_FILE="/usr/data/printer_data/config/Helper-Script/calib_tool_box.cfg"
+    local TARGET_FILE="$HS_CONFIG_FOLDER/calib_tool_box.cfg"
 
     echo "Starte Deinstallation der Calibration Toolbox..."
 
     # Beim Deinstallieren die Toolbox-Zeile mitsamt Zeilenumbruch physisch löschen (/d)
-    sed -i '/^\[include Helper-Script\/calib_tool_box.cfg\]/d' "$STATISCHER_PFAD"
-    sed -i '/^#[[:space:]]*\[include Helper-Script\/calib_tool_box.cfg\]/d' "$STATISCHER_PFAD"
+    sed -i '/^\[include Helper-Script\/calib_tool_box.cfg\]/d' "$PRINTER_CFG"
+    sed -i '/^#[[:space:]]*\[include Helper-Script\/calib_tool_box.cfg\]/d' "$PRINTER_CFG"
     
     rm -f "$TARGET_FILE"
     
@@ -62,8 +60,8 @@ remove_calib_toolbox() {
         fi
         
         echo "Aktiviere KAMP-Only Interface in printer.cfg..."
-        sed -i '/kamp_only\.cfg/d' "$STATISCHER_PFAD" # Sicherheits-Bereinigung vorab
-        echo -e "[include Helper-Script/KAMP/kamp_only.cfg]" >> "$STATISCHER_PFAD"
+        sed -i '/kamp_only\.cfg/d' "$PRINTER_CFG" # Sicherheits-Bereinigung vorab
+        echo -e "[include Helper-Script/KAMP/kamp_only.cfg]" >> "$PRINTER_CFG"
     fi
     # -----------------------------------------------------------------
     

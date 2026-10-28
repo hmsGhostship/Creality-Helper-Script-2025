@@ -7,12 +7,12 @@ function block_creality_cloud_message(){
   title 'Block Creality Cloud Telemetry' "${yellow}"
   inner_line
   hr
-  echo -e " │ ${cyan}This allows to blackhole the Creality cloud hosts used by    ${white}│"
-  echo -e " │ ${cyan}stock daemons for telemetry, remote access and OTA checks,   ${white}│"
-  echo -e " │ ${cyan}and to drop outbound MQTT to anything outside your network.  ${white}│"
+  echo -e " │ ${cyan}This allows to blackhole the Creality cloud hosts used by      ${white}│"
+  echo -e " │ ${cyan}stock daemons for telemetry, remote access and OTA checks,     ${white}│"
+  echo -e " │ ${cyan}and to drop outbound MQTT to anything outside your network.    ${white}│"
   hr
-  echo -e " │ ${cyan}Remote access options (OctoEverywhere, Obico, GuppyFLO,      ${white}│"
-  echo -e " │ ${cyan}SimplyPrint, OctoApp, Mobileraker) are not affected.         ${white}│"
+  echo -e " │ ${cyan}Remote access options (OctoEverywhere, Obico, GuppyFLO,        ${white}│"
+  echo -e " │ ${cyan}SimplyPrint, OctoApp, Mobileraker) are not affected.           ${white}│"
   hr
   bottom_line
 }

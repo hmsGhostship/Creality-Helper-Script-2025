@@ -7,8 +7,8 @@ function camera_settings_control_message(){
   title 'Camera Settings Control' "${yellow}"
   inner_line
   hr
-  echo -e " │ ${cyan}It allows to install needed macros to adjust camera          ${white}│"
-  echo -e " │ ${cyan}settings like brightness, saturation, contrast, etc...       ${white}│"
+  echo -e " │ ${cyan}It allows to install needed macros to adjust camera            ${white}│"
+  echo -e " │ ${cyan}settings like brightness, saturation, contrast, etc...         ${white}│"
   hr
   bottom_line
 }
