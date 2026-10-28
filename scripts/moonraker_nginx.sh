@@ -13,7 +13,7 @@ function install_helper_shims(){
   # The launcher always prepends /opt/bin (Entware), so a copy there is found on
   # manual restarts too. Guarded on Entware being mounted; no-op on other models.
   # FÜR FORK KORRIGIERT: Greift jetzt auch beim K1_2025_CFS-C
-  if [[ "$model" == K1_2025* ]] && [ -d /opt/bin ]; then
+  if [ "$model" = "K1_2025" ] || [ "$model" = "K1_2025_CFS-C" ] && [ -d /opt/bin ]; then
     cp -f "$SUPERVISOR_URL" "$SUPERVISOR_OPT_FILE"
     chmod 755 "$SUPERVISOR_OPT_FILE"
   fi
@@ -27,7 +27,7 @@ function install_helper_shims(){
 function remove_helper_shims(){
   rm -f "$SUPERVISOR_FILE" "$SUDO_FILE" "$SYSTEMCTL_FILE"
   # FÜR FORK KORRIGIERT: Wildcard-Prüfung zum sauberen Aufräumen
-  [[ "$model" == K1_2025* ]] && rm -f "$SUPERVISOR_OPT_FILE"
+  [ "$model" = "K1_2025" ] || [ "$model" = "K1_2025_CFS-C" ] && rm -f "$SUPERVISOR_OPT_FILE"
 }
 
 function moonraker_nginx_message(){
@@ -114,8 +114,11 @@ function install_moonraker_nginx(){
         fi
         cp "$MOONRAKER_URL3" "$PRINTER_DATA_FOLDER"/moonraker.asvc
         # FÜR FORK KORRIGIERT: Zündet nun auch beim K1_2025_CFS-C, damit der Touchscreen aktiv bleibt!
-        if [[ "$model" == K1_2025* ]]; then
+        if [ "$model" = "K1_2025" ] || [ "$model" = "K1_2025_CFS-C" ]; then
+          echo "TEST 2: Die if-Abfrage ist WAHR! Ich bin REINGESPRUNGEN!"
+          echo "TEST 3: Rufe jetzt configure_moonraker_nginx_k1_2025 auf..."
           configure_moonraker_nginx_k1_2025
+          echo "TEST 4: Funktion configure_moonraker_nginx_k1_2025 wurde beendet."
         fi
         echo -e "Info: Applying changes from official repo..."
         cd "$MOONRAKER_FOLDER"/moonraker
@@ -150,7 +153,7 @@ function remove_moonraker_nginx(){
         # - not now and not after any reboot - so the screen dies permanently
         # with nothing connecting it to this menu entry.
         # FÜR FORK KORRIGIERT: Schützt das CFS-C Display zuverlässig vor dem Blackscreen
-        if [[ "$model" == K1_2025* ]] && nexusp_retired && ! nexusp_present; then
+        if { [ "$model" = "K1_2025" ] || [ "$model" = "K1_2025_CFS-C" ]; } && nexusp_retired && ! nexusp_present; then
           error_msg "Nexusp Backend is retired, so this Moonraker is the touchscreen's only backend!"
           echo -e " ${darkred}Removing it now would leave nothing answering port 7125 and${white}"
           echo -e " ${darkred}the touchscreen dead permanently.${white}"

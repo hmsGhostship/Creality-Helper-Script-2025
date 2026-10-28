@@ -83,7 +83,7 @@ function install_go2rtc(){
           cp "$GO2RTC_CONFIG_FILE_URL" "$GO2RTC_CONFIG_FILE"
         fi
         # FÜR FORK KORRIGIERT: Zündet nun auch zuverlässig beim K1_2025_CFS-C Modell!
-        if [[ "$model" == K1_2025* ]] && [ -d "$MOONRAKER_FOLDER" ]; then
+        if { [ "$model" = "K1_2025" ] || [ "$model" = "K1_2025_CFS-C" ]; } && [ -d "$MOONRAKER_FOLDER" ]; then
           configure_go2rtc_k1_2025
           stop_moonraker
           start_moonraker

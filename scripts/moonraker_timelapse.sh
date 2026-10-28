@@ -39,7 +39,7 @@ function install_moonraker_timelapse(){
           grep -qxF "moonraker/components/timelapse.py" "$MOONRAKER_REPO_DIR"/.git/info/exclude 2>/dev/null \
             || echo "moonraker/components/timelapse.py" >> "$MOONRAKER_REPO_DIR"/.git/info/exclude
         fi
-        if [[ "$model" == K1_2025* ]]; then
+        if [ "$model" = "K1_2025" ] || [ "$model" = "K1_2025_CFS-C" ]; then
           # K1_2025 runs Klipper as the unprivileged 'creality' user, which cannot read a
           # symlink whose target is in the root-owned helper-script tree (Klipper then reports
           # "Include file does not exist"). Use a real copy, and make the config dir
@@ -69,7 +69,7 @@ function install_moonraker_timelapse(){
         fi
         echo -e "Info: Updating ffmpeg..."
         "$ENTWARE_FILE" update && "$ENTWARE_FILE" upgrade ffmpeg
-        if [[ "$model" == K1_2025* ]]; then
+        if [ "$model" = "K1_2025" ] || [ "$model" = "K1_2025_CFS-C" ]; then
           # The timelapse component is loaded by Moonraker at startup, so Moonraker must be
           # restarted (not just Klipper) for it to register. S56moonraker_service has no
           # 'restart' verb, so stop + start. Run it in a subshell with umask 022: the

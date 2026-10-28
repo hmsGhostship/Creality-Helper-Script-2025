@@ -81,7 +81,7 @@ EOF
 # Returns non-zero (after reporting) when it cannot; callers must check.
 function ensure_mjpg_streamer_packages(){
   # FÜR FORK KORRIGIERT: Wildcard-Prüfung
-  if [[ "$model" == K1_2025* ]]; then
+  if [ "$model" = "K1_2025" ] || [ "$model" = "K1_2025_CFS-C" ]; then
     # The 2025 camera services hardcode /usr/bin/mjpg_streamer and
     # /usr/lib/mjpg-streamer, which the firmware supplies on a read-only
     # squashfs. opkg writes to /opt and cannot help here.
@@ -100,7 +100,7 @@ function ensure_mjpg_streamer_packages(){
 
 function disable_entware_builtin_mjpg_streamer(){
   # FÜR FORK KORRIGIERT: Wildcard-Prüfung
-  if [[ "$model" != K1_2025* ]]; then
+  if [ "$model" = "K1_2025" ] || [ "$model" = "K1_2025_CFS-C" ]; then
     return
   fi
 
@@ -115,7 +115,7 @@ function disable_entware_builtin_mjpg_streamer(){
 
 function restore_entware_builtin_mjpg_streamer(){
   # FÜR FORK KORRIGIERT: Wildcard-Prüfung
-  if [[ "$model" != K1_2025* ]]; then
+  if [ "$model" = "K1_2025" ] || [ "$model" = "K1_2025_CFS-C" ]; then
     return
   fi
 
@@ -142,7 +142,7 @@ function install_usb_camera(){
           return 0
         fi
         # FÜR FORK KORRIGIERT: Wildcard-Prüfung
-        if [[ "$model" == K1_2025* ]]; then
+        if [ "$model" = "K1_2025" ] || [ "$model" = "K1_2025_CFS-C" ]; then
           k1_2025_migrate_entware_boot_if_needed
           disable_entware_builtin_mjpg_streamer
         fi
@@ -152,7 +152,7 @@ function install_usb_camera(){
         set -e
         rm -f "$USB_CAMERA_LEGACY_FILE"
         # FÜR FORK KORRIGIERT: Wildcard-Prüfung
-        if [[ "$model" == K1_2025* ]]; then
+        if [ "$model" = "K1_2025" ] || [ "$model" = "K1_2025_CFS-C" ]; then
           cp "$USB_CAMERA_K1_2025_URL" "$USB_CAMERA_FILE"
         elif [ "$model" = "K1" ]; then
           cp "$USB_CAMERA_DUAL_URL" "$USB_CAMERA_FILE"
@@ -189,7 +189,7 @@ function install_usb_camera(){
         fi
         chmod 755 "$USB_CAMERA_FILE"
         # FÜR FORK KORRIGIERT: Wildcard-Prüfung
-        if [[ "$model" == K1_2025* ]]; then
+        if [ "$model" = "K1_2025" ] || [ "$model" = "K1_2025_CFS-C" ]; then
           configure_usb_camera_k1_2025
           if [ -f "$INITD_FOLDER"/S56moonraker_service ]; then
             stop_moonraker
@@ -318,7 +318,7 @@ function remove_usb_camera(){
         rm -f "$USB_CAMERA_FILE"
         rm -f "$USB_CAMERA_LEGACY_FILE"
         # FÜR FORK KORRIGIERT: Wildcard-Prüfung für dein CFS-C Modell
-        if [[ "$model" == K1_2025* ]] && [ -f "$MOONRAKER_CFG" ]; then
+        if { [ "$model" = "K1_2025" ] || [ "$model" = "K1_2025_CFS-C" ]; } && [ -f "$MOONRAKER_CFG" ]; then
           echo -e "Info: Removing USB Camera configurations in moonraker.conf file..."
           sed -i '/^\[webcam usb\]/,/^$/d' "$MOONRAKER_CFG"
           if [ -f "$INITD_FOLDER"/S56moonraker_service ]; then
@@ -329,7 +329,7 @@ function remove_usb_camera(){
         echo -e "Info: Removing packages..."
         set +e
         # FÜR FORK KORRIGIERT: Wildcard-Prüfung für dein CFS-C Modell
-        if [[ "$model" != K1_2025* ]] || { [ ! -f "$BUILTIN_CAMERA_FILE" ] && [ ! -f "$BUILTIN_CAMERA_LEGACY_FILE" ]; }; then
+        if { [ "$model" != "K1_2025" ] && [ "$model" != "K1_2025_CFS-C" ]; } || { [ ! -f "$BUILTIN_CAMERA_FILE" ] && [ ! -f "$BUILTIN_CAMERA_LEGACY_FILE" ]; }; then
           "$ENTWARE_FILE" --autoremove remove mjpg-streamer-www
           "$ENTWARE_FILE" --autoremove remove mjpg-streamer-output-http
           "$ENTWARE_FILE" --autoremove remove mjpg-streamer-input-uvc

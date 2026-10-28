@@ -335,21 +335,46 @@ function nexusp_start_service() {
 # always agree - a box where they disagree serves 502s from Fluidd and nothing
 # says why. Also used by configure_moonraker_nginx_k1_2025 so a Moonraker
 # reinstall cannot silently undo the swap.
+#function nexusp_set_moonraker_port() {
+#  local want="$1" other="$2" nginx_conf
+#  if [ -f "$MOONRAKER_CFG" ]; then
+#    echo -e "Info: Setting Moonraker port to ${want}..."
+#    # REPARIERT: Findet jetzt "port: 7125", "port=7125" und ignoriert Leerzeichen/Tabulatoren am Zeilenanfang
+#    if ! sed -i "s/^[[:space:]]*port[[:space:]]*[:=][[:space:]]*${other}\$/port: ${want}/" "$MOONRAKER_CFG"; then
+#      error_msg "Could not rewrite moonraker.conf - is /usr/data full?"
+#      return 1
+#    fi
+#  fi
+#  for nginx_conf in "$NGINX_CONF_FILE" /etc/nginx/nginx.conf; do
+#    if [ -f "$nginx_conf" ]; then
+#      echo -e "Info: Pointing Nginx Moonraker upstream to port ${want}..."
+#      # REPARIERT: Erlaubt beliebige Leerzeichen/Tabulatoren vor und nach "server 127.0.0.1:7125;"
+#      if ! sed -i "s/[[:space:]]*server[[:space:]]*127\.0\.0\.1:${other};/      server 127.0.0.1:${want};/" "$nginx_conf"; then
+#        error_msg "Could not rewrite $nginx_conf!"
+#        return 1
+#      fi
+#    fi
+#  done
+#  return 0
+#}
+
 function nexusp_set_moonraker_port() {
   local want="$1" other="$2" nginx_conf
+  
   if [ -f "$MOONRAKER_CFG" ]; then
     echo -e "Info: Setting Moonraker port to ${want}..."
-    # REPARIERT: Findet jetzt "port: 7125", "port=7125" und ignoriert Leerzeichen/Tabulatoren am Zeilenanfang
-    if ! sed -i "s/^[[:space:]]*port[[:space:]]*[:=][[:space:]]*${other}\$/port: ${want}/" "$MOONRAKER_CFG"; then
-      error_msg "Could not rewrite moonraker.conf - is /usr/data full?"
+    # Findet "port: 7125" unabhängig von Leerzeichen am Anfang
+    if ! sed -i "s/^[[:space:]]*port:[[:space:]]*${other}\$/port: ${want}/" "$MOONRAKER_CFG"; then
+      error_msg "Could not rewrite moonraker.conf!"
       return 1
     fi
   fi
+  
   for nginx_conf in "$NGINX_CONF_FILE" /etc/nginx/nginx.conf; do
     if [ -f "$nginx_conf" ]; then
       echo -e "Info: Pointing Nginx Moonraker upstream to port ${want}..."
-      # REPARIERT: Erlaubt beliebige Leerzeichen/Tabulatoren vor und nach "server 127.0.0.1:7125;"
-      if ! sed -i "s/[[:space:]]*server[[:space:]]*127\.0\.0\.1:${other};/      server 127.0.0.1:${want};/" "$nginx_conf"; then
+      # REPARIERT: Findet "server 127.0.0.1:7125;" jetzt AUCH mit den 4 Leerzeichen davor!
+      if ! sed -i "s/^[[:space:]]*server[[:space:]]*127\.0\.0\.1:${other};/    server 127.0.0.1:${want};/" "$nginx_conf"; then
         error_msg "Could not rewrite $nginx_conf!"
         return 1
       fi
