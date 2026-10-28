@@ -35,13 +35,11 @@ echo "Starte RAM-freies Helper-Script Backup..."
 git add .
 git commit -m "Automatisches Helper-Script Backup: $(date +'%Y-%m-%d %H:%M:%S')"
 
-# Wir holen uns deinen echten GitHub-Namen aus deiner lokalen Config:
-AKTUELLER_USER=$(git config user.name)
+# Wir holen die funktionierende URL (samt Token) direkt aus dem Ordner:
+LOKALE_URL=$(git remote get-url origin)
 
-# Wir füttern Git mit deinem Namen für die Authentifizierung, 
-# damit GitHub den Token akzeptiert:
-git -c credential.username="$AKTUELLER_USER" push -u origin main
+# Wir zwingen den Push, exakt diese funktionierende Adresse zu nutzen:
+git push -u "$LOKALE_URL" main
 
 echo "Backup erfolgreich hochgeladen!"
 chmod -R 777 .git 2>/dev/null
-
