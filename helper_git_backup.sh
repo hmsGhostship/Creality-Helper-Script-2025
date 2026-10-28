@@ -1,23 +1,27 @@
 #!/sh
-# Wir lassen PATH drin, damit der K1 die Git-Befehle findet
-export PATH=/opt/bin:/opt/sbin:/bin:/sbin:/usr/bin:/usr/sbin
+export PATH=/usr/bin:/usr/sbin:/bin:/sbin:/opt/bin:/opt/sbin
 
 TARGET_DIR="/usr/data/helper-script"
 cd "$TARGET_DIR"
-
-# Verhindert, dass Git wegen fehlender Rechte auf /root/.config meckert
-export GIT_CONFIG_NOSYSTEM=1
 
 if [ ! -d ".git" ]; then
     echo "Fehler: Kein Git-Repository im Helper-Script-Ordner gefunden!"
     exit 1
 fi
 
-# Altschulden loeschen (ohne globale Config-Eingriffe)
+# Zwingt Git, NUR diesen Ordner zu nutzen und /root komplett zu ignorieren
+# Das loest die Permission-Denied-Warnungen und den fatalen Push-Fehler!
+export GIT_CONFIG_NOSYSTEM=1
+export GIT_CONFIG_GLOBAL=/dev/null
+
+# Entfernt den fehlerhaften Cache-Eintrag aus der lokalen Config
+git config --local --unset credential.helper 2>/dev/null
+
+# Altschulden loeschen
 rm -f .git/*.lock .git/refs/remotes/origin/*.lock 2>/dev/null
 chmod -R 777 .git 2>/dev/null
 
-# RAM-Sperren felsenfest bei jedem Durchlauf erzwingen
+# RAM-Sperren fuer den Drucker
 git config core.bigFileThreshold 1k
 git config pack.compression 0
 git config pack.depth 1
@@ -35,10 +39,8 @@ echo "Starte RAM-freies Helper-Script Backup..."
 git add .
 git commit -m "Automatisches Helper-Script Backup: $(date +'%Y-%m-%d %H:%M:%S')"
 
-# Purer Push: Git wird gezwungen, NUR die lokale Konfiguration des Ordners zu nutzen
+# Der Push nutzt nun ausschliesslich die funktionierenden Daten des Ordners
 git push -u origin main
-
 echo "Backup erfolgreich hochgeladen!"
 
-# Nach dem Push die Rechte fuer den naechsten Durchlauf offen halten
 chmod -R 777 .git 2>/dev/null
