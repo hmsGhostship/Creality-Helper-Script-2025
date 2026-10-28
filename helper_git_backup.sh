@@ -2,6 +2,8 @@
 #export HOME=/usr/data
 export PATH=/opt/bin:/opt/sbin:/bin:/sbin:/usr/bin:/usr/sbin
 
+git config --global credential.helper store 2>/dev/null
+
 TARGET_DIR="/usr/data/helper-script"
 cd "$TARGET_DIR"
 
