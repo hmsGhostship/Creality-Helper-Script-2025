@@ -5,6 +5,9 @@ export PATH=/opt/bin:/opt/sbin:/bin:/sbin:/usr/bin:/usr/sbin
 TARGET_DIR="/usr/data/helper-script"
 cd "$TARGET_DIR"
 
+# Verhindert, dass Git wegen fehlender Rechte auf /root/.config meckert
+export GIT_CONFIG_NOSYSTEM=1
+
 if [ ! -d ".git" ]; then
     echo "Fehler: Kein Git-Repository im Helper-Script-Ordner gefunden!"
     exit 1
