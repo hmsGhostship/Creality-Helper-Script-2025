@@ -35,8 +35,8 @@ echo "Starte RAM-freies Helper-Script Backup..."
 git add .
 git commit -m "Automatisches Helper-Script Backup: $(date +'%Y-%m-%d %H:%M:%S')"
 
-# Der Push nutzt nun ausschliesslich die Daten des lokalen Ordners (inkl. deines funktionierenden Tokens)
-git push -u origin main
+# DIE LÖSUNG: Wir zwingen Git, die lokale Config inklusive deines Tokens direkt zu laden
+git --git-dir=.git push -u origin main
 
 echo "Backup erfolgreich hochgeladen!"
 chmod -R 777 .git 2>/dev/null
