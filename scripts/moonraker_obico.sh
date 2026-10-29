@@ -42,7 +42,7 @@ function install_moonraker_obico(){
         # 3. Port-Konfiguration aus deiner moonraker.conf auslesen
         local obico_cfg="$KLIPPER_CONFIG_FOLDER/moonraker-obico.cfg"
         echo -e "Info: Creating moonraker-obico.cfg..."
-        cp ./moonraker_obico/moonraker-obico.cfg.sample "$obico_cfg"
+        cp ./moonraker-obico.cfg.sample "$obico_cfg"
         
         local real_port=7126
         if [ -f "$MOONRAKER_CFG" ]; then
