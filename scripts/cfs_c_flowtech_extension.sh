@@ -24,13 +24,13 @@ install_cfs_c_flowtech_extension() {
   cfs_c_flowtech_extension_message
   local yn
   while true; do
-    install_msg "CFS-C Flowtech extension" yn
+    install_msg "FlowTech Extension" yn
     case "${yn}" in
       Y|y)
         echo "=== Installation: Micro-Swiss FlowTech Volumetric Extension ==="
         if [ ! -f "$BOX_CFG" ]; then
             echo "Fehler: box.cfg wurde nicht gefunden!"
-            return 1
+            break
         fi
         mkdir -p "$HS_BACKUP_FOLDER"
 
@@ -42,7 +42,7 @@ install_cfs_c_flowtech_extension() {
                 sed -i -E 's/Tn_extrude_velocity:[[:space:]]*[0-9]+/Tn_extrude_velocity: 360/g' "$BOX_CFG_ORIG"
                 echo "[OK] Echtes Werks-Backup erzeugt."
             fi
-            return 0
+            break
         fi
 
         if [ ! -f "$BOX_CFG_ORIG" ]; then 
@@ -54,15 +54,12 @@ install_cfs_c_flowtech_extension() {
         chmod 644 "$BOX_CFG"
         echo "[OK] box.cfg erfolgreich auf E50 angepasst."
         restart_klipper
-        return 0
-        ;;
+        break;;
       N|n)
-        error_msg "Backup canceled!"
-        return 1
-        ;;
+        error_msg "Installation canceled!"
+        break;;
       *)
-        error_msg "Please select a correct choice!"
-        ;;
+        error_msg "Please select a correct choice!";;
     esac
   done
 }
@@ -71,7 +68,7 @@ remove_cfs_c_flowtech_extension() {
   cfs_c_flowtech_extension_message
   local yn
   while true; do
-    remove_msg "CFS-C Flowtech extension" yn
+    remove_msg "FlowTech Extension" yn
     case "${yn}" in
       Y|y)
         echo "=== Deinstallation: Micro-Swiss FlowTech Volumetric Extension ==="
@@ -90,15 +87,12 @@ remove_cfs_c_flowtech_extension() {
                 echo "[INFO] FlowTech Volumetric Extension ist nicht aktiv (bereits Werkszustand)."
             fi
         fi
-        return 0
-        ;;
+        break;;
       N|n)
-        error_msg "Deinstallation canceled!"
-        return 1
-        ;;
+        error_msg "Deletion canceled!"
+        break;;
       *)
-        error_msg "Please select a correct choice!"
-        ;;
+        error_msg "Please select a correct choice!";;
     esac
   done
 }

@@ -30,7 +30,7 @@ install_dxc_sensor() {
         echo "=== Starte Installation des DXC Filament Sensors ==="
         if [ ! -f "$SOURCE_FILE" ]; then
             echo "Fehler: Quell-Makro dxc_sensor.cfg nicht unter $SOURCE_FILE gefunden!"
-            return 1
+            break
         fi
         
         mkdir -p "$HS_CONFIG_FOLDER"
@@ -53,15 +53,12 @@ install_dxc_sensor() {
         echo "[OK] DXC Sensor erfolgreich ganz oben in printer.cfg installiert."
         echo "Info: Restarting Klipper service..."
         restart_klipper
-        return 0
-        ;;
+        break;;
       N|n)
         error_msg "Installation canceled!"
-        return 1
-        ;;
+        break;;
       *)
-        error_msg "Please select a correct choice!"
-        ;;
+        error_msg "Please select a correct choice!";;
     esac
   done
 }
@@ -70,7 +67,6 @@ remove_dxc_sensor() {
   dxc_sensor_message
   local yn
   while true; do
-    # Hier wird der Nutzer nun auch vor der Deinstallation um Bestätigung gebeten
     remove_msg "DXC Filament Sensor" yn
     case "${yn}" in
       Y|y)
@@ -88,15 +84,12 @@ remove_dxc_sensor() {
         
         echo "[OK] Deinstallation abgeschlossen. Info: Restarting Klipper service..."
         restart_klipper
-        return 0
-        ;;
+        break;;
       N|n)
-        error_msg "Deinstallation canceled!"
-        return 1
-        ;;
+        error_msg "Deletion canceled!"
+        break;;
       *)
-        error_msg "Please select a correct choice!"
-        ;;
+        error_msg "Please select a correct choice!";;
     esac
   done
 }
