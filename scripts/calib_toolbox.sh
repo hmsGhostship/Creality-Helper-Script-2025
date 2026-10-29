@@ -19,7 +19,7 @@ install_calib_toolbox() {
     local INCLUDE_LINE="[include Helper-Script/calib_tool_box.cfg]"
 	local yn
 	while true; do
-    backup_msg "Creality Calibration Toolboxe" yn
+    install_msg "Creality Calibration Toolbox" yn
     case "${yn}" in
       Y|y)
       echo "Starte Installation der Creality Calibration Toolbox..."
@@ -65,7 +65,7 @@ remove_calib_toolbox() {
     local TARGET_FILE="$HS_CONFIG_FOLDER/calib_tool_box.cfg"
 	local yn
 	while true; do
-    backup_msg "Creality Calibration Toolboxe" yn
+    remove_msg "Creality Calibration Toolbox" yn
     case "${yn}" in
       Y|y)
 	  

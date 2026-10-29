@@ -12,10 +12,10 @@ dxc_sensor_message() {
   title 'DXC Filament Sensor Setup:' "${yellow}"
   inner_line
   hr
-  echo -e " │ ${cyan}This patch installs the custom DXC Filament Sensor macro.       ${white}│"
-  echo -e " │ ${cyan}It injects the proper include into your printer.cfg and          ${white}│"
-  echo -e " │ ${cyan}safely disables the factory filament switch sensor entries       ${white}│"
-  echo -e " │ ${cyan}to prevent system conflicts.                                     ${white}│"
+  echo -e " │ ${cyan}This patch installs the custom DXC Filament Sensor macro.      ${white}│"
+  echo -e " │ ${cyan}It injects the proper include into your printer.cfg and        ${white}│"
+  echo -e " │ ${cyan}safely disables the factory filament switch sensor entries     ${white}│"
+  echo -e " │ ${cyan}to prevent system conflicts.                                   ${white}│"
   hr
   bottom_line
 }
@@ -24,7 +24,7 @@ install_dxc_sensor() {
   dxc_sensor_message
   local yn
   while true; do
-    backup_msg "Moonraker database" yn
+    install_msg "DXC Filament Sensor" yn
     case "${yn}" in
       Y|y)
         echo "=== Starte Installation des DXC Filament Sensors ==="
@@ -71,7 +71,7 @@ remove_dxc_sensor() {
   local yn
   while true; do
     # Hier wird der Nutzer nun auch vor der Deinstallation um Bestätigung gebeten
-    backup_msg "Moonraker database" yn
+    remove_msg "DXC Filament Sensor" yn
     case "${yn}" in
       Y|y)
         echo "=== Starte Deinstallation des DXC Filament Sensors ==="

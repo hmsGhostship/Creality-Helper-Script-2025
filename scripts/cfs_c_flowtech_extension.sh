@@ -24,7 +24,7 @@ install_cfs_c_flowtech_extension() {
   cfs_c_flowtech_extension_message
   local yn
   while true; do
-    backup_msg "Moonraker database" yn
+    install_msg "CFS-C Flowtech extension" yn
     case "${yn}" in
       Y|y)
         echo "=== Installation: Micro-Swiss FlowTech Volumetric Extension ==="
@@ -71,7 +71,7 @@ remove_cfs_c_flowtech_extension() {
   cfs_c_flowtech_extension_message
   local yn
   while true; do
-    backup_msg "Moonraker database" yn
+    remove_msg "CFS-C Flowtech extension" yn
     case "${yn}" in
       Y|y)
         echo "=== Deinstallation: Micro-Swiss FlowTech Volumetric Extension ==="
