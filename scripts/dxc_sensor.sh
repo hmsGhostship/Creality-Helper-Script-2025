@@ -3,7 +3,6 @@
 set -e
 
 # Globale Pfade definieren, damit sie in allen Funktionen bekannt sind
-# (Stellen Sie sicher, dass $HS_FILES, $HS_CONFIG_FOLDER und $PRINTER_CFG vorher geladen wurden)
 SOURCE_FILE="$HS_FILES/dxc-filament-sensor/dxc_sensor.cfg"
 TARGET_FILE="$HS_CONFIG_FOLDER/dxc_sensor.cfg"
 INCLUDE_LINE="[include Helper-Script/dxc_sensor.cfg]"
@@ -69,19 +68,35 @@ install_dxc_sensor() {
 
 remove_dxc_sensor() {
   dxc_sensor_message
-  
-  echo "=== Starte Deinstallation des DXC Filament Sensors ==="
-  
-  # 1. DXC-INCLUDE ENTFERNEN
-  sed -i '/\[include Helper-Script\/dxc_sensor.cfg\]/d' "$PRINTER_CFG"
-  
-  # 2. WERKSZUSTAND WIEDERHERSTELLEN (Entfernt die Raute direkt vor dem Text)
-  sed -i 's|#[[:space:]]*\[filament_switch_sensor filament_sensor\]|[filament_switch_sensor filament_sensor]|g' "$PRINTER_CFG"
-  sed -i 's|#[[:space:]]*switch_pin: !PD7|switch_pin: !PD7|g' "$PRINTER_CFG"
-  
-  # 3. DATEI LÖSCHEN
-  rm -f "$TARGET_FILE"
-  
-  echo "[OK] Deinstallation abgeschlossen. Info: Restarting Klipper service..."
-  restart_klipper
+  local yn
+  while true; do
+    # Hier wird der Nutzer nun auch vor der Deinstallation um Bestätigung gebeten
+    backup_msg "Moonraker database" yn
+    case "${yn}" in
+      Y|y)
+        echo "=== Starte Deinstallation des DXC Filament Sensors ==="
+        
+        # 1. DXC-INCLUDE ENTFERNEN
+        sed -i '/\[include Helper-Script\/dxc_sensor.cfg\]/d' "$PRINTER_CFG"
+        
+        # 2. WERKSZUSTAND WIEDERHERSTELLEN (Entfernt die Raute direkt vor dem Text)
+        sed -i 's|#[[:space:]]*\[filament_switch_sensor filament_sensor\]|[filament_switch_sensor filament_sensor]|g' "$PRINTER_CFG"
+        sed -i 's|#[[:space:]]*switch_pin: !PD7|switch_pin: !PD7|g' "$PRINTER_CFG"
+        
+        # 3. DATEI LÖSCHEN
+        rm -f "$TARGET_FILE"
+        
+        echo "[OK] Deinstallation abgeschlossen. Info: Restarting Klipper service..."
+        restart_klipper
+        return 0
+        ;;
+      N|n)
+        error_msg "Deinstallation canceled!"
+        return 1
+        ;;
+      *)
+        error_msg "Please select a correct choice!"
+        ;;
+    esac
+  done
 }

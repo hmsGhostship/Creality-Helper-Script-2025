@@ -69,21 +69,36 @@ install_cfs_c_flowtech_extension() {
 
 remove_cfs_c_flowtech_extension() {
   cfs_c_flowtech_extension_message
-  
-  echo "=== Deinstallation: Micro-Swiss FlowTech Volumetric Extension ==="
-  if [ -f "$BOX_CFG_ORIG" ]; then
-      cp -f "$BOX_CFG_ORIG" "$BOX_CFG"
-      rm -f "$BOX_CFG_ORIG"
-      echo "[OK] Originale Werks-box.cfg (E20) wiederhergestellt."
-      restart_klipper
-  else
-      if grep -q "extrude_length:[[:space:]]*50" "$BOX_CFG"; then
-          sed -i -E 's/extrude_length:[[:space:]]*[0-9]+/extrude_length: 20/g' "$BOX_CFG"
-          sed -i -E 's/Tn_extrude_velocity:[[:space:]]*[0-9]+/Tn_extrude_velocity: 360/g' "$BOX_CFG"
-          echo "[OK] box.cfg manuell auf Werkszustand E20 zurueckgesetzt."
-          restart_klipper
-      else
-          echo "[INFO] FlowTech Volumetric Extension ist nicht aktiv (bereits Werkszustand)."
-      fi
-  fi
+  local yn
+  while true; do
+    backup_msg "Moonraker database" yn
+    case "${yn}" in
+      Y|y)
+        echo "=== Deinstallation: Micro-Swiss FlowTech Volumetric Extension ==="
+        if [ -f "$BOX_CFG_ORIG" ]; then
+            cp -f "$BOX_CFG_ORIG" "$BOX_CFG"
+            rm -f "$BOX_CFG_ORIG"
+            echo "[OK] Originale Werks-box.cfg (E20) wiederhergestellt."
+            restart_klipper
+        else
+            if grep -q "extrude_length:[[:space:]]*50" "$BOX_CFG"; then
+                sed -i -E 's/extrude_length:[[:space:]]*[0-9]+/extrude_length: 20/g' "$BOX_CFG"
+                sed -i -E 's/Tn_extrude_velocity:[[:space:]]*[0-9]+/Tn_extrude_velocity: 360/g' "$BOX_CFG"
+                echo "[OK] box.cfg manuell auf Werkszustand E20 zurueckgesetzt."
+                restart_klipper
+            else
+                echo "[INFO] FlowTech Volumetric Extension ist nicht aktiv (bereits Werkszustand)."
+            fi
+        fi
+        return 0
+        ;;
+      N|n)
+        error_msg "Deinstallation canceled!"
+        return 1
+        ;;
+      *)
+        error_msg "Please select a correct choice!"
+        ;;
+    esac
+  done
 }
