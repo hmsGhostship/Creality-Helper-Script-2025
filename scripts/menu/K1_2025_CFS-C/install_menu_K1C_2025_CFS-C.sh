@@ -274,7 +274,9 @@ function install_menu_k1_2025_cfs_c() {
 #        fi;;
        20)
          clear
-         if [ ! -d "$MOONRAKER_FOLDER" ]; then
+		  if [ -d "$MOONRAKER_OBICO_FOLDER" ] && [ -f "$KLIPPER_CONFIG_FOLDER/moonraker-obico.cfg" ]; then
+            error_msg "Moonraker Obico is already installed!"
+         elif [ ! -d "$MOONRAKER_FOLDER" ]; then
            error_msg "Moonraker and Nginx are needed, please install them first!"
          elif [ ! -d "$FLUIDD_FOLDER" ] && [ ! -d "$MAINSAIL_FOLDER" ]; then
            error_msg "Fluidd or Mainsail is needed, please install one of them first!"
