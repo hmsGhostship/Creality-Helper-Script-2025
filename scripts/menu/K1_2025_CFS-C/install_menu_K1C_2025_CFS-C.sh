@@ -30,7 +30,7 @@ function install_menu_ui_k1_2025_cfs_c() {
   menu_option '13' 'Install' 'DXC Filament Sensor'
   menu_option '14' 'Install' 'CFS-C Universal Purge Speed Fix'
   menu_option '15' 'Install' 'Micro-Swiss FlowTech Volumetric Extension'
-  disabled_menu_option '16' 'Install' 'FLY-LLL PLUS Safetysystem (Einschalt-Sperre)'
+#  disabled_menu_option '16' 'Install' 'FLY-LLL PLUS Safetysystem (Einschalt-Sperre)'
 #  disabled_menu_option '17' 'Install' 'Klipper Adaptive Meshing & Purging'
 #  hr
 #  subtitle '•IMPROVEMENTS:'
