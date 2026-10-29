@@ -30,7 +30,7 @@ function remove_menu_ui_k1_2025_cfs_c() {
   menu_option '13' 'Remove' 'DXC Filament Sensor'
   menu_option '14' 'Remove' 'CFS-C Universal Purge Speed Fix'
   menu_option '15' 'Remove' 'Micro-Swiss FlowTech Volumetric Extension'
-  menu_option '16' 'Remove' 'FLY-LLL PLUS Safetysystem'
+  disabled_menu_option '16' 'Remove' 'FLY-LLL PLUS Safetysystem'
 #  disabled_menu_option '17' 'Remove' 'Klipper Adaptive Meshing & Purging'
 #  hr
 #  subtitle '•IMPROVEMENTS:'
