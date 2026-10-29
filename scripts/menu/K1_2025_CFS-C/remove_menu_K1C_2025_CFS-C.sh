@@ -207,7 +207,7 @@ function remove_menu_k1_2025_cfs_c() {
             echo
         else
             # Startet deine neue dxc_sensor.sh mit der dynamischen Backup-Wiederherstellung
-            run "dxc_sensor remove" "remove_menu_ui_k1_2025_cfs_c"
+            run "remove_dxc_sensor" "remove_menu_ui_k1_2025_cfs_c"
         fi
         ;;
       14)
@@ -218,7 +218,7 @@ function remove_menu_k1_2025_cfs_c() {
           error_msg "CFS-C Universal Purge Speed Fix is not installed!"
           echo
         else
-          run "cfs_c_speed_fix remove" "remove_menu_ui_k1_2025_cfs_c"
+          run "remove_cfs_c_speed_fix" "remove_menu_ui_k1_2025_cfs_c"
         fi
         ;;
       15)
@@ -229,7 +229,7 @@ function remove_menu_k1_2025_cfs_c() {
           error_msg "Micro-Swiss FlowTech Volumetric Extension is not installed!"
           echo
         else
-          run "cfs_c_flowtech_extension remove" "remove_menu_ui_k1_2025_cfs_c"
+          run "remove_cfs_c_flowtech_extension" "remove_menu_ui_k1_2025_cfs_c"
         fi
         ;;
       16)

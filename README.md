@@ -23,6 +23,18 @@ This repository is tailored and tested for advanced hardware modifications:
   * *⚠️ Note: This specific patch is strictly verified and tested for the combination of the MicroSwiss FlowTech Hotend and the Phaetus DXC Extruder only!*
 * **Creality Calibration Toolbox (Bed Mesh):** Optimized paths and enhanced support for precise Bed Mesh calibrations, ensuring perfect first layers with advanced probing.
 
+### ⚡ CFS-C Speed Fix (High Back-Pressure & Grinding Prevention)
+
+By default, the Creality CFS-C multi-material engine feeds the filament too aggressively into the hotend during the loading cycle. When dealing with high volumetric melting restrictions, this rapid feeding creates severe **High Back-Pressure** inside the melt zone. As a result, the dual-drive gears lose traction, causing destructive **Filament Grinding** and irreversible toolchange jams.
+
+The **CFS-C Speed Fix** micro-tunes and deliberately slows down the initial feeding and loading speeds inside the hotend context. By introducing a controlled, synchronized feed rate, it gives the hotend sufficient time to melt the incoming material safely. This entirely eliminates back-pressure spikes and safeguards your extruder gears against grinding.
+
+* **Anti-Grinding Logic:** Slows down the final loading segment to prevent the extruder gears from chewing into the filament strand.
+* **Back-Pressure Relief:** Drastically reduces structural tension within the heatbreak and nozzle assembly during toolchanges.
+* **Increased Success Rate:** Maximizes multi-material reliability on complex, long-term prints by eliminating feed-line mechanical stress.
+* **Hardware Protection:** Specifically optimized to maintain perfect structural harmony between the custom feeder lines and the hotend.
+
+
 ### ⚙️ Orca Slicer Configuration & Tips (v2.5.0_dev & Phaetus DXC)
 
 Recommended machine and profile settings for optimal integration with the CFS-C Multi-Material system:

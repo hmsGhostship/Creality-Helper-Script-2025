@@ -196,7 +196,7 @@ function install_menu_k1_2025_cfs_c() {
           echo
         else
           # Wenn das Include fehlt (z.B. nach einem Firmware-Update), darfst du es IMMER installieren!
-          run "dxc_sensor install" "install_menu_ui_k1_2025_cfs_c"
+          run "install_dxc_sensor" "install_menu_ui_k1_2025_cfs_c"
         fi;;
       14)
         clear
@@ -206,7 +206,7 @@ function install_menu_k1_2025_cfs_c() {
           error_msg "CFS-C Universal Purge Speed Fix is already installed!"
           echo
         else
-          run "cfs_c_speed_fix install" "install_menu_ui_k1_2025_cfs_c"
+          run "install_cfs_c_speed_fix" "install_menu_ui_k1_2025_cfs_c"
         fi;;
       15)
         clear
@@ -216,7 +216,7 @@ function install_menu_k1_2025_cfs_c() {
           error_msg "Micro-Swiss FlowTech Volumetric Extension is already installed!"
           echo
         else
-          run "cfs_c_flowtech_extension install" "install_menu_ui_k1_2025_cfs_c"
+          run "install_cfs_c_flowtech_extension" "install_menu_ui_k1_2025_cfs_c"
         fi;;
       16)
         clear
