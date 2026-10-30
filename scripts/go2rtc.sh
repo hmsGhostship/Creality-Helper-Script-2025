@@ -8,7 +8,7 @@ function go2rtc_message(){
   inner_line
   hr
   echo -e " │ ${cyan}Go2rtc is a versatile camera streaming application             ${white}│"
-  echo -e " │ ${cyan}On the K1 2025, this can read and restream the                ${white}│"
+  echo -e " │ ${cyan}On the K1 2025, this can read and restream the                 ${white}│"
   echo -e " │ ${cyan}camera feed directly for better stability and support          ${white}│"
   hr
   bottom_line

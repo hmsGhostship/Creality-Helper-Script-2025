@@ -22,7 +22,22 @@ function install_moonraker_obico(){
       Y|y)
         echo -e "${white}"
         
-        # 1. Download (falls gelöscht, ansonsten übersprungen)
+        # 1. DYNAMISCHE PFADERMITTLUNG
+        echo -e "Info: Detecting Moonraker Python Environment..."
+        local active_python=$(ps w | grep moonraker | grep -v grep | awk '{print $5}')
+        
+        if [ -z "$active_python" ] || [ ! -f "$active_python" ]; then
+          active_python="$MOONRAKER_ENV_PYTHON"
+        fi
+        
+        if [ ! -f "$active_python" ]; then
+          error_msg "Fehler: Keine gültige Moonraker Python-Umgebung gefunden!"
+          return 1
+        fi
+
+        echo -e "Info: Nutze Python-Umgebung: $active_python"
+
+        # 2. DOWNLOAD
         if [ -d "$MOONRAKER_OBICO_FOLDER" ]; then
           echo -e "Info: Moonraker Obico folder found."
         else
@@ -31,34 +46,44 @@ function install_moonraker_obico(){
           git clone --depth 1 "$MOONRAKER_OBICO_URL" "$MOONRAKER_OBICO_FOLDER"
         fi
 
-        # 2. RAM-SCHONEND: Direkt in die existierende Moonraker-Umgebung installieren
-        echo -e "Info: Installing Obico dependencies into existing Moonraker Env (No Venv building!)..."
+        # 3. PYTHON-INSTALLATION (NUR NOCH ABHÄNGIGKEITEN)
         cd "$MOONRAKER_OBICO_FOLDER"
-        
-        # Wir nutzen direkt das Klipper/Moonraker-Python deines Forks. 
-        # --no-cache-dir verhindert, dass der RAM mit temporären Download-Dateien vollsteckt wird!
-        $MOONRAKER_ENV_PYTHON -m pip install --no-cache-dir -r requirements.txt
+        echo -e "Info: Installing Obico dependencies..."
+        $active_python -m pip install --no-cache-dir -r requirements.txt
 
-        # 3. Port-Konfiguration aus deiner moonraker.conf auslesen
+        # 4. CONFIG-ERSTELLUNG, PORT-ANPASSUNG & K1C-LOG-FIX
         local obico_cfg="$KLIPPER_CONFIG_FOLDER/moonraker-obico.cfg"
         echo -e "Info: Creating moonraker-obico.cfg..."
-        cp ./moonraker-obico.cfg.sample "$obico_cfg"
+        
+        if [ -f "./moonraker-obico.cfg.sample" ]; then
+          cp ./moonraker-obico.cfg.sample "$obico_cfg"
+        else
+          error_msg "Fehler: moonraker-obico.cfg.sample nicht im Repository gefunden!"
+          return 1
+        fi
         
         local real_port=7126
         if [ -f "$MOONRAKER_CFG" ]; then
           local detected_port=$(grep -A 5 "\[server\]" "$MOONRAKER_CFG" | grep "port" | awk '{print $3}' | tr -d '\r')
-          [ ! -z "$detected_port" ] && real_port=$detected_port
+          if [ ! -z "$detected_port" ]; then
+             real_port=$detected_port
+          fi
         fi
         
         sed -i "s/host =.*/host = 127.0.0.1/g" "$obico_cfg"
         sed -i "s/port =.*/port = $real_port/g" "$obico_cfg"
+        
+        # K1C-LOG-FIX: Korrigiert die Variable "path =" in der Config auf das K1C-Log-Verzeichnis
+        sed -i "s|path = /home/pi/.*|path = /usr/data/printer_data/logs/moonraker-obico.log|g" "$obico_cfg"
 
-        # 4. In moonraker.conf einbinden
-        if ! grep -q "\[include moonraker-obico-update.cfg\]" "$MOONRAKER_CFG" ; then
-          echo -e "\n[include moonraker-obico-update.cfg]" >> "$MOONRAKER_CFG"
+        # 5. IN MOONRAKER.CONF EINBINDEN (Sicherer Bereinigungs-Bypass)
+        # Wir fügen KEIN fehlerhaftes Include mehr hinzu, sondern stellen sicher, dass alte 
+        # Absturz-Einträge aus der moonraker.conf getilgt werden, damit Moonraker booten kann.
+        if [ -f "$MOONRAKER_CFG" ]; then
+          sed -i '/\[include moonraker-obico-update\.cfg\]/d' "$MOONRAKER_CFG"
         fi
 
-        # 5. Autostart anlegen (nutzt jetzt auch das Moonraker-Python)
+        # 6. AUTOSTART ANLEGEN (Mit korrektem Module-Namen .app)
         echo -e "Info: Creating init service in $INITD_FOLDER..."
         cat << EOF > "$INITD_FOLDER/S99moonraker_obico"
 #!/bin/sh
@@ -66,11 +91,12 @@ case "\$1" in
   start)
     echo "Starting Moonraker Obico..."
     sleep 2
-    $MOONRAKER_ENV_PYTHON -m moonraker_obico.main -c $obico_cfg > /dev/null 2>&1 &
+    export PYTHONPATH="$MOONRAKER_OBICO_FOLDER"
+    $active_python -m moonraker_obico.app -c $obico_cfg > /dev/null 2>&1 &
     ;;
   stop)
     echo "Stopping Moonraker Obico..."
-    kill \$(pgrep -f "moonraker_obico.main") > /dev/null 2>&1
+    kill \$(pgrep -f "moonraker_obico.app") > /dev/null 2>&1
     ;;
   *)
     echo "Usage: \$0 {start|stop}"
@@ -80,13 +106,41 @@ exit 0
 EOF
         chmod +x "$INITD_FOLDER/S99moonraker_obico"
 
-        ok_msg "Moonraker Obico has been installed successfully without crashing the RAM!"
+        ok_msg "Moonraker Obico has been installed successfully!"
         
+        # 7. AUTOMATISCHER KOPPLUNGSPROZESS & VOLLAUTOMATISCHER SYSTEMSTART
         echo -e "${yellow}--------------------------------------------------------"
-        echo -e "Führe jetzt diesen Befehl aus, um die App zu koppeln:"
-        echo -e "$MOONRAKER_ENV_PYTHON -m moonraker_obico.link -c $obico_cfg"
+        echo -e "Starte automatischen Kopplungsprozess..."
+        echo -e "Bitte gib gleich den angezeigten Code in der Obico-App ein."
+        echo -e "Hinweis: Der Code ist ca. 3-5 Minuten gültig."
         echo -e "--------------------------------------------------------${white}"
+        sleep 2
+        
+        # Das OR (|| echo...) verhindert, dass "set -e" das Skript bei einem Timeout hart abbricht!
+        if ! PYTHONPATH="$MOONRAKER_OBICO_FOLDER" $active_python -m moonraker_obico.link -c "$obico_cfg"; then
+          echo -e "\n${yellow}Hinweis: Der Kopplungsprozess wurde unterbrochen oder das Zeitfenster ist abgelaufen."
+          echo -e "Du kannst die Kopplung später jederzeit manuell im Terminal nachholen mit:"
+          echo -e "PYTHONPATH=\"$MOONRAKER_OBICO_FOLDER\" $active_python -m moonraker_obico.link -c $obico_cfg${white}\n"
+        fi
+        
+        # DIE DIENSTE WERDEN TROTZDEM GESTARTET (Damit das System im Hintergrund bereit ist):
+        echo -e "Info: Konfiguriere Systemstarts für den Live-Betrieb..."
+        
+        # 1. Den neu angelegten Obico-Hintergrunddienst direkt starten
+        if [ -f "$INITD_FOLDER/S99moonraker_obico" ]; then
+          "$INITD_FOLDER/S99moonraker_obico" start > /dev/null 2>&1 || true
+        fi
+        
+        # 2. Moonraker sauber neu starten, damit das Plugin geladen wird
+        if command -v stop_moonraker >/dev/null 2>&1 && command -v start_moonraker >/dev/null 2>&1; then
+          stop_moonraker && sleep 1 && start_moonraker
+        elif [ -f "$INITD_FOLDER/S56moonraker_service" ]; then
+          "$INITD_FOLDER/S56moonraker_service" restart > /dev/null 2>&1 || true
+        fi
+
+        ok_msg "Installation abgeschlossen! Der Drucker sollte jetzt in der App online gehen."
         return;;
+
       N|n)
         error_msg "Installation canceled!"
         return;;
@@ -95,8 +149,6 @@ EOF
     esac
   done
 }
-
-
 
 function remove_moonraker_obico(){
   moonraker_obico_message
@@ -112,12 +164,13 @@ function remove_moonraker_obico(){
           echo -e "Info: Stopping Moonraker Obico service..."
           "$INITD_FOLDER"/S99moonraker_obico stop > /dev/null 2>&1 || true
           rm -f "$INITD_FOLDER"/S99moonraker_obico
+          # Sicherheits-Kill falls das Init-Skript hakt
+          kill $(pgrep -f "moonraker_obico.app") > /dev/null 2>&1 || true
         fi
 
         # 2. Konfigurationen aus der moonraker.conf entfernen
         if grep -q "\[include moonraker-obico-update.cfg\]" "$MOONRAKER_CFG" ; then
           echo -e "Info: Removing Moonraker Obico configurations in moonraker.conf file..."
-          # Nutzt eine robustere Methode, um den Include-Eintrag sauber zu löschen
           sed -i '/\[include moonraker-obico-update\.cfg\]/d' "$MOONRAKER_CFG"
         else
           echo -e "Info: Moonraker Obico configurations are already removed in moonraker.conf file..."
@@ -137,14 +190,13 @@ function remove_moonraker_obico(){
         rm -f "$KLIPPER_CONFIG_FOLDER"/moonraker-obico.cfg
         rm -f "$KLIPPER_CONFIG_FOLDER"/config/moonraker-obico.cfg
 
-        # 5. Dienste sauber über den Codebrained-Standard neu starten
+        # 5. Dienste sauber neu starten
         echo -e "Info: Restarting Moonraker service..."
         if command -v stop_moonraker >/dev/null 2>&1 && command -v start_moonraker >/dev/null 2>&1; then
           stop_moonraker
           sleep 1
           start_moonraker
         else
-          # Fallback, falls die Funktionen im Kontext dieses Skripts nicht geladen sind
           if [ -f "$INITD_FOLDER"/S56moonraker_service ]; then
             "$INITD_FOLDER"/S56moonraker_service restart > /dev/null 2>&1 || true
           fi

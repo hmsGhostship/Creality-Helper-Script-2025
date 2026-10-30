@@ -55,7 +55,7 @@ function remove_menu_ui_k1_2025_cfs_c() {
    menu_option '20' 'Remove' 'Moonraker Obico'
 #  disabled_menu_option '21' 'Remove' 'GuppyFLO'
    menu_option '22' 'Remove' 'Mobileraker Companion'
-   menu_option '23' 'Remove' 'OctoApp Companion'
+#  disabled_menu_option '23' 'Remove' 'OctoApp Companion'
 #  disabled_menu_option '24' 'Remove' 'SimplyPrint'
   hr
   inner_line

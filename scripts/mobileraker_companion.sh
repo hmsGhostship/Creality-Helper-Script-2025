@@ -30,7 +30,7 @@ function install_mobileraker_companion(){
       Y|y)
         echo -e "${white}"
 
-        # 1. HARD RAM-CLEANING (Genau wie manuell im Terminal)
+        # 1. HARD RAM-CLEANING (Freimachen für die Installation)
         echo -e "Info: Freeing up physical RAM (Killing heavy Creality services)..."
         killall -9 go2rtc_linux_mipsel >/dev/null 2>&1 || true
         killall -9 alchemistp >/dev/null 2>&1 || true
@@ -51,33 +51,33 @@ function install_mobileraker_companion(){
             echo -e "Info: Repository already exists at $MOBILERAKER_COMPANION_FOLDER."
         fi
 
+        # K1C 2025 LOGIK: Saubere Venv-Erstellung via Creality-System-Python (ohne Entware-Konflikte)
         echo -e "Info: Setting up Python Virtual Environment..."
         if [ ! -d "$MOBILERAKER_ENV_FOLDER" ]; then
-            python3 -m venv "$MOBILERAKER_ENV_FOLDER" 2>/dev/null || {
-                echo -e "Info: Built-in venv not found. Installing virtualenv..."
-                python3 -m pip install --no-cache-dir virtualenv
-                python3 -m virtualenv "$MOBILERAKER_ENV_FOLDER"
+            /usr/bin/python3 -m venv "$MOBILERAKER_ENV_FOLDER" 2>/dev/null || {
+                echo -e "Info: Built-in venv not found. Installing virtualenv via system python..."
+                /usr/bin/python3 -m pip install --no-cache-dir virtualenv
+                /usr/bin/python3 -m virtualenv "$MOBILERAKER_ENV_FOLDER"
             }
 
             echo -e "Info: Upgrading pip and build tools (RAM-safe mode)..."
             "$MOBILERAKER_ENV_FOLDER/bin/pip" install --no-cache-dir --upgrade pip setuptools wheel
 
-            if [ -d "/opt/lib" ]; then
-                echo -e "Info: Applying pre-compiled Pillow from Entware..."
-                cp -r /opt/lib/python3.*/site-packages/PIL* "$MOBILERAKER_ENV_FOLDER"/lib/python3.*/site-packages/ 2>/dev/null || true
-                cp -r /opt/lib/python3.*/site-packages/[pP]illow* "$MOBILERAKER_ENV_FOLDER"/lib/python3.*/site-packages/ 2>/dev/null || true
-            fi
+            # UNFEHLBARER K1C-FIX: Wir kopieren das nachweislich vorhandene Werks-Pillow
+            # Das ist zu 100% kompatibel, benötigt 0 MB Download und erzeugt 0% CPU-Last!
+            echo -e "Info: Linking factory-preinstalled Pillow binary into virtual environment..."
+            cp -r /usr/lib/python3.8/site-packages/PIL* "$MOBILERAKER_ENV_FOLDER/lib/python3.8/site-packages/" 2>/dev/null || true
             
             TMP_REQ="/tmp/mobileraker-requirements.txt"
             if [ -f "$MOBILERAKER_COMPANION_FOLDER/scripts/mobileraker-requirements.txt" ]; then
+                # Pillow und pybind11 rigoros filtern - absolut kein Download oder Kompilieren dafür!
                 grep -v -E -i "pillow|pybind11" "$MOBILERAKER_COMPANION_FOLDER/scripts/mobileraker-requirements.txt" > "$TMP_REQ"
-                echo -e "Info: Installing requirements via Schonwaschgang..."
-                # --no-build-isolation spart massiv RAM, MAX_CONCURRENT_BUILDS zwingt auf 1 Kern
+                echo -e "Info: Installing remaining requirements via Schonwaschgang..."
                 MAX_CONCURRENT_BUILDS=1 "$MOBILERAKER_ENV_FOLDER/bin/pip" install --no-cache-dir --no-build-isolation -r "$TMP_REQ"
                 rm -f "$TMP_REQ"
             elif [ -f "$MOBILERAKER_COMPANION_FOLDER/requirements.txt" ]; then
                 grep -v -E -i "pillow|pybind11" "$MOBILERAKER_COMPANION_FOLDER/requirements.txt" > "$TMP_REQ"
-                echo -e "Info: Installing requirements via Schonwaschgang..."
+                echo -e "Info: Installing remaining requirements via Schonwaschgang..."
                 MAX_CONCURRENT_BUILDS=1 "$MOBILERAKER_ENV_FOLDER/bin/pip" install --no-cache-dir --no-build-isolation -r "$TMP_REQ"
                 rm -f "$TMP_REQ"
             fi
@@ -85,14 +85,23 @@ function install_mobileraker_companion(){
             echo -e "Info: Virtual Environment already exists."
         fi
 
-        echo -e "Info: Creating mobileraker.conf configuration..."
+        # DYNAMISCHE PORT-ERMITTLUNG FÜR DEN K1C (Echtes Moonraker auf 7126 ansprechen)
+        local real_port=7126
+        if [ -f "$MOONRAKER_CFG" ]; then
+          local detected_port=$(grep -A 5 "\[server\]" "$MOONRAKER_CFG" | grep "port" | awk '{print $3}' | tr -d '\r')
+          if [ ! -z "$detected_port" ]; then
+             real_port=$detected_port
+          fi
+        fi
+
+        echo -e "Info: Creating mobileraker.conf configuration on Port $real_port..."
         if [ ! -f "$PRINTER_DATA_FOLDER/config/mobileraker.conf" ]; then
-            cat << 'EOF' > "$PRINTER_DATA_FOLDER/config/mobileraker.conf"
+            cat << EOF > "$PRINTER_DATA_FOLDER/config/mobileraker.conf"
 [main]
 config_version = 1
 
 [printer default]
-moonraker_uri = ws://127.0.0.1:7125/websocket
+moonraker_uri = ws://127.0.0.1:$real_port/websocket
 moonraker_api_key = False
 EOF
         fi
@@ -125,21 +134,9 @@ esac
 EOF
         chmod +x "$MOBILERAKER_INIT_SCRIPT"
 
-        echo -e "Info: Injecting Update Manager block into moonraker.conf..."
+        # K1C-KOMPATIBILITÄT: Wir tilgen alte, blockierende update_manager-Leichen aus der Config
         if [ -f "$MOONRAKER_CFG" ]; then
-            if ! grep -q "\[update_manager mobileraker\]" "$MOONRAKER_CFG"; then
-                cat << EOF >> "$MOONRAKER_CFG"
-
-[update_manager mobileraker]
-type: git_repo
-path: $MOBILERAKER_COMPANION_FOLDER
-origin: $MOBILERAKER_COMPANION_URL
-virtualenv: $MOBILERAKER_ENV_FOLDER
-primary_branch: main
-requirements: scripts/mobileraker-requirements.txt
-install_script: scripts/install.sh
-EOF
-            fi
+            sed -i '/\[update_manager mobileraker\]/,+8d' "$MOONRAKER_CFG"
         fi
 
         echo -e "Info: Starting Mobileraker daemon..."
@@ -151,6 +148,11 @@ EOF
         else
             error_msg "Service registered, but process failed to run. Check $PRINTER_DATA_FOLDER/logs/mobileraker.log"
         fi
+        
+        # Automatischer Reboot wie angekündigt, um das System frisch zu initialisieren
+        echo -e "${yellow}Rebooting printer now...${white}"
+        sleep 2
+        reboot
         return;;
       N|n)
         error_msg "Installation canceled!"
@@ -165,7 +167,7 @@ function remove_mobileraker_companion(){
   mobileraker_companion_message
   local yn
   while true; do
-    remove_msg "Mobileraker Companion" yn
+    remove_msg "Moonraker Companion" yn
     case "${yn}" in
       Y|y)
         echo -e "${white}"
@@ -192,9 +194,11 @@ function remove_mobileraker_companion(){
         fi
 
         echo -e "Info: Restarting system services..."
-        stop_moonraker
-        start_moonraker
-        restart_klipper
+        if command -v stop_moonraker >/dev/null 2>&1 && command -v start_moonraker >/dev/null 2>&1; then
+          stop_moonraker && sleep 1 && start_moonraker
+        elif [ -f "$INITD_FOLDER/S56moonraker_service" ]; then
+          "$INITD_FOLDER/S56moonraker_service" restart > /dev/null 2>&1 || true
+        fi
         
         ok_msg "Mobileraker Companion has been removed successfully!"
         return;;

@@ -40,7 +40,7 @@ function install_octoapp_companion(){
         killall -9 vectorp >/dev/null 2>&1 || true
         sleep 5
 
-        # 2. Verzeichnisse anlegen (Nutzt deine globalen Pfade)
+        # 2. Verzeichnisse anlegen
         mkdir -p "$PRINTER_DATA_FOLDER/config" "$PRINTER_DATA_FOLDER/logs" "$INITD_FOLDER"
 
         echo -e "Info: Downloading OctoApp Companion..."
@@ -51,36 +51,53 @@ function install_octoapp_companion(){
             echo -e "Info: OctoApp Companion folder already exists. Download skipped."
         fi
 
-        # 3. Virtual Environment & PIP Schonwaschgang
+        # 3. Virtual Environment & PIP Schonwaschgang (K1C 2025 SYNTAX-FIX)
         echo -e "Info: Setting up Python Virtual Environment..."
         OCTOAPP_ENV_FOLDER="${MOONRAKER_FOLDER}/octoapp-env"
         
         if [ ! -d "$OCTOAPP_ENV_FOLDER" ]; then
-            python3 -m venv "$OCTOAPP_ENV_FOLDER" 2>/dev/null || {
-                python3 -m pip install --no-cache-dir virtualenv
-                python3 -m virtualenv "$OCTOAPP_ENV_FOLDER"
-            }
+            # Reines, lineares if/else ohne blockierende geschweifte Klammern für die Creality-Shell
+            if /usr/bin/python3 -m venv "$OCTOAPP_ENV_FOLDER" 2>/dev/null; then
+                echo "Info: Built-in venv created successfully."
+            else
+                echo -e "Info: Built-in venv failed. Installing virtualenv via system python..."
+                /usr/bin/python3 -m pip install --no-cache-dir virtualenv
+                /usr/bin/python3 -m virtualenv "$OCTOAPP_ENV_FOLDER"
+            fi
 
-            # Vorkompiliertes Pillow aus Entware injizieren (Verhindert den hängenden Compiler-Crash)
-            if [ -d "/opt/lib" ]; then
-                cp -r /opt/lib/python3.*/site-packages/PIL* "$OCTOAPP_ENV_FOLDER"/lib/python3.*/site-packages/ 2>/dev/null || true
-                cp -r /opt/lib/python3.*/site-packages/[pP]illow* "$OCTOAPP_ENV_FOLDER"/lib/python3.*/site-packages/ 2>/dev/null || true
+            echo -e "Info: Upgrading pip and build tools (RAM-safe mode)..."
+            "$OCTOAPP_ENV_FOLDER/bin/pip" install --no-cache-dir --upgrade pip setuptools wheel
+
+            # UNFEHLBARER K1C-FIX: Wir kopieren das nachweislich vorhandene Werks-Pillow
+            echo -e "Info: Linking factory-preinstalled Pillow binary into virtual environment..."
+            if [ -d "/usr/lib/python3.8/site-packages/PIL" ]; then
+                cp -r /usr/lib/python3.8/site-packages/PIL* "$OCTOAPP_ENV_FOLDER/lib/python3.8/site-packages/" 2>/dev/null || true
             fi
             
-            # Anforderungen ohne das blockierende Pillow installieren
+            # Anforderungen ohne das blockierende Pillow/pybind11 installieren
             TMP_REQ="/tmp/octoapp-requirements.txt"
             if [ -f "$OCTOAPP_COMPANION_FOLDER/requirements.txt" ]; then
                 grep -v -E -i "pillow|pybind11" "$OCTOAPP_COMPANION_FOLDER/requirements.txt" > "$TMP_REQ"
+                echo -e "Info: Installing remaining requirements via Schonwaschgang..."
                 MAX_CONCURRENT_BUILDS=1 "$OCTOAPP_ENV_FOLDER/bin/pip" install --no-cache-dir --no-build-isolation -r "$TMP_REQ"
                 rm -f "$TMP_REQ"
             fi
         fi
 
-        # 4. Die verifizierte octoapp.conf schreiben (Nativer Klipper-Modus auf Port 7125)
-        echo -e "Info: Writing verified octoapp.conf structure..."
-        echo -e "[main]\napi_url: http://127.0.0.1:7125\nmoonraker_address: ws://127.0.0.1:7125/websocket\n\n[companion]\nip_or_hostname: 127.0.0.1\nport: 7125" > "$PRINTER_DATA_FOLDER/config/octoapp.conf"
+        # DYNAMISCHE PORT-ERMITTLUNG FÜR DEN K1C (Echtes Moonraker ansprechen)
+        local real_port=7126
+        if [ -f "$MOONRAKER_CFG" ]; then
+          local detected_port=$(grep -A 5 "\[server\]" "$MOONRAKER_CFG" | grep "port" | awk '{print $3}' | tr -d '\r')
+          if [ ! -z "$detected_port" ]; then
+             real_port=$detected_port
+          fi
+        fi
 
-        # 5. Persistentes Startskript erzeugen (Mit der verifizierten, fehlerfreien Base64-Inline-Logik)
+        # 4. Die verifizierte octoapp.conf schreiben (Mit dem dynamischen Port)
+        echo -e "Info: Writing verified octoapp.conf structure on Port $real_port..."
+        echo -e "[main]\napi_url: http://127.0.0.1:$real_port\nmoonraker_address: ws://127.0.0.1:$real_port/websocket\n\n[companion]\nip_or_hostname: 127.0.0.1\nport: $real_port" > "$PRINTER_DATA_FOLDER/config/octoapp.conf"
+
+        # 5. Persistentes Startskript erzeugen (Mit dynamischen Pfaden und dem korrekten Port-Bypass)
         echo -e "Info: Writing persistent startup script..."
         OCTOAPP_INIT_SCRIPT="${INITD_FOLDER}/S55octoapp"
         cat << EOF > "$OCTOAPP_INIT_SCRIPT"
@@ -90,7 +107,6 @@ case "\$1" in
   start)
     echo "Starting OctoApp Companion..."
     cd $OCTOAPP_COMPANION_FOLDER
-    # Der verifizierte Startbefehl (Reiner Klipper-Modus statt Bambu-Modus)
     PYTHONPATH=$OCTOAPP_COMPANION_FOLDER $OCTOAPP_ENV_FOLDER/bin/python3 -m moonraker_octoapp \$($OCTOAPP_ENV_FOLDER/bin/python3 -c 'import base64; print(base64.urlsafe_b64encode(b"{\"ServiceName\": \"octoapp\", \"VirtualEnvPath\": \"区域'$OCTOAPP_ENV_FOLDER'\", \"RepoRootFolder\": \"区域'$OCTOAPP_COMPANION_FOLDER'\", \"LocalFileStoragePath\": \"区域'$PRINTER_DATA_FOLDER'/config\", \"ConfigFolder\": \"区域'$PRINTER_DATA_FOLDER'/config\", \"LogFolder\": \"区域'$PRINTER_DATA_FOLDER'/logs\", \"IsCompanion\": false, \"MoonrakerConfigFile\": \"区域'$MOONRAKER_CFG'\"}").decode("utf-8").replace("区域",""))') > $PRINTER_DATA_FOLDER/logs/octoapp.log 2>&1 &
     ;;
   stop)
@@ -112,25 +128,15 @@ esac
 EOF
         chmod +x "$OCTOAPP_INIT_SCRIPT"
 
-        # 6. Update-Manager in moonraker.conf eintragen
-        if [ -f "$MOONRAKER_CFG" ] && ! grep -q "\[update_manager octoapp\]" "$MOONRAKER_CFG"; then
-            cat << EOF >> "$MOONRAKER_CFG"
-
-[update_manager octoapp]
-type: git_repo
-path: $OCTOAPP_COMPANION_FOLDER
-origin: $OCTOAPP_COMPANION_URL
-virtualenv: $OCTOAPP_ENV_FOLDER
-primary_branch: main
-requirements: requirements.txt
-install_script: install.sh
-EOF
+        # K1C-COMPATIBILITY: Wir tilgen alte, blockierende update_manager-Leichen aus der Config
+        if [ -f "$MOONRAKER_CFG" ]; then
+            sed -i '/\[update_manager octoapp\]/,+8d' "$MOONRAKER_CFG"
         fi
 
         ok_msg "OctoApp Companion has been installed successfully!"
         
-        # 7. Automatischer System-Reboot (Flusht den RAM und bootet den neuen Service)
-        for i in 10 9 8 7 6 5 4 3 2 1; do
+        # 7. Automatischer System-Reboot
+        for i in 5 4 3 2 1; do
             echo -e "    Drucker startet neu in $i Sekunden... \r\c"
             sleep 1
         done

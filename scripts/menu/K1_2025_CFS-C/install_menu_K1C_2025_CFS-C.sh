@@ -55,7 +55,7 @@ function install_menu_ui_k1_2025_cfs_c() {
    menu_option '20' 'Install' 'Moonraker Obico'
 #  disabled_menu_option '21' 'Install' 'GuppyFLO'
    menu_option '22' 'Install' 'Mobileraker Companion'
-   menu_option '23' 'Install' 'OctoApp Companion'
+#  disabled_menu_option '23' 'Install' 'OctoApp Companion'
 #  disabled_menu_option '24' 'Install' 'SimplyPrint'
   hr
   inner_line
