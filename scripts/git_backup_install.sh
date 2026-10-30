@@ -2,14 +2,20 @@
 
 set -e
 
+# Pfade aus der C0DEbrained paths.sh laden
+if [ -f /usr/data/helper-script/paths.sh ]; then
+  source /usr/data/helper-script/paths.sh
+  set_paths
+fi
+
 function git_backup_message(){
   top_line
   title 'Git Backup' "${yellow}"
   inner_line
   hr
-  echo -e " │ ${cyan}It allows to watch Klipper configuration folder and          ${white}│"
-  echo -e " │ ${cyan}automatically backup to GitHub whenever a change is made in  ${white}│"
-  echo -e " │ ${cyan}that directory.                                              ${white}│"
+  echo -e " │ ${cyan}It allows to watch Klipper configuration folder and            ${white}│"
+  echo -e " │ ${cyan}automatically backup to GitHub whenever a change is made in    ${white}│"
+  echo -e " │ ${cyan}that directory.                                                ${white}│"
   hr
   bottom_line
 }
@@ -22,21 +28,19 @@ function install_git_backup(){
     case "${yn}" in
       Y|y)
         echo -e "${white}"
-        if [ -f "$HS_CONFIG_FOLDER"/git-backup.cfg ]; then
-          rm -f "$HS_CONFIG_FOLDER"/git-backup.cfg
-        fi
-        if [ -d "$KLIPPER_CONFIG_FOLDER"/.git ]; then
-          rm -rf "$KLIPPER_CONFIG_FOLDER"/.git
-        fi
-        if [ -d "$HS_BACKUP_FOLDER"/git-backup ]; then
-          rm -rf "$HS_BACKUP_FOLDER"/git-backup
-        fi
-        if [ ! -d "$HS_CONFIG_FOLDER" ]; then
-          mkdir -p "$HS_CONFIG_FOLDER"
-        fi
+        if [ -f "$HS_CONFIG_FOLDER"/git-backup.cfg ]; then rm -f "$HS_CONFIG_FOLDER"/git-backup.cfg; fi
+        if [ -d "$KLIPPER_CONFIG_FOLDER"/.git ]; then rm -rf "$KLIPPER_CONFIG_FOLDER"/.git; fi
+        if [ -d "$HS_BACKUP_FOLDER"/git-backup ]; then rm -rf "$HS_BACKUP_FOLDER"/git-backup; fi
+        if [ ! -d "$HS_CONFIG_FOLDER" ]; then mkdir -p "$HS_CONFIG_FOLDER"; fi
+        
         echo -e "Info: Running Git Backup installer..."
-        chmod 755 "$GIT_BACKUP_INSTALLER"
-        sh "$GIT_BACKUP_INSTALLER" -i
+        chmod 755 /usr/data/helper-script/files/git-backup/git-backup.sh
+        
+        # 1. Den Installer ausführen
+        sh /usr/data/helper-script/files/git-backup/git-backup.sh -i
+        
+        # 2. Direkt die originale C0DEbrained-Funktion für den Neustart-Dialog aufrufen!
+        restart_klipper
         return;;
       N|n)
         error_msg "Installation canceled!"
@@ -57,7 +61,7 @@ function remove_git_backup(){
         echo -e "${white}"
         echo -e "Info: Stopping services..."
         set +e
-        /etc/init.d/S52Git-Backup stop >/dev/null 2>&1
+        "$INITD_FOLDER"/S52Git-Backup stop >/dev/null 2>&1
         killall -q git-backup.sh
         killall -q inotifywait
         set -e
@@ -80,19 +84,18 @@ function remove_git_backup(){
         else
           echo -e "Info: Git Backup configurations are already removed in printer.cfg file..."
         fi
-        if [ -f "$ENTWARE_FILE" ]; then
-          echo -e "Info: Removing packages..."
-          set +e
-          "$ENTWARE_FILE" --autoremove remove inotifywait
-          set -e
-        fi
         if [ ! -n "$(ls -A "$HS_CONFIG_FOLDER")" ]; then
           rm -rf "$HS_CONFIG_FOLDER"
         fi
-        echo -e "Info: Restarting Klipper service..."
-        restart_klipper
+        
+        # ==============================================================================
+        # HIER IST DIE KORREKTUR: Altes restart_klipper gelöscht und durch C0DEbrained-Dialog ersetzt
+        # ==============================================================================
         ok_msg "Git Backup has been removed successfully!"
+        restart_klipper
         return;;
+        # ==============================================================================
+        
       N|n)
         error_msg "Deletion canceled!"
         return;;
