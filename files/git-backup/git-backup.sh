@@ -141,30 +141,32 @@ elif [ "$INSTALL" = 1 ]; then
     git add .
     git commit -m "Initial Backup"
     
-    # set +e schützt das übergeordnete Menü vor Fehlern beim ersten Push
+    # set +e schützt vor Skriptabbruch
     set +e
     export GIT_TERMINAL_PROMPT=0
     push_repo=$(timeout 10 git push -u origin "$REPO_BRANCH" 2>&1)
     set -e
     
+    # KORREKTUR: Wir löschen das .git-Verzeichnis NICHT mehr blind!
     if echo "$push_repo" | grep -q "fatal: remote origin already exists"; then
-        rm -rf "$TARGET"/.git; killall -q inotifywait >/dev/null 2>&1
+        killall -q inotifywait >/dev/null 2>&1
         echo "${white}${darkred} ✗ A branch named $REPO_BRANCH already exists!${white}"; exit 0
     elif echo "$push_repo" | grep -q "remote: error: GH007"; then
-        rm -rf "$TARGET"/.git; killall -q inotifywait >/dev/null 2>&1
+        killall -q inotifywait >/dev/null 2>&1
         echo "${white}${darkred} ✗ Your push would publish a private email address!${white}"; exit 0
     elif echo "$push_repo" | grep -q "error: failed to push some refs to"; then
-        rm -rf "$TARGET"/.git; killall -q inotifywait >/dev/null 2>&1
-        echo "${white}${darkred} ✗ Your repository already contains commits and cannot be merged!${white}"; exit 0
+        killall -q inotifywait >/dev/null 2>&1
+        echo "${white}${yellow} ℹ️ Repository already contains commits. Token configuration preserved.${white}"
     elif echo "$push_repo" | grep -q "remote: Repository not found"; then
-        rm -rf "$TARGET"/.git; killall -q inotifywait >/dev/null 2>&1
+        killall -q inotifywait >/dev/null 2>&1
         echo "${white}${darkred} ✗ Your repository was not found!${white}"; exit 0
     elif echo "$push_repo" | grep -q "fatal: Authentication failed"; then
-        rm -rf "$TARGET"/.git; killall -q inotifywait >/dev/null 2>&1
+        killall -q inotifywait >/dev/null 2>&1
         echo "${white}${darkred} ✗ Authentication failed!${white}"; exit 0
     else
         git push -u origin "$REPO_BRANCH" || true
     fi
+
     
     if [ ! -d "$HS_BACKUP_FOLDER"/git-backup ]; then
         mkdir -p "$HS_BACKUP_FOLDER"/git-backup
