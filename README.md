@@ -6,6 +6,34 @@ This script intended for use on Creality **K1 Series** and **Ender-3 V3 Series**
 
 Additional support for K1 2025 CFS-C by @hmsGhostship.
 
+## 📋 / ✅  Prerequisites and installation
+
+1. Install a root exploit
+
+Codebrained K1C 2025 Root Exploit https://gist.github.com/C0DEbrained
+or
+Codebrained Creality-2025-Web-Exploit https://github.com/C0DEbrained/Creality-2025-Web-Exploit
+
+2. Install Entware:
+
+```bash
+wget -O- https://github.com/hmsGhostship/Creality-Helper-Script-2025/tree/main/entware/install_entware.sh | sh
+```
+
+and then restart the printer.
+
+3. Clone the 2025 CFS-C Helper-Script Repo
+
+```bash
+git clone --depth 1 https://github.com/hmsGhostship/Creality-Helper-Script-2025.git /usr/data/helper-script
+```
+
+4. Run the helper script:
+
+```bash
+sh /usr/data/helper-script/helper.sh
+```
+
 ### 🚀 CFS-C Edition (Automated Submodel Detection)
 
 This modified version by @hmsGhostship introduces full automation for K1 2025 printers equipped with the Creality CFS-C material box:
