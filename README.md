@@ -19,7 +19,7 @@ Codebrained Creality-2025-Web-Exploit https://github.com/C0DEbrained/Creality-20
 2. Install Entware:
 
 ```bash
-wget -O- https://github.com/hmsGhostship/Creality-Helper-Script-2025/tree/main/entware/install_entware.sh | sh
+wget -O- https://raw.githubusercontent.com/hmsGhostship/Creality-Helper-Script-2025/main/entware/install_entware.sh | sh
 ```
 
 and then restart the printer.
