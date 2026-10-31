@@ -141,13 +141,14 @@ elif [ "$INSTALL" = 1 ]; then
     git add .
     git commit -m "Initial Backup"
     
-    # set +e schützt vor Skriptabbruch
+    # ==============================================================================
+    # ➔ FIX: AUTOMATISCHER ABGLEICH BEI BESTEHENDEN ONLINE-CHRONIKEN
+    # ==============================================================================
     set +e
     export GIT_TERMINAL_PROMPT=0
     push_repo=$(timeout 10 git push -u origin "$REPO_BRANCH" 2>&1)
     set -e
     
-    # KORREKTUR: Wir löschen das .git-Verzeichnis NICHT mehr blind!
     if echo "$push_repo" | grep -q "fatal: remote origin already exists"; then
         killall -q inotifywait >/dev/null 2>&1
         echo "${white}${darkred} ✗ A branch named $REPO_BRANCH already exists!${white}"; exit 0
@@ -155,19 +156,23 @@ elif [ "$INSTALL" = 1 ]; then
         killall -q inotifywait >/dev/null 2>&1
         echo "${white}${darkred} ✗ Your push would publish a private email address!${white}"; exit 0
     elif echo "$push_repo" | grep -q "error: failed to push some refs to"; then
-        killall -q inotifywait >/dev/null 2>&1
-        echo "${white}${yellow} ℹ️ Repository already contains commits. Token configuration preserved.${white}"
+        echo "${white}${yellow} ℹ️ Online repository contains data. Merging histories...${white}"
+        set +e
+        git pull origin "$REPO_BRANCH" --allow-unrelated-histories --no-edit
+        git push -u origin "$REPO_BRANCH"
+        set -e
+        echo "${white}${green} ✓ Repository successfully synchronized. Token verified and preserved!${white}"
     elif echo "$push_repo" | grep -q "remote: Repository not found"; then
-        killall -q inotifywait >/dev/null 2>&1
+        rm -rf "$TARGET"/.git; killall -q inotifywait >/dev/null 2>&1
         echo "${white}${darkred} ✗ Your repository was not found!${white}"; exit 0
     elif echo "$push_repo" | grep -q "fatal: Authentication failed"; then
-        killall -q inotifywait >/dev/null 2>&1
+        rm -rf "$TARGET"/.git; killall -q inotifywait >/dev/null 2>&1
         echo "${white}${darkred} ✗ Authentication failed!${white}"; exit 0
     else
         git push -u origin "$REPO_BRANCH" || true
     fi
+    # ==============================================================================
 
-    
     if [ ! -d "$HS_BACKUP_FOLDER"/git-backup ]; then
         mkdir -p "$HS_BACKUP_FOLDER"/git-backup
     fi
