@@ -10,8 +10,10 @@ Additional support for K1 2025 CFS-C by @hmsGhostship.
 
 1. Install a root exploit
 
-Codebrained K1C 2025 Root Exploit https://gist.github.com/C0DEbrained
-or
+Codebrained K1C 2025 Root Exploit https://gist.github.com/C0DEbrained  
+
+or  
+
 Codebrained Creality-2025-Web-Exploit https://github.com/C0DEbrained/Creality-2025-Web-Exploit
 
 2. Install Entware:
