@@ -1,4 +1,4 @@
-# Creality Helper Script - 2025 Support
+# Creality Helper Script - 2025 (CFS-C) Support
 
 ## About
 
