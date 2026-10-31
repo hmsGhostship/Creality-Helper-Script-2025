@@ -118,7 +118,9 @@ G1 Z1 F600
 ---
 *Disclaimer: This software is provided "as is" without warranty of any kind. Use it at your own risk.*
 
----
+<br>
+<hr style="height: 4px; background-color: #7f8c8d; border: none; border-radius: 2px;">
+<br>
 
 Additional support for K1 2025 by @C0DEbrained.
 
