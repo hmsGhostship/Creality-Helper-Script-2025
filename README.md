@@ -14,6 +14,19 @@ This modified version by @hmsGhostship introduces full automation for K1 2025 pr
 * **Smart UI Branching:** If the material box is active, the script seamlessly switches to the customized `K1_2025_CFS-C` menu layout.
 * **Reversible & Safe:** Includes a built-in safety switch under **[Customize Menu] -> Option 8** to instantly remove the detection and revert back to the stock `K1_2025` layout if the CFS-C is disconnected.
 
+### 🖥️ CFS-C Mainsail/Fluidd Panel Integration (Tools menu > options 20 - 23)
+
+This custom module integrates a native, high-performance CFS multi-material control panel directly into your active Mainsail or Fluidd web interface. 
+
+It completely bypasses the legacy port `9999` socket by communicating directly with the Klipper core and the modern Moonraker database API (`:7125`), making it fully compatible with next-gen 2025/2026 mainboard architectures.
+
+* **Cycle-Aware UI Lock:** Automatically detects complex multi-material physical sequences (nozzle heating -> cutting via side-buffer -> retracting -> purging) and prevents premature interface unlocking. Buttons are strictly kept frozen until Klipper returns to a true `Idle` state.
+* **Dual-Engine Polling:** Monitors Klipper's `idle_timeout` and the `color_box` namespace simultaneously to achieve perfect synchronization between hardware status and browser feedback.
+* **Granular Control:** Safely install or remove the interface integration independently for Mainsail, Fluidd, or both via the Customize Menu without risking any system configuration mismatches.
+
+> 💡 *Note: After installing or removing the addon, please perform a hard reload (**Ctrl + F5**) in your web browser to force Chrome to load the newly injected script tags.*
+
+
 ### 🛠️ Hardware & Calibration Optimizations
 
 This repository is tailored and tested for advanced hardware modifications:
