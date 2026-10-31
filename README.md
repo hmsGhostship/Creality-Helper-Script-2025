@@ -118,7 +118,7 @@ G1 Z1 F600
 ---
 *Disclaimer: This software is provided "as is" without warranty of any kind. Use it at your own risk.*
 
-
+---
 
 Additional support for K1 2025 by @C0DEbrained.
 
