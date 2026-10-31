@@ -262,6 +262,9 @@ function set_paths() {
   # Block Creality Cloud Telemetry #
   CLOUD_BLOCK_SERVICE_URL="${HS_FILES}/services/S995cloudblock"
   CLOUD_BLOCK_SERVICE_FILE="${INITD_FOLDER}/S995cloudblock"
+  
+  # CFS Mainsail integration #
+
 }
 
 function set_permissions() {

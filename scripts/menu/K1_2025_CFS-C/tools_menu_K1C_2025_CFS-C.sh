@@ -10,7 +10,7 @@ function tools_menu_ui_k1_2025_cfs_c() {
   hr
   menu_option ' 1' 'Prevent updating' 'Klipper configuration files'
   menu_option ' 2' 'Allow updating' 'Klipper configuration files'
-  disabled_menu_option ' 3' 'Fix' 'printing Gcode files from folder'
+#  disabled_menu_option ' 3' 'Fix' 'printing Gcode files from folder'
   hr
   menu_option ' 4' 'Enable' 'camera settings in Moonraker'
   menu_option ' 5' 'Disable' 'camera settings in Moonraker'
@@ -25,13 +25,19 @@ function tools_menu_ui_k1_2025_cfs_c() {
   menu_option '11' 'Clear' 'cache'
   menu_option '12' 'Clear' 'logs files'
   hr
-  disabled_menu_option '13' 'Restore' 'a previous firmware'
-  hr
-  disabled_menu_option '14' 'Reset' 'factory settings'
-  hr
+#  disabled_menu_option '13' 'Restore' 'a previous firmware'
+#  hr
+#  disabled_menu_option '14' 'Reset' 'factory settings'
+#  hr
+  subtitle '•CFS-C Tools:'
   menu_option '15' 'Enable' 'Creality Calibration Toolbox (BED MESH)'
   menu_option '16' 'Disable' 'Creality Calibration Toolbox (BED MESH)'
   hr
+  subtitle '•CFS-C Mainsail/Fluidd integration:'
+  menu_option '20' 'Install' 'CFS-C Mainsail Addon'
+  menu_option '21' 'Remove' 'CFS-C Mainsail Addon'
+  menu_option '22' 'Install' 'CFS-C Fluidd Addon'
+  menu_option '23' 'Remove' 'CFS-C Fluidd Addon'
   inner_line
   hr
   bottom_menu_option 'b' 'Back to [Main Menu]' "${yellow}"
@@ -193,6 +199,50 @@ function tools_menu_k1_2025_cfs_c() {
           echo
         else
           run "remove_calib_toolbox" "tools_menu_ui_k1_2025_cfs_c"
+        fi
+        ;;
+      20)
+        clear
+        if [ -f "${MAINSAIL_FOLDER}/k1c-cfs-panel.js" ]; then
+          tools_menu_ui_k1_2025_cfs_c
+          echo
+          error_msg "CFS-C Mainsail Addon ist bereits installiert!"
+          echo
+        else
+          run "install_cfs_integration mainsail" "tools_menu_ui_k1_2025_cfs_c"
+        fi
+        ;;
+      21)
+        clear
+        if [ ! -f "${MAINSAIL_FOLDER}/k1c-cfs-panel.js" ]; then
+          tools_menu_ui_k1_2025_cfs_c
+          echo
+          error_msg "CFS-C Mainsail Addon ist gar nicht installiert!"
+          echo
+        else
+          run "remove_cfs_integration mainsail" "tools_menu_ui_k1_2025_cfs_c"
+        fi
+        ;;
+      22)
+        clear
+        if [ -f "${FLUIDD_FOLDER}/k1c-cfs-panel.js" ]; then
+          tools_menu_ui_k1_2025_cfs_c
+          echo
+          error_msg "CFS-C Fluidd Addon ist bereits installiert!"
+          echo
+        else
+          run "install_cfs_integration fluidd" "tools_menu_ui_k1_2025_cfs_c"
+        fi
+        ;;
+      23)
+        clear
+        if [ ! -f "${FLUIDD_FOLDER}/k1c-cfs-panel.js" ]; then
+          tools_menu_ui_k1_2025_cfs_c
+          echo
+          error_msg "CFS-C Fluidd Addon ist gar nicht installiert!"
+          echo
+        else
+          run "remove_cfs_integration fluidd" "tools_menu_ui_k1_2025_cfs_c"
         fi
         ;;
       B|b)
