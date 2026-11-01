@@ -29,7 +29,6 @@ function customize_menu_ui_k1_2025_cfs_c() {
   bottom_line
 }
 
-
 # Remove the CFS-C option and revert to K1C 2025.
 function disable_cfsc_menu() {
   clear
@@ -47,8 +46,34 @@ function disable_cfsc_menu() {
     read -p " Möchtest du die Erkennung jetzt entfernen? (y/n): ${yellow}" yn
     case "${yn}" in
       Y|y)
-        sed -i '/mb-料盒/d' /usr/data/printer_data/config/printer.cfg
-        ok_msg "Erkennung erfolgreich entfernt!"
+        # Nutzt den Config-Ordner aus paths.sh für die temporäre Datei
+        local tmp_file="${KLIPPER_CONFIG_FOLDER}/printer.cfg.tmp"
+
+        # 1. Hauptkonfiguration bis zum ersten SAVE_CONFIG-Block sichern
+        awk '/<---------------------- SAVE_CONFIG ---------------------->/ {exit} {print}' "$PRINTER_CFG" > "$tmp_file"
+
+        # 2. Prüfen, ob wichtige Kalibrierungsdaten geschützt werden müssen
+        if grep -qE "bed_mesh default|input_shaper" "$PRINTER_CFG"; then
+            # Header neu schreiben
+            echo "#*# <---------------------- SAVE_CONFIG ---------------------->" >> "$tmp_file"
+            echo "#*# DO NOT EDIT THIS BLOCK OR BELOW. The contents are auto-generated." >> "$tmp_file"
+            echo "#*#" >> "$tmp_file"
+            
+            # Zeilenweise Prüfung: Übernimmt bed_mesh und input_shaper, filtert serial_can rigoros aus
+            awk '
+            BEGIN { keep = 0 }
+            /\<---------------------- SAVE_CONFIG ----------------------\>/ { next }
+            /#\*# \[bed_mesh default\]/ || /#\*# \[input_shaper\]/ { keep = 1; print; next }
+            /#\*# \[[a-zA-Z0-9_]+\]/ { keep = 0 }
+            /#\*# \[serial_can\]/ || /cm-切刀/ || /mb-料盒/ { keep = 0; next }
+            { if (keep == 1 && /#\*#/) print }
+            ' "$PRINTER_CFG" >> "$tmp_file" 2>/dev/null
+        fi
+
+        # 3. Temporäre Datei zur echten printer.cfg machen
+        mv "$tmp_file" "$PRINTER_CFG"
+        
+        ok_msg "Erkennung erfolgreich entfernt und Konfiguration tiefenbereinigt!"
         echo -e " ${green}Bitte starte das Helper-Script neu, um das K1_2025 Menü zu laden.${white}"
         echo
         exit 0

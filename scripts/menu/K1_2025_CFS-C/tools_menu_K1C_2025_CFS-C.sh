@@ -180,7 +180,7 @@ function tools_menu_k1_2025_cfs_c() {
         ;;
       15)
         clear
-        if grep -q "^\[include Helper-Script/calib_tool_box.cfg\]" /usr/data/printer_data/config/printer.cfg 2>/dev/null; then
+        if grep -q "^\[include Helper-Script/calib_tool_box.cfg\]" "$PRINTE_CFG" 2>/dev/null; then
           tools_menu_ui_k1_2025_cfs_c
           echo
           error_msg "Creality Calibration Toolbox ist bereits installiert und aktiv!"
@@ -191,7 +191,7 @@ function tools_menu_k1_2025_cfs_c() {
         ;;
       16)
         clear
-        grep -q "^\[include Helper-Script/calib_tool_box.cfg\]" /usr/data/printer_data/config/printer.cfg 2>/dev/null && calib_res=0 || calib_res=1
+        grep -q "^\[include Helper-Script/calib_tool_box.cfg\]" "$PRINTE_CFG" && calib_res=0 || calib_res=1
         if [ "${calib_res}" -ne 0 ]; then
           tools_menu_ui_k1_2025_cfs_c
           echo

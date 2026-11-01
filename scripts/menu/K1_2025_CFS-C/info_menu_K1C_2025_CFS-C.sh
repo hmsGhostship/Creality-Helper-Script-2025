@@ -13,7 +13,16 @@ function check_folder_k1_2025() {
 
 function check_file_k1_2025() {
   local file_path="$1"
-  if [ -f "$file_path" ]; then
+  
+  # Wenn $2 gleich "-n" ist, prüfen wir auf "! -f", sonst auf "-f"
+  if [ "$2" = "-n" ]; then
+    [ ! -f "$file_path" ]
+  else
+    [ -f "$file_path" ]
+  fi
+
+  # $? hält den Status des letzten Befehls (der if-Prüfung oben)
+  if [ $? -eq 0 ]; then
     echo -e "${green}✓"
   else
     echo -e "${red}✗"
@@ -82,6 +91,35 @@ function check_creality_services_k1_2025() {
   fi
 }
 
+function check_content_k1_2025() {
+  local pattern="$1"
+  local file_path="$2"
+  local invert="$3"
+
+  # grep -q sucht nach dem Muster. 
+  # Erfog (Exit-Code 0) bedeutet: Muster wurde gefunden.
+  grep -q "$pattern" "$file_path" 2>/dev/null
+  local exit_code=$?
+
+  # Logik für die Invertierung (-n)
+  if [ "$invert" = "-n" ]; then
+    # Wenn invertiert, wollen wir, dass grep KEINEN Treffer hatte (Exit-Code ungleich 0)
+    if [ $exit_code -ne 0 ]; then
+      echo -e "${green}✓"
+    else
+      echo -e "${red}✗"
+    fi
+  else
+    # Standard: Wenn normal, wollen wir einen Treffer (Exit-Code 0)
+    if [ $exit_code -eq 0 ]; then
+      echo -e "${green}✓"
+    else
+      echo -e "${red}✗"
+    fi
+  fi
+}
+
+
 function check_nexusp_retired_k1_2025() {
   if nexusp_absent; then
     echo -e "${cyan}-"
@@ -127,10 +165,14 @@ function info_menu_ui_k1_2025_cfs_c() {
   info_line "$(check_live_status_k1_2025 "^\[include Helper-Script/dxc_sensor.cfg\]")" 'DXC Filament Sensor'
   info_line "$(check_file_k1_2025 "$HS_BACKUP_FOLDER/box_control.pyc.orig")" 'CFS-C Universal Purge Speed Fix'
   info_line "$(check_file_k1_2025 "$HS_BACKUP_FOLDER/box.cfg.orig")" 'Micro-Swiss FlowTech Volumetric Extension'
-  info_line "$(check_live_status_k1_2025 "^\[include Helper-Script/cfs_lll_safety.cfg\]")" 'FLY-LLL PLUS Safetysystem'
+  #info_line "$(check_live_status_k1_2025 "^\[include Helper-Script/cfs_lll_safety.cfg\]")" 'FLY-LLL PLUS Safetysystem'
   hr
   subtitle '•TOOLS & CALIBRATION:'
+  info_line "$(check_file_k1_2025 "$KLIPPER_SERVICE_DISABLED")" 'Prevent updating Klipper configuration files'
+  info_line "$(check_content_k1_2025 "^\[webcam chassis\]\|^\[webcam usb\]" "$MOONRAKER_CFG")" 'camera settings in Moonraker'
   info_line "$(check_live_status_k1_2025 "^\[include Helper-Script/calib_tool_box.cfg\]")" 'Creality Calibration Toolbox (BED MESH)'
+  info_line "$(check_file_k1_2025 "${MAINSAIL_FOLDER}/k1c-cfs-panel.js")" 'CFS-C Mainsail Addon'
+  info_line "$(check_file_k1_2025 "${FLUIDD_FOLDER}/k1c-cfs-panel.js")" 'CFS-C Fluidd Addon'
   # info_line "$(check_folder_k1_2025 "$KAMP_FOLDER")" 'Klipper Adaptive Meshing & Purging'
   # info_line "$(check_file_k1_2025 "$BUZZER_FILE")" 'Buzzer Support'
   # info_line "$(check_folder_k1_2025 "$NOZZLE_CLEANING_FOLDER")" 'Nozzle Cleaning Fan Control'
@@ -143,18 +185,19 @@ function info_menu_ui_k1_2025_cfs_c() {
   info_line "$(check_file_k1_2025 "$GIT_BACKUP_FILE")" 'Git Backup'
   hr
   subtitle '•CAMERA:'
-  info_line "$(check_file_k1_2025 "$TIMELAPSE_FILE")" 'Moonraker Timelapse'
-  info_line "$(check_file_k1_2025 "$CAMERA_SETTINGS_FILE")" 'Camera Settings Control'
+  info_line "$(check_file_k1_2025 "$GO2RTC_FILE")" 'Go2rtc'
   info_line "$(check_any_file_k1_2025 "$USB_CAMERA_FILE" "$USB_CAMERA_LEGACY_FILE")" 'USB Camera Support'
   info_line "$(check_any_file_k1_2025 "$BUILTIN_CAMERA_FILE" "$BUILTIN_CAMERA_LEGACY_FILE")" 'Built-in Camera Fix'
+  info_line "$(check_file_k1_2025 "$CAMERA_SETTINGS_FILE")" 'Camera Settings Control'
+  info_line "$(check_file_k1_2025 "$TIMELAPSE_FILE")" 'Moonraker Timelapse'
   hr
   subtitle '•REMOTE ACCESS:'
-  info_line "$(check_folder_k1_2025 "$OCTOEVERYWHERE_FOLDER")" 'OctoEverywhere'
+  #info_line "$(check_folder_k1_2025 "$OCTOEVERYWHERE_FOLDER")" 'OctoEverywhere'
   info_line "$(check_folder_k1_2025 "$MOONRAKER_OBICO_FOLDER")" 'Obico'
-  info_line "$(check_folder_k1_2025 "$GUPPYFLO_FOLDER")" 'GuppyFLO'
+  #info_line "$(check_folder_k1_2025 "$GUPPYFLO_FOLDER")" 'GuppyFLO'
   info_line "$(check_folder_k1_2025 "$MOBILERAKER_COMPANION_FOLDER")" 'Mobileraker Companion'
-  info_line "$(check_folder_k1_2025 "$OCTOAPP_COMPANION_FOLDER")" 'OctoApp Companion'
-  info_line "$(check_simplyprint_k1_2025)" 'SimplyPrint'
+  #info_line "$(check_folder_k1_2025 "$OCTOAPP_COMPANION_FOLDER")" 'OctoApp Companion'
+  #info_line "$(check_simplyprint_k1_2025)" 'SimplyPrint'
   hr
   subtitle '•CUSTOMIZATION:'
   info_line "$(check_file_k1_2025 "$FLUIDD_LOGO_FILE")" 'Creality Dynamic Logos for Fluidd'
