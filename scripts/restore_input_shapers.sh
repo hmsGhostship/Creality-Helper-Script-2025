@@ -18,10 +18,10 @@ function restore_input_shapers_message(){
   title 'Restore Input Shapers' "${yellow}"
   inner_line
   hr
-  echo -e " │ ${cyan}The K1C 2025 firmware ships input-shaper calibration limited ${white}│"
-  echo -e " │ ${cyan}to a single model (ei) and copies the Y-axis result onto X. ${white}│"
-  echo -e " │ ${cyan}This restores the full Klipper shaper model set and          ${white}│"
-  echo -e " │ ${cyan}independent per-axis calibration.                            ${white}│"
+  echo -e " │ ${cyan}The K1C 2025 firmware ships input-shaper calibration limited   ${white}│"
+  echo -e " │ ${cyan}to a single model (ei) and copies the Y-axis result onto X.    ${white}│"
+  echo -e " │ ${cyan}This restores the full Klipper shaper model set and            ${white}│"
+  echo -e " │ ${cyan}independent per-axis calibration.                              ${white}│"
   hr
   bottom_line
 }

@@ -25,8 +25,8 @@ function remove_menu_ui_k1_2025_cfs_c() {
   menu_option '10' 'Remove' 'Moonraker Timelapse'
   hr
   subtitle '•IMPROVEMENTS:'
-  menu_option '11' 'Remove' 'Restore Input Shapers'
-  menu_option '12' 'Remove' 'Extended Gcode Params'
+# menu_option '11' 'Remove' 'Restore Input Shapers'
+# menu_option '12' 'Remove' 'Extended Gcode Params'
   menu_option '13' 'Remove' 'DXC Filament Sensor'
   menu_option '14' 'Remove' 'CFS-C Universal Purge Speed Fix'
   menu_option '15' 'Remove' 'Micro-Swiss FlowTech Volumetric Extension'

@@ -25,8 +25,8 @@ function install_menu_ui_k1_2025_cfs_c() {
   menu_option '10' 'Install' 'Moonraker Timelapse'
   hr
   subtitle '•IMPROVEMENTS:'
-  menu_option '11' 'Install' 'Restore Input Shapers'
-  menu_option '12' 'Install' 'Extended Gcode Params'
+# menu_option '11' 'Install' 'Restore Input Shapers'
+# menu_option '12' 'Install' 'Extended Gcode Params'
   menu_option '13' 'Install' 'DXC Filament Sensor'
   menu_option '14' 'Install' 'CFS-C Universal Purge Speed Fix'
   menu_option '15' 'Install' 'Micro-Swiss FlowTech Volumetric Extension'
