@@ -2,7 +2,6 @@
 
 set -e
 
-# Globale Pfade definieren, damit sie in allen Funktionen bekannt sind
 SOURCE_FILE="$HS_FILES/dxc-filament-sensor/dxc_sensor.cfg"
 TARGET_FILE="$HS_CONFIG_FOLDER/dxc_sensor.cfg"
 INCLUDE_LINE="[include Helper-Script/dxc_sensor.cfg]"
@@ -36,17 +35,17 @@ install_dxc_sensor() {
         mkdir -p "$HS_CONFIG_FOLDER"
         chmod 755 "$HS_CONFIG_FOLDER"
         
-        # 1. DXC-KONFIGURATION KOPIEREN
+        # 1. COPY DXC CONFIGURATION
         cp -f "$SOURCE_FILE" "$TARGET_FILE"
         chmod 644 "$TARGET_FILE"
         
-        # 2. ALTE INCLUDE-EINTRÄGE REINIGEN
+        # 2. CLEAN UP OLD INCLUDE ENTRIES
         sed -i '/\[include Helper-Script\/dxc_sensor.cfg\]/d' "$PRINTER_CFG"
         
-        # 3. DAS NEUE INCLUDE GANZ OBEN IN ZEILE 2 EINFÜGEN
+        # 3. INSERT THE NEW INCLUDE AT THE VERY TOP ON LINE 2
         sed -i "/^[[:space:]]*#[[:space:]]*CreateDate:.*/a $INCLUDE_LINE" "$PRINTER_CFG"
         
-        # 4. PRÄZISE DEAKTIVIERUNG (Unempfindlich gegen Leerzeichen am Zeilenanfang)
+        # 4. PRECISE DEACTIVATION (Insensitive to spaces at the beginning of a line)
         sed -i 's|\[filament_switch_sensor filament_sensor\]|# [filament_switch_sensor filament_sensor]|g' "$PRINTER_CFG"
         sed -i 's|switch_pin: !PD7|# switch_pin: !PD7|g' "$PRINTER_CFG"
         
@@ -72,14 +71,14 @@ remove_dxc_sensor() {
       Y|y)
         echo "=== Starte Deinstallation des DXC Filament Sensors ==="
         
-        # 1. DXC-INCLUDE ENTFERNEN
+        # 1. REMOVE DXC-INCLUDE
         sed -i '/\[include Helper-Script\/dxc_sensor.cfg\]/d' "$PRINTER_CFG"
         
-        # 2. WERKSZUSTAND WIEDERHERSTELLEN (Entfernt die Raute direkt vor dem Text)
+        # 2. RESTORE FACTORY SETTINGS (Remove the hash symbol directly in front of the text)
         sed -i 's|#[[:space:]]*\[filament_switch_sensor filament_sensor\]|[filament_switch_sensor filament_sensor]|g' "$PRINTER_CFG"
         sed -i 's|#[[:space:]]*switch_pin: !PD7|switch_pin: !PD7|g' "$PRINTER_CFG"
         
-        # 3. DATEI LÖSCHEN
+        # 3. DELETE FILE
         rm -f "$TARGET_FILE"
         
         echo "[OK] Deinstallation abgeschlossen. Info: Restarting Klipper service..."

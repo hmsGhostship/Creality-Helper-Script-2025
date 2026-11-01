@@ -2,8 +2,6 @@
 
 set -e
 
-# Globale Pfade definieren, damit sie in allen Funktionen bekannt sind
-# (Stellen Sie sicher, dass $HS_BACKUP_FOLDER und $BOX_CONTROL aus path.sh vorher geladen wurden)
 PYC_ORIG="${HS_BACKUP_FOLDER}/box_control.pyc.orig"
 
 cfs_c_speed_fix_message(){

@@ -2,11 +2,6 @@
 
 set -e
 
-# Pfade aus der C0DEbrained paths.sh laden
-if [ -f /usr/data/helper-script/paths.sh ]; then
-  source /usr/data/helper-script/paths.sh
-  set_paths
-fi
 
 function git_backup_message(){
   top_line
@@ -32,14 +27,9 @@ function install_git_backup(){
         if [ -d "$KLIPPER_CONFIG_FOLDER"/.git ]; then rm -rf "$KLIPPER_CONFIG_FOLDER"/.git; fi
         if [ -d "$HS_BACKUP_FOLDER"/git-backup ]; then rm -rf "$HS_BACKUP_FOLDER"/git-backup; fi
         if [ ! -d "$HS_CONFIG_FOLDER" ]; then mkdir -p "$HS_CONFIG_FOLDER"; fi
-        
         echo -e "Info: Running Git Backup installer..."
-        chmod 755 /usr/data/helper-script/files/git-backup/git-backup.sh
-        
-        # 1. Den Installer ausführen
-        sh /usr/data/helper-script/files/git-backup/git-backup.sh -i
-        
-        # 2. Direkt die originale C0DEbrained-Funktion für den Neustart-Dialog aufrufen!
+        chmod 755 "$HS_FILES"/git-backup/git-backup.sh
+        sh "$HS_FILES"/git-backup/git-backup.sh -i
         restart_klipper
         return;;
       N|n)
@@ -87,15 +77,9 @@ function remove_git_backup(){
         if [ ! -n "$(ls -A "$HS_CONFIG_FOLDER")" ]; then
           rm -rf "$HS_CONFIG_FOLDER"
         fi
-        
-        # ==============================================================================
-        # HIER IST DIE KORREKTUR: Altes restart_klipper gelöscht und durch C0DEbrained-Dialog ersetzt
-        # ==============================================================================
         ok_msg "Git Backup has been removed successfully!"
         restart_klipper
         return;;
-        # ==============================================================================
-        
       N|n)
         error_msg "Deletion canceled!"
         return;;

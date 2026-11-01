@@ -23,14 +23,6 @@ function script_title() {
     title="K1 2025 CFS-C MOD"
   elif [ "$model" = "K1" ]; then
     title="K1 SERIES"
-  elif [ "$model" = "3V3" ]; then
-    title="ENDER-3 V3 SERIES"
-  elif [ "$model" = "3KE" ]; then
-    title="ENDER-3 V3 KE"
-  elif [ "$model" = "10SE" ]; then
-    title="CR-10 SE"
-  elif [ "$model" = "E5M" ]; then
-    title="Ender-5 MAX"
   else
     title="PRINTERS"
   fi
@@ -66,105 +58,63 @@ function main_menu() {
   clear
   main_menu_ui
   local main_menu_opt
+
   while true; do
     read -p "${white} Type your choice and validate with Enter: ${yellow}" main_menu_opt
     case "${main_menu_opt}" in
-      1) clear
-         if [ "$model" = "K1" ]; then
-           install_menu_k1
-         elif [ "$model" = "K1_2025" ]; then
+      1) 
+         clear
+         if [ "$model" = "K1_2025" ]; then
            install_menu_k1_2025
          elif [ "$model" = "K1_2025_CFS-C" ]; then 
            install_menu_k1_2025_cfs_c
-         elif [ "$model" = "3V3" ]; then
-           install_menu_3v3
-         elif [ "$model" = "3KE" ]; then
-           install_menu_3ke
-         elif [ "$model" = "E5M" ]; then
-           install_menu_e5m
-         else
-           install_menu_10se
          fi
-         break;;
-      2) clear
-         if [ "$model" = "K1" ]; then
-           remove_menu_k1
-         elif [ "$model" = "K1_2025" ]; then
+         clear; main_menu_ui ;; # Zeigt das Menü nach der Aktion wieder an
+      2) 
+         clear
+         if [ "$model" = "K1_2025" ]; then
            remove_menu_k1_2025
          elif [ "$model" = "K1_2025_CFS-C" ]; then 
            remove_menu_k1_2025_cfs_c
-         elif [ "$model" = "3V3" ]; then
-           remove_menu_3v3
-         elif [ "$model" = "3KE" ]; then
-           remove_menu_3ke
-         elif [ "$model" = "E5M" ]; then
-           remove_menu_e5m
-         else
-           remove_menu_10se
          fi
-         break;;
-      3) clear
-         if [ "$model" = "K1" ]; then
-           customize_menu_k1
-         elif [ "$model" = "K1_2025" ]; then
+         clear; main_menu_ui ;;
+      3) 
+         clear
+         if [ "$model" = "K1_2025" ]; then
            customize_menu_k1_2025
          elif [ "$model" = "K1_2025_CFS-C" ]; then 
            customize_menu_k1_2025_cfs_c
-         elif [ "$model" = "3V3" ]; then
-           customize_menu_3v3
-         elif [ "$model" = "3KE" ]; then
-           customize_menu_3ke
-         elif [ "$model" = "E5M" ]; then
-           customize_menu_e5m
-         else
-           customize_menu_10se
          fi
-         break;;
-      4) clear
+         clear; main_menu_ui ;;
+      4) 
+         clear
          backup_restore_menu
-         break;;
-      5) clear
-         if [ "$model" = "K1" ]; then
-           tools_menu_k1
-         elif [ "$model" = "K1_2025" ]; then
+         clear; main_menu_ui ;;
+      5) 
+         clear
+         if [ "$model" = "K1_2025" ]; then
            tools_menu_k1_2025
          elif [ "$model" = "K1_2025_CFS-C" ]; then 
            tools_menu_k1_2025_cfs_c
-         elif [ "$model" = "3V3" ]; then
-           tools_menu_3v3
-         elif [ "$model" = "3KE" ]; then
-           tools_menu_3ke
-         elif [ "$model" = "E5M" ]; then
-           tools_menu_e5m
-         else
-           tools_menu_10se
          fi
-         main_ui;;
-      6) clear
-         if [ "$model" = "K1" ]; then
-           info_menu_k1
-         elif [ "$model" = "K1_2025" ]; then
+         clear; main_menu_ui ;; # Hinweis: "main_ui" wurde hier zu "main_menu_ui" korrigiert
+      6) 
+         clear
+         if [ "$model" = "K1_2025" ]; then
            info_menu_k1_2025
          elif [ "$model" = "K1_2025_CFS-C" ]; then 
            info_menu_k1_2025_cfs_c
-         elif [ "$model" = "3V3" ]; then
-           info_menu_3v3
-         elif [ "$model" = "3KE" ]; then
-           info_menu_3ke
-         elif [ "$model" = "E5M" ]; then
-           info_menu_e5m
-         else
-           info_menu_10se
          fi
-         break;;
-      7) clear
+         clear; main_menu_ui ;;
+      7) 
+         clear
          system_menu
-         break;;
+         clear; main_menu_ui ;;
       Q|q)
-         clear; exit 0;;
+         clear
+         exit 0 ;;
       *)
-         error_msg "Please select a correct choice!";;
+         error_msg "Please select a correct choice!" ;;
     esac
   done
-  main_menu
 }

@@ -159,7 +159,6 @@ function install_menu_k1_2025_cfs_c() {
         fi;;
       11)
         clear
-        # REPARIERT: Sucht nach der echten [input_shaper] Sektion in deiner printer.cfg
         if grep -q "^\[input_shaper\]" "$PRINTER_CFG" 2>/dev/null; then
           install_menu_ui_k1_2025_cfs_c
           echo
@@ -170,7 +169,6 @@ function install_menu_k1_2025_cfs_c() {
         fi;;
       12)
         clear
-        # REPARIERT: Sucht nach der echten [extended_gcode_params] Sektion
         if grep -q "^\[extended_gcode_params\]" "$PRINTER_CFG" 2>/dev/null; then
           install_menu_ui_k1_2025_cfs_c
           echo
@@ -181,14 +179,12 @@ function install_menu_k1_2025_cfs_c() {
         fi;;
       13)
         clear
-        # PRÜFUNG: Ist das Include AKTIV in der aktuellen printer.cfg?
         if grep -q "^\[include Helper-Script/dxc_sensor.cfg\]" "$PRINTER_CFG" 2>/dev/null; then
           install_menu_ui_k1_2025_cfs_c
           echo
           error_msg "DXC Filament Sensor is already active in printer.cfg!"
           echo
         else
-          # Wenn das Include fehlt (z.B. nach einem Firmware-Update), darfst du es IMMER installieren!
           run "install_dxc_sensor" "install_menu_ui_k1_2025_cfs_c"
         fi;;
       14)
@@ -213,7 +209,7 @@ function install_menu_k1_2025_cfs_c() {
         fi;;
       16)
         clear
-        # DAS INTELLIGENTE PRÜF-SCHLOSS: Schaut starr auf den Live-Zustand des DXC-Sensors!
+        # THE INTELLIGENT TEST LOCK: Keeps a fixed watch on the live status of the DXC sensor!
         if ! grep -q "^\[include Helper-Script/dxc_sensor.cfg\]" "$PRINTER_CFG" 2>/dev/null; then
             install_menu_ui_k1_2025_cfs_c
             echo
@@ -221,13 +217,13 @@ function install_menu_k1_2025_cfs_c() {
             echo -e "  Der originale Filament-Sensor belegt aktuell noch den Pin PD7."
             echo -e "  Bitte installiere zuerst den DXC Filament Sensor (Option 14)!"
             echo
-        # DOPPEL-INSTALLATIONS-SCHUTZ
+        # DUAL INSTALLATION PROTECTION
         elif grep -q "^\[include Helper-Script/cfs_lll_safety.cfg\]" "$PRINTER_CFG" 2>/dev/null; then
             install_menu_ui_k1_2025_cfs_c
             echo
             error_msg "FLY-LLL PLUS Safetysystem is already active in printer.cfg!"
             echo
-        # NATIVE INSTALLATION & RESTART
+        # NATIVE INSTALL & RESTART
         else
             title "[ INSTALL: FLY-LLL PLUS SAFETYSYSTEM ]" "${yellow}"
             echo -e "  Kopiere Konfigurationsdateien..."
@@ -251,7 +247,6 @@ function install_menu_k1_2025_cfs_c() {
           error_msg "Klipper Adaptive Meshing & Purging is already installed!"
           echo
         else
-          # Startet deine kamp.sh Installations-Funktion
           run "install_kamp" "install_menu_ui_k1_2025_cfs_c"
         fi;;
 #      28)
@@ -280,7 +275,6 @@ function install_menu_k1_2025_cfs_c() {
          fi;;
       22)
         if [ -d "$MOBILERAKER_COMPANION_FOLDER" ]; then
-          # JETZT KORRIGIERT: Blockiert und gibt die Meldung aus!
           error_msg "Mobileraker Companion is already installed!"
         elif [ ! -d "$MOONRAKER_FOLDER" ]; then
           error_msg "Moonraker and Nginx are needed, please install them first!"
@@ -289,10 +283,8 @@ function install_menu_k1_2025_cfs_c() {
         elif [ ! -f "$ENTWARE_FILE" ]; then
           error_msg "Entware is needed, please install it first!"
         else
-          # Startet die eigentliche Installation
           run "install_mobileraker_companion" "install_menu_ui_k1_2025_cfs_c"
-          
-          # Countdown und Reboot nach erfolgreichem Durchlauf
+          # Countdown and reboot after successful execution
           if [ -d "$MOBILERAKER_COMPANION_FOLDER" ]; then
             echo -e "${yellow}"
             echo -e " ┌────────────────────────────────────────────────────────┐"

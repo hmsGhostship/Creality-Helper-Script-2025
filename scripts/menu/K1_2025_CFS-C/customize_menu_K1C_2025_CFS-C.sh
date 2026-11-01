@@ -46,20 +46,20 @@ function disable_cfsc_menu() {
     read -p " Möchtest du die Erkennung jetzt entfernen? (y/n): ${yellow}" yn
     case "${yn}" in
       Y|y)
-        # Nutzt den Config-Ordner aus paths.sh für die temporäre Datei
+        # Uses the config folder from paths.sh for the temporary file
         local tmp_file="${KLIPPER_CONFIG_FOLDER}/printer.cfg.tmp"
 
-        # 1. Hauptkonfiguration bis zum ersten SAVE_CONFIG-Block sichern
+        # 1. Save main configuration up to the first SAVE_CONFIG block
         awk '/<---------------------- SAVE_CONFIG ---------------------->/ {exit} {print}' "$PRINTER_CFG" > "$tmp_file"
 
-        # 2. Prüfen, ob wichtige Kalibrierungsdaten geschützt werden müssen
+        # 2. Check if important calibration data needs to be protected
         if grep -qE "bed_mesh default|input_shaper" "$PRINTER_CFG"; then
             # Header neu schreiben
             echo "#*# <---------------------- SAVE_CONFIG ---------------------->" >> "$tmp_file"
             echo "#*# DO NOT EDIT THIS BLOCK OR BELOW. The contents are auto-generated." >> "$tmp_file"
             echo "#*#" >> "$tmp_file"
             
-            # Zeilenweise Prüfung: Übernimmt bed_mesh und input_shaper, filtert serial_can rigoros aus
+            # Line-by-line check: Keeps bed_mesh and input_shaper, rigorously filters out serial_can
             awk '
             BEGIN { keep = 0 }
             /\<---------------------- SAVE_CONFIG ----------------------\>/ { next }
@@ -70,7 +70,7 @@ function disable_cfsc_menu() {
             ' "$PRINTER_CFG" >> "$tmp_file" 2>/dev/null
         fi
 
-        # 3. Temporäre Datei zur echten printer.cfg machen
+        # 3. Make temporary file the real printer.cfg
         mv "$tmp_file" "$PRINTER_CFG"
         
         ok_msg "Erkennung erfolgreich entfernt und Konfiguration tiefenbereinigt!"

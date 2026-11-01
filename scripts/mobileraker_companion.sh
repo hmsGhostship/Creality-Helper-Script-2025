@@ -30,13 +30,13 @@ function install_mobileraker_companion(){
       Y|y)
         echo -e "${white}"
 
-        # 1. HARD RAM-CLEANING (Freimachen für die Installation)
+        # 1. HARD RAM CLEANING (Freeing up space for installation)
         echo -e "Info: Freeing up physical RAM (Killing heavy Creality services)..."
         killall -9 go2rtc_linux_mipsel >/dev/null 2>&1 || true
         killall -9 alchemistp >/dev/null 2>&1 || true
         killall -9 vectorp >/dev/null 2>&1 || true
         
-        # 2. DIE ATEMPAUSE: Wartet starr, bis Linux den Speicher wirklich freigibt
+        # 2. THE BREATHING SPACE: Wait, motionless, until Linux actually releases the memory
         echo -e "Info: Waiting for Linux to flush RAM structures..."
         sleep 5
 
@@ -50,8 +50,7 @@ function install_mobileraker_companion(){
         else
             echo -e "Info: Repository already exists at $MOBILERAKER_COMPANION_FOLDER."
         fi
-
-        # K1C 2025 LOGIK: Saubere Venv-Erstellung via Creality-System-Python (ohne Entware-Konflikte)
+        # K1C 2025 LOGIC: Clean venv creation via Creality system Python (avoiding Entware conflicts)
         echo -e "Info: Setting up Python Virtual Environment..."
         if [ ! -d "$MOBILERAKER_ENV_FOLDER" ]; then
             /usr/bin/python3 -m venv "$MOBILERAKER_ENV_FOLDER" 2>/dev/null || {
@@ -62,15 +61,14 @@ function install_mobileraker_companion(){
 
             echo -e "Info: Upgrading pip and build tools (RAM-safe mode)..."
             "$MOBILERAKER_ENV_FOLDER/bin/pip" install --no-cache-dir --upgrade pip setuptools wheel
-
-            # UNFEHLBARER K1C-FIX: Wir kopieren das nachweislich vorhandene Werks-Pillow
-            # Das ist zu 100% kompatibel, benötigt 0 MB Download und erzeugt 0% CPU-Last!
+            # INFALLIBLE K1C FIX: We replicate the proven, factory-included "pillow"
+            # It is 100% compatible, requires 0 MB of downloads, and generates 0% CPU load!
             echo -e "Info: Linking factory-preinstalled Pillow binary into virtual environment..."
             cp -r /usr/lib/python3.8/site-packages/PIL* "$MOBILERAKER_ENV_FOLDER/lib/python3.8/site-packages/" 2>/dev/null || true
             
             TMP_REQ="/tmp/mobileraker-requirements.txt"
             if [ -f "$MOBILERAKER_COMPANION_FOLDER/scripts/mobileraker-requirements.txt" ]; then
-                # Pillow und pybind11 rigoros filtern - absolut kein Download oder Kompilieren dafür!
+                # Strictly filter out Pillow and pybind11 – absolutely no downloading or compiling allowed for these!
                 grep -v -E -i "pillow|pybind11" "$MOBILERAKER_COMPANION_FOLDER/scripts/mobileraker-requirements.txt" > "$TMP_REQ"
                 echo -e "Info: Installing remaining requirements via Schonwaschgang..."
                 MAX_CONCURRENT_BUILDS=1 "$MOBILERAKER_ENV_FOLDER/bin/pip" install --no-cache-dir --no-build-isolation -r "$TMP_REQ"
@@ -85,7 +83,7 @@ function install_mobileraker_companion(){
             echo -e "Info: Virtual Environment already exists."
         fi
 
-        # DYNAMISCHE PORT-ERMITTLUNG FÜR DEN K1C (Echtes Moonraker auf 7126 ansprechen)
+        # DYNAMIC PORT DETECTION FOR THE K1C (Accessing the actual Moonraker instance on 7126)
         local real_port=7126
         if [ -f "$MOONRAKER_CFG" ]; then
           local detected_port=$(grep -A 5 "\[server\]" "$MOONRAKER_CFG" | grep "port" | awk '{print $3}' | tr -d '\r')
@@ -134,7 +132,7 @@ esac
 EOF
         chmod +x "$MOBILERAKER_INIT_SCRIPT"
 
-        # K1C-KOMPATIBILITÄT: Wir tilgen alte, blockierende update_manager-Leichen aus der Config
+        # K1C COMPATIBILITY: We are removing old, obstructive 'update_manager' remnants from the config
         if [ -f "$MOONRAKER_CFG" ]; then
             sed -i '/\[update_manager mobileraker\]/,+8d' "$MOONRAKER_CFG"
         fi
@@ -142,14 +140,12 @@ EOF
         echo -e "Info: Starting Mobileraker daemon..."
         "$MOBILERAKER_INIT_SCRIPT" restart || true
         sleep 2
-
         if ps -w | grep -v grep | grep -q "mobileraker"; then
             ok_msg "Mobileraker Companion has been installed successfully!"
         else
             error_msg "Service registered, but process failed to run. Check $PRINTER_DATA_FOLDER/logs/mobileraker.log"
         fi
-        
-        # Automatischer Reboot wie angekündigt, um das System frisch zu initialisieren
+        # Automatic reboot as announced, to re-initialize the system from a fresh state
         echo -e "${yellow}Rebooting printer now...${white}"
         sleep 2
         reboot

@@ -184,7 +184,7 @@ function remove_menu_k1_2025_cfs_c() {
         fi;;
       13)
         clear
-        # 1. GEGEN-SCHLOSS: Wenn das LLL Plus live aktiv ist, blockieren wir das Entfernen sofort!
+        # 1. ANTI-UNLOCK: If LLL Plus is active in live mode, we immediately block any attempt to remove it!
         if grep -q "^\[include Helper-Script/cfs_lll_safety.cfg\]" "$PRINTER_CFG" 2>/dev/null; then
             remove_menu_ui_k1_2025_cfs_c
             echo
@@ -192,14 +192,14 @@ function remove_menu_k1_2025_cfs_c() {
             echo -e "  Der Pin PD7 wird aktuell aktiv vom LLL Plus verwendet."
             echo -e "  Bitte entferne zuerst das FLY-LLL PLUS Safetysystem (Option 17)!"
             echo
-        # 2. LIVE-PRÜFUNG: Ist der DXC-Sensor überhaupt aktiv eingebunden?
+        # 2. LIVE CHECK: Is the DXC sensor actually actively integrated?
         elif ! grep -q "^\[include Helper-Script/dxc_sensor.cfg\]" "$PRINTER_CFG" 2>/dev/null; then
             remove_menu_ui_k1_2025_cfs_c
             echo
             error_msg "DXC Filament Sensor is not active in printer.cfg!"
             echo
         else
-            # Startet deine neue dxc_sensor.sh mit der dynamischen Backup-Wiederherstellung
+            # Launches your new dxc_sensor.sh with dynamic backup restoration
             run "remove_dxc_sensor" "remove_menu_ui_k1_2025_cfs_c"
         fi
         ;;
@@ -227,7 +227,7 @@ function remove_menu_k1_2025_cfs_c() {
         ;;
       16)
         clear
-        # PRÜFUNG: Ist das LLL Plus überhaupt live aktiv?
+        # CHECK: Is the LLL Plus actually live and active?
         if ! grep -q "^\[include Helper-Script/cfs_lll_safety.cfg\]" "$PRINTER_CFG" 2>/dev/null; then
             remove_menu_ui_k1_2025_cfs_c
             echo
@@ -253,7 +253,6 @@ function remove_menu_k1_2025_cfs_c() {
           error_msg "Klipper Adaptive Meshing & Purging is not installed!"
           echo
         else
-          # Startet deine kamp.sh Deinstallations-Funktion
           run "remove_kamp" "remove_menu_ui_k1_2025_cfs_c"
         fi;;
 #      28)
@@ -273,7 +272,6 @@ function remove_menu_k1_2025_cfs_c() {
         if [ ! -d "$MOBILERAKER_COMPANION_FOLDER" ]; then
           error_msg "Mobileraker Companion is not installed!"
         else
-          # Führt die Deinstallation aus und baut danach SOFORT das Menü samt Eingabezeile wieder auf
           run "remove_mobileraker_companion" "remove_menu_ui_k1_2025_cfs_c"
         fi;;
       32)
@@ -349,7 +347,6 @@ function remove_menu_k1_2025_cfs_c() {
         if [ ! -f "$GIT_BACKUP_FILE" ]; then
           error_msg "Git Backup is not installed!"
         else
-          # Startet einfach nur deine Menü-Datei für das Remove
           run "remove_git_backup" "install_menu_ui_k1_2025_cfs_c"
         fi;;
 #      28)

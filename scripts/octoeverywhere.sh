@@ -30,7 +30,7 @@ function install_octoeverywhere(){
       Y|y)
         echo -e "${white}"
         
-        # 1. RAM Sichern & Klipper stoppen (Essentiell auf dem K1C 2025)
+        # 1. Back up RAM & stop Klipper (Essential on the K1C 2025)
         echo -e "Info: Stopping Klipper and Creality services to secure CPU & RAM..."
         if [ -f "/usr/apps/etc/init.d/CS55klipper_service" ]; then
             /usr/apps/etc/init.d/CS55klipper_service stop >/dev/null 2>&1 || true
@@ -40,16 +40,15 @@ function install_octoeverywhere(){
         killall -9 alchemistp >/dev/null 2>&1 || true
         sleep 5
 
-        # 2. Verzeichnisse anlegen & Klonen
+        # 2. Creating Directories & Cloning
         echo -e "Info: Updating OctoEverywhere Repository..."
         if [ -d "$OCTOEVERYWHERE_FOLDER" ]; then
           rm -rf "$OCTOEVERYWHERE_FOLDER"
         fi
         git config --global http.sslVerify false
-        # Wir nutzen deine System-Variable zum Klonen
         git clone --depth 1 "$OCTOEVERYWHERE_URL" "$OCTOEVERYWHERE_FOLDER"
         
-        # 3. Isolierte Python-Umgebung im Schonwaschgang aufbauen
+       # 3. Setting up an isolated Python environment with care
         echo -e "Info: Setting up Python Virtual Environment..."
         OCTO_ENV="/usr/data/octoeverywhere-env"
         if [ ! -d "$OCTO_ENV" ]; then
@@ -58,24 +57,24 @@ function install_octoeverywhere(){
                 python3 -m virtualenv "$OCTO_ENV"
             }
             
-            # Anforderungen im RAM-Schonwaschgang installieren
+            # Installing in a RAM-saving manner
             TMP_REQ="/tmp/octo-req.txt"
             if [ -f "$OCTOEVERYWHERE_FOLDER/requirements.txt" ]; then
-                # Wir filtern ballaststoffreiche Compiler-Pakete heraus
+                # Filter out compiler packages that contain unnecessary bloat
                 grep -v -E -i "pillow|pybind11" "$OCTOEVERYWHERE_FOLDER/requirements.txt" > "$TMP_REQ"
                 "$OCTO_ENV/bin/pip" install --no-cache-dir -r "$TMP_REQ"
                 rm -f "$TMP_REQ"
             fi
         fi
         
-        # 4. Den sauberen [octoeverywhere] Block in die moonraker.conf schreiben
+        # 4. Add the clean [octoeverywhere] block to moonraker.conf
         echo -e "Info: Configuring moonraker.conf..."
         if [ -f "$MOONRAKER_CFG" ]; then
           sed -i '/\[octoeverywhere\]/,+2d' "$MOONRAKER_CFG" || true
           echo -e "\n[octoeverywhere]" >> "$MOONRAKER_CFG"
         fi
         
-        # 5. Das echte, 2025er-kompatible Init-Startskript schreiben (Mit dem korrekten Modulaufruf)
+        # 5. Writing the actual init start script, compatible with 2025 (including the correct module invocation)
         echo -e "Info: Writing persistent startup script..."
         OCTO_INIT_SCRIPT="${INITD_FOLDER}/S99octoeverywhere"
         cat << EOF > "$OCTO_INIT_SCRIPT"
@@ -109,7 +108,7 @@ EOF
         
         ok_msg "OctoEverywhere has been integrated successfully!"
         
-        # 6. Automatischer System-Reboot zur RAM-Leerung
+        # 6. Automatic system reboot to clear RAM
         for i in 10 9 8 7 6 5 4 3 2 1; do
             echo -e "    Drucker startet neu in $i Sekunden... \r\c"
             sleep 1

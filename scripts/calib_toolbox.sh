@@ -33,22 +33,21 @@ install_calib_toolbox() {
     
       cp "$SOURCE_FILE" "$TARGET_FILE"
     
-    # -----------------------------------------------------------------
-    # NEU: Das KAMP-Only Interface sofort deaktivieren, da deine Toolbox übernimmt
+# -----------------------------------------------------------------
+    # NEW: Disable the KAMP-Only interface immediately, as toolbox will take over
     # -----------------------------------------------------------------
     sed -i '/kamp_only\.cfg/d' "$PRINTER_CFG"
     # -----------------------------------------------------------------
     
-    # Alte Instanzen INKLUSIVE Zeilenumbruch sauber ausradieren (/d)
+    # Cleanly erase old instances INCLUDING line breaks (/d)
     sed -i '/^\[include Helper-Script\/calib_tool_box.cfg\]/d' "$PRINTER_CFG"
     sed -i '/^#[[:space:]]*\[include Helper-Script\/calib_tool_box.cfg\]/d' "$PRINTER_CFG"
     
-    # Das neue Include exakt in Zeile 2 einsetzen
+    # Insert the new include exactly on line 2
     sed -i "2i $INCLUDE_LINE" "$PRINTER_CFG"
     
     echo "Calibration Toolbox erfolgreich installiert."
     echo "Info: Restarting Klipper service..."
-    # REPARIERT: Offizieller C0DEbrained Core-Befehl
     restart_klipper
 	return;;
       N|n)
@@ -71,34 +70,33 @@ remove_calib_toolbox() {
 	  
     echo "Starte Deinstallation der Calibration Toolbox..."
 
-    # Beim Deinstallieren die Toolbox-Zeile mitsamt Zeilenumbruch physisch löschen (/d)
+    # Physically delete the Toolbox line, including the line break, during uninstallation (/d)
     sed -i '/^\[include Helper-Script\/calib_tool_box.cfg\]/d' "$PRINTER_CFG"
     sed -i '/^#[[:space:]]*\[include Helper-Script\/calib_tool_box.cfg\]/d' "$PRINTER_CFG"
     
     rm -f "$TARGET_FILE"
     
-    # -----------------------------------------------------------------
-    # OPTIMIERTES SICHERHEITS-SCHLOSS:
-    # Wenn KAMP installiert ist, stellen wir sicher, dass kamp_only.cfg da ist und geladen wird!
+# -----------------------------------------------------------------
+    # OPTIMIZED SAFETY LOCK:
+    # If KAMP is installed, we ensure that kamp_only.cfg is present and loaded!
     # -----------------------------------------------------------------
     if [ -d "$KAMP_FOLDER" ]; then
         echo "Info: KAMP wurde auf dem Drucker gefunden."
         
-        # Sicherheits-Check: Falls die Datei im KAMP-Ordner fehlt, verlinken wir sie JETZT live neu!
+        # Security check: If the file is missing from the KAMP folder, we will re-link it live—RIGHT NOW!
         if [ ! -f "$KAMP_FOLDER/kamp_only.cfg" ]; then
             echo "Sicherheits-Fix: kamp_only.cfg fehlt im KAMP-Ordner! Verlinke neu aus Quell-Repository..."
             ln -sf "$KAMP_URL"/kamp_only.cfg "$KAMP_FOLDER"/kamp_only.cfg
         fi
         
         echo "Aktiviere KAMP-Only Interface in printer.cfg..."
-        sed -i '/kamp_only\.cfg/d' "$PRINTER_CFG" # Sicherheits-Bereinigung vorab
+        sed -i '/kamp_only\.cfg/d' "$PRINTER_CFG" # Preliminary security cleanup
         echo -e "[include Helper-Script/KAMP/kamp_only.cfg]" >> "$PRINTER_CFG"
     fi
     # -----------------------------------------------------------------
     
     echo "Calibration Toolbox erfolgreich entfernt."
     echo "Info: Restarting Klipper service..."
-    # Offizieller Core-Befehl zum Neustart
     restart_klipper
     return;;
       N|n)

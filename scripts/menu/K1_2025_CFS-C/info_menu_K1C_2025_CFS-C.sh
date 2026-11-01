@@ -14,14 +14,14 @@ function check_folder_k1_2025() {
 function check_file_k1_2025() {
   local file_path="$1"
   
-  # Wenn $2 gleich "-n" ist, prüfen wir auf "! -f", sonst auf "-f"
+  # If $2 is equal to "-n", we check for "! -f"; otherwise, we check for "-f"
   if [ "$2" = "-n" ]; then
     [ ! -f "$file_path" ]
   else
     [ -f "$file_path" ]
   fi
 
-  # $? hält den Status des letzten Befehls (der if-Prüfung oben)
+  # $? holds the status of the last command (the if-check above)
   if [ $? -eq 0 ]; then
     echo -e "${green}✓"
   else
@@ -29,7 +29,7 @@ function check_file_k1_2025() {
   fi
 }
 
-# REPARIERT & NEU: Die einzig wahre Universal-Prüfung für Klipper (Sektionen & Includes)
+# FIXED & NEW: The one and only universal check for Klipper (sections & includes)
 function check_live_status_k1_2025() {
   if [ ! -f "$PRINTER_CFG" ]; then
     echo -e "${red}✗"
@@ -96,21 +96,21 @@ function check_content_k1_2025() {
   local file_path="$2"
   local invert="$3"
 
-  # grep -q sucht nach dem Muster. 
-  # Erfog (Exit-Code 0) bedeutet: Muster wurde gefunden.
+  # grep -q searches for the pattern. 
+  # Success (exit code 0) means: the pattern was found.
   grep -q "$pattern" "$file_path" 2>/dev/null
   local exit_code=$?
 
-  # Logik für die Invertierung (-n)
+  # Logic for inversion (-n)
   if [ "$invert" = "-n" ]; then
-    # Wenn invertiert, wollen wir, dass grep KEINEN Treffer hatte (Exit-Code ungleich 0)
+    # If inverted, we want grep to have NO match (exit code other than 0)
     if [ $exit_code -ne 0 ]; then
       echo -e "${green}✓"
     else
       echo -e "${red}✗"
     fi
   else
-    # Standard: Wenn normal, wollen wir einen Treffer (Exit-Code 0)
+    # Standard: If everything is normal, we want a success (exit code 0)
     if [ $exit_code -eq 0 ]; then
       echo -e "${green}✓"
     else
@@ -158,9 +158,7 @@ function info_menu_ui_k1_2025_cfs_c() {
   info_line "$(check_file_k1_2025 "$KLIPPER_SHELL_FILE")" 'Klipper Gcode Shell Command'
   hr
   subtitle '•IMPROVEMENTS & EXPANSIONS:'
-  # BEREINIGT: Sucht jetzt starr nach der echten Klipper-Sektion [input_shaper]
   info_line "$(check_live_status_k1_2025 "^\[input_shaper\]")" 'Restore Input Shapers'
-  # BEREINIGT: Nur noch ein einziger, exakter Eintrag fuer die Python-Erweiterung!
   info_line "$(check_live_status_k1_2025 "^\[extended_gcode_params\]")" 'Extended Gcode Params'
   info_line "$(check_live_status_k1_2025 "^\[include Helper-Script/dxc_sensor.cfg\]")" 'DXC Filament Sensor'
   info_line "$(check_file_k1_2025 "$HS_BACKUP_FOLDER/box_control.pyc.orig")" 'CFS-C Universal Purge Speed Fix'

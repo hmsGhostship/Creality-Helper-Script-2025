@@ -104,26 +104,11 @@ for script in "${HELPER_SCRIPT_FOLDER}/scripts/menu/"*.sh; do . "${script}"; don
 
 # Load ONLY the menu scripts relevant to the detected model
 case "${model}" in
-  "K1")
-    for script in "${HELPER_SCRIPT_FOLDER}/scripts/menu/K1/"*.sh; do . "${script}"; done
-    ;;
   "K1_2025")
     for script in "${HELPER_SCRIPT_FOLDER}/scripts/menu/K1_2025/"*.sh; do . "${script}"; done
     ;;
   "K1_2025_CFS-C")
     for script in "${HELPER_SCRIPT_FOLDER}/scripts/menu/K1_2025_CFS-C/"*.sh; do . "${script}"; done
-    ;;
-  "3V3")
-    for script in "${HELPER_SCRIPT_FOLDER}/scripts/menu/3V3/"*.sh; do . "${script}"; done
-    ;;
-  "3KE")
-    for script in "${HELPER_SCRIPT_FOLDER}/scripts/menu/3KE/"*.sh; do . "${script}"; done
-    ;;
-  "10SE")
-    for script in "${HELPER_SCRIPT_FOLDER}/scripts/menu/10SE/"*.sh; do . "${script}"; done
-    ;;
-  "E5M")
-    for script in "${HELPER_SCRIPT_FOLDER}/scripts/menu/E5M/"*.sh; do . "${script}"; done
     ;;
   *)
     echo "Warning: No specific menu loaded for model: ${model}"

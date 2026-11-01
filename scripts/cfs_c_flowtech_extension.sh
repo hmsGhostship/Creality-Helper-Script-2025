@@ -2,8 +2,6 @@
 
 set -e
 
-# Globale Pfade definieren, damit sie in allen Funktionen bekannt sind
-# (Stellen Sie sicher, dass $HS_BACKUP_FOLDER und $BOX_CFG aus path.sh vorher geladen wurden)
 BOX_CFG_ORIG="${HS_BACKUP_FOLDER}/box.cfg.orig"
 
 cfs_c_flowtech_extension_message(){

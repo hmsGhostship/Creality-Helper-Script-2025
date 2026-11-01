@@ -259,6 +259,5 @@ function tools_menu_k1_2025_cfs_c() {
         ;;
     esac
   done
-  # REPARIERT: Ruft nun rekursiv die korrekte Hauptfunktion auf, um die Eingabezeile frisch zu laden
   tools_menu_k1_2025_cfs_c
 }

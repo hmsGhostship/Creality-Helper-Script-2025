@@ -29,7 +29,7 @@ function install_octoapp_companion(){
       Y|y)
         echo -e "${white}"
 
-        # 1. Klipper und Creality-Dienste stoppen (CPU & RAM sichern für den K1C 2025)
+        # 1. Stop Klipper and Creality services (free up CPU & RAM for the K1C 2025)
         echo -e "Info: Stopping Klipper and Creality services to secure CPU & RAM..."
         if [ -f "/usr/apps/etc/init.d/CS55klipper_service" ]; then
             /usr/apps/etc/init.d/CS55klipper_service stop >/dev/null 2>&1 || true
@@ -40,7 +40,7 @@ function install_octoapp_companion(){
         killall -9 vectorp >/dev/null 2>&1 || true
         sleep 5
 
-        # 2. Verzeichnisse anlegen
+        # 2. Creating directories
         mkdir -p "$PRINTER_DATA_FOLDER/config" "$PRINTER_DATA_FOLDER/logs" "$INITD_FOLDER"
 
         echo -e "Info: Downloading OctoApp Companion..."
@@ -51,12 +51,12 @@ function install_octoapp_companion(){
             echo -e "Info: OctoApp Companion folder already exists. Download skipped."
         fi
 
-        # 3. Virtual Environment & PIP Schonwaschgang (K1C 2025 SYNTAX-FIX)
+        ## 3. Virtual Environment & PIP gentle cycle (K1C 2025 SYNTAX-FIX)
         echo -e "Info: Setting up Python Virtual Environment..."
         OCTOAPP_ENV_FOLDER="${MOONRAKER_FOLDER}/octoapp-env"
         
         if [ ! -d "$OCTOAPP_ENV_FOLDER" ]; then
-            # Reines, lineares if/else ohne blockierende geschweifte Klammern für die Creality-Shell
+            # Clean, linear if/else without blocking curly braces for the Creality shell
             if /usr/bin/python3 -m venv "$OCTOAPP_ENV_FOLDER" 2>/dev/null; then
                 echo "Info: Built-in venv created successfully."
             else
@@ -68,13 +68,13 @@ function install_octoapp_companion(){
             echo -e "Info: Upgrading pip and build tools (RAM-safe mode)..."
             "$OCTOAPP_ENV_FOLDER/bin/pip" install --no-cache-dir --upgrade pip setuptools wheel
 
-            # UNFEHLBARER K1C-FIX: Wir kopieren das nachweislich vorhandene Werks-Pillow
+            # FOOLPROOF K1C FIX: We replicate the factory-installed "pillow" (cushioning/padding) that is known to be present.
             echo -e "Info: Linking factory-preinstalled Pillow binary into virtual environment..."
             if [ -d "/usr/lib/python3.8/site-packages/PIL" ]; then
                 cp -r /usr/lib/python3.8/site-packages/PIL* "$OCTOAPP_ENV_FOLDER/lib/python3.8/site-packages/" 2>/dev/null || true
             fi
             
-            # Anforderungen ohne das blockierende Pillow/pybind11 installieren
+            # Install requirements without the blocking Pillow/pybind11
             TMP_REQ="/tmp/octoapp-requirements.txt"
             if [ -f "$OCTOAPP_COMPANION_FOLDER/requirements.txt" ]; then
                 grep -v -E -i "pillow|pybind11" "$OCTOAPP_COMPANION_FOLDER/requirements.txt" > "$TMP_REQ"
@@ -84,7 +84,7 @@ function install_octoapp_companion(){
             fi
         fi
 
-        # DYNAMISCHE PORT-ERMITTLUNG FÜR DEN K1C (Echtes Moonraker ansprechen)
+        # DYNAMIC PORT DETECTION FOR THE K1C (Interfacing with the actual Moonraker)
         local real_port=7126
         if [ -f "$MOONRAKER_CFG" ]; then
           local detected_port=$(grep -A 5 "\[server\]" "$MOONRAKER_CFG" | grep "port" | awk '{print $3}' | tr -d '\r')
@@ -93,11 +93,11 @@ function install_octoapp_companion(){
           fi
         fi
 
-        # 4. Die verifizierte octoapp.conf schreiben (Mit dem dynamischen Port)
+        # 4. Writing the verified octoapp.conf (with the dynamic port)
         echo -e "Info: Writing verified octoapp.conf structure on Port $real_port..."
         echo -e "[main]\napi_url: http://127.0.0.1:$real_port\nmoonraker_address: ws://127.0.0.1:$real_port/websocket\n\n[companion]\nip_or_hostname: 127.0.0.1\nport: $real_port" > "$PRINTER_DATA_FOLDER/config/octoapp.conf"
 
-        # 5. Persistentes Startskript erzeugen (Mit dynamischen Pfaden und dem korrekten Port-Bypass)
+        # 5. Create a persistent startup script (with dynamic paths and the correct port bypass)
         echo -e "Info: Writing persistent startup script..."
         OCTOAPP_INIT_SCRIPT="${INITD_FOLDER}/S55octoapp"
         cat << EOF > "$OCTOAPP_INIT_SCRIPT"
@@ -128,14 +128,14 @@ esac
 EOF
         chmod +x "$OCTOAPP_INIT_SCRIPT"
 
-        # K1C-COMPATIBILITY: Wir tilgen alte, blockierende update_manager-Leichen aus der Config
+        # K1C-COMPATIBILITY: We are removing old, obstructive 'update_manager' remnants from the config
         if [ -f "$MOONRAKER_CFG" ]; then
             sed -i '/\[update_manager octoapp\]/,+8d' "$MOONRAKER_CFG"
         fi
 
         ok_msg "OctoApp Companion has been installed successfully!"
         
-        # 7. Automatischer System-Reboot
+        # 7. Automatic System Reboot
         for i in 5 4 3 2 1; do
             echo -e "    Drucker startet neu in $i Sekunden... \r\c"
             sleep 1
@@ -160,20 +160,20 @@ function remove_octoapp_companion(){
       Y|y)
         echo -e "${white}"
         
-        # A) Dienst beenden und das Init-Skript loeschen
+        # A) Stop the service and delete the init script
         echo -e "Info: Stopping OctoApp Companion service..."
         if [ -f "${INITD_FOLDER}/S55octoapp" ]; then
             "${INITD_FOLDER}/S55octoapp" stop >/dev/null 2>&1 || true
             rm -f "${INITD_FOLDER}/S55octoapp"
         fi
         
-        # B) Ordner und virtuelle Umgebung restlos entfernen (Sicherer K1C Hard-Wipe)
+        # B) Completely remove folders and virtual environment (Secure K1C hard-wipe)
         echo -e "Info: Removing directory structures and virtual environment..."
         rm -rf "$OCTOAPP_COMPANION_FOLDER"
         rm -rf "${MOONRAKER_FOLDER}/octoapp-env"
         rm -f "$PRINTER_DATA_FOLDER/config/octoapp.conf"
         
-        # C) Update-Manager rückstandslos aus moonraker.conf schneiden
+        # C) Remove the Update Manager from moonraker.conf, leaving no traces behind
         echo -e "Info: Cleaning up moonraker.conf..."
         if [ -f "$MOONRAKER_CFG" ]; then
             sed -i '/\[update_manager octoapp\]/,+8d' "$MOONRAKER_CFG"
