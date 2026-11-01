@@ -196,7 +196,8 @@ function install_menu_k1_2025_cfs_c() {
         fi;;
       15)
         clear
-        if [ -f "$HS_BACKUP_FOLDER/box.cfg.orig" ]; then
+        # We check the actual file, not just the backup existence
+        if grep -q "extrude_length:[[:space:]]*50" "$BOX_CFG"; then
           install_menu_ui_k1_2025_cfs_c
           echo
           error_msg "Micro-Swiss FlowTech Volumetric Extension is already installed!"

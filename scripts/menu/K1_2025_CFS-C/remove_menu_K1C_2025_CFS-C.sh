@@ -213,7 +213,8 @@ function remove_menu_k1_2025_cfs_c() {
         ;;
       15)
         clear
-        if [ ! -f "$HS_BACKUP_FOLDER/box.cfg.orig" ]; then
+        # We check the actual file content: If it does NOT contain 50, it is not installed
+        if ! grep -q "extrude_length:[[:space:]]*50" "$BOX_CFG"; then
           remove_menu_ui_k1_2025_cfs_c
           echo
           error_msg "Micro-Swiss FlowTech Volumetric Extension is not installed!"
