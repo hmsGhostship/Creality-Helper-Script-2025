@@ -4,6 +4,7 @@ set -e
 
 function customize_menu_ui_k1_2025() {
   top_line
+  title "• CREALITY $(script_title) •" "${blue}"
   title '[ CUSTOMIZE MENU ]' "${yellow}"
   inner_line
   hr
@@ -17,6 +18,8 @@ function customize_menu_ui_k1_2025() {
   menu_option '6' 'Retire' 'Nexusp Backend'
   menu_option '7' 'Restore' 'Nexusp Backend'
   hr
+  menu_option '8' 'Remove' 'CFS-C recognition (back to K1_2025)'
+  hr
   inner_line
   hr
   bottom_menu_option 'b' 'Back to [Main Menu]' "${yellow}"
@@ -24,6 +27,63 @@ function customize_menu_ui_k1_2025() {
   hr
   version_line "$(get_script_version)"
   bottom_line
+}
+
+# Remove the CFS-C option and revert to K1C 2025.
+function disable_cfsc_menu() {
+  clear
+  top_line
+  title "• DEAKTIVIERE CFS-C MENÜ-ERKENNUNG •" "${blue}"
+  inner_line
+  echo -e " │ ${yellow}Info: Der Eintrag 'mb-料盒' wird aus deiner printer.cfg gelöscht.${white} │"
+  echo -e " │ Das Helper-Script startet danach wieder im Standard K1_2025 Modus. │"
+  hr
+  bottom_line
+  echo
+  
+  local yn
+  while true; do
+    read -p " Möchtest du die Erkennung jetzt entfernen? (y/n): ${yellow}" yn
+    case "${yn}" in
+      Y|y)
+        # Uses the config folder from paths.sh for the temporary file
+        local tmp_file="${KLIPPER_CONFIG_FOLDER}/printer.cfg.tmp"
+
+        # 1. Save main configuration up to the first SAVE_CONFIG block
+        awk '/<---------------------- SAVE_CONFIG ---------------------->/ {exit} {print}' "$PRINTER_CFG" > "$tmp_file"
+
+        # 2. Check if important calibration data needs to be protected
+        if grep -qE "bed_mesh default|input_shaper" "$PRINTER_CFG"; then
+            # Header neu schreiben
+            echo "#*# <---------------------- SAVE_CONFIG ---------------------->" >> "$tmp_file"
+            echo "#*# DO NOT EDIT THIS BLOCK OR BELOW. The contents are auto-generated." >> "$tmp_file"
+            echo "#*#" >> "$tmp_file"
+            
+            # Line-by-line check: Keeps bed_mesh and input_shaper, rigorously filters out serial_can
+            awk '
+            BEGIN { keep = 0 }
+            /\<---------------------- SAVE_CONFIG ----------------------\>/ { next }
+            /#\*# \[bed_mesh default\]/ || /#\*# \[input_shaper\]/ { keep = 1; print; next }
+            /#\*# \[[a-zA-Z0-9_]+\]/ { keep = 0 }
+            /#\*# \[serial_can\]/ || /cm-切刀/ || /mb-料盒/ { keep = 0; next }
+            { if (keep == 1 && /#\*#/) print }
+            ' "$PRINTER_CFG" >> "$tmp_file" 2>/dev/null
+        fi
+
+        # 3. Make temporary file the real printer.cfg
+        mv "$tmp_file" "$PRINTER_CFG"
+        
+        ok_msg "Erkennung erfolgreich entfernt und Konfiguration tiefenbereinigt!"
+        echo -e " ${green}Bitte starte das Helper-Script neu, um das K1_2025 Menü zu laden.${white}"
+        echo
+        exit 0
+        break;;
+      N|n)
+        break;;
+      *)
+        error_msg "Bitte wähle y oder n!";;
+    esac
+  done
 }
 
 function customize_menu_k1_2025() {
@@ -105,7 +165,9 @@ function customize_menu_k1_2025() {
         ;;
       6)
         clear
-        if nexusp_absent; then
+        if grep -q "mb-料盒" /usr/data/printer_data/config/printer.cfg 2>/dev/null; then
+          disabled_feature
+        elif nexusp_absent; then
           customize_menu_ui_k1_2025
           echo
           error_msg "No nexusp service was found on this firmware!"
@@ -154,6 +216,5 @@ function customize_menu_k1_2025() {
         ;;
     esac
   done
-  # REPARIERT: Ruft nun rekursiv die Hauptfunktion auf, um die Eingabezeile frisch zu laden
   customize_menu_k1_2025
 }

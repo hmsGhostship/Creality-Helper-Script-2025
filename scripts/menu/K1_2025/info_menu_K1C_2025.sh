@@ -2,7 +2,7 @@
 
 set -e
 
-function check_folder_k1_2025(){
+function check_folder_k1_2025() {
   local folder_path="$1"
   if [ -d "$folder_path" ]; then
     echo -e "${green}✓"
@@ -13,14 +13,23 @@ function check_folder_k1_2025(){
 
 function check_file_k1_2025() {
   local file_path="$1"
-  if [ -f "$file_path" ]; then
+  
+  # If $2 is equal to "-n", we check for "! -f"; otherwise, we check for "-f"
+  if [ "$2" = "-n" ]; then
+    [ ! -f "$file_path" ]
+  else
+    [ -f "$file_path" ]
+  fi
+
+  # $? holds the status of the last command (the if-check above)
+  if [ $? -eq 0 ]; then
     echo -e "${green}✓"
   else
     echo -e "${red}✗"
   fi
 }
 
-# REPARIERT & NEU: Die einzig wahre Universal-Prüfung für Klipper (Sektionen & Includes)
+# FIXED & NEW: The one and only universal check for Klipper (sections & includes)
 function check_live_status_k1_2025() {
   if [ ! -f "$PRINTER_CFG" ]; then
     echo -e "${red}✗"
@@ -82,6 +91,35 @@ function check_creality_services_k1_2025() {
   fi
 }
 
+function check_content_k1_2025() {
+  local pattern="$1"
+  local file_path="$2"
+  local invert="$3"
+
+  # grep -q searches for the pattern. 
+  # Success (exit code 0) means: the pattern was found.
+  grep -q "$pattern" "$file_path" 2>/dev/null
+  local exit_code=$?
+
+  # Logic for inversion (-n)
+  if [ "$invert" = "-n" ]; then
+    # If inverted, we want grep to have NO match (exit code other than 0)
+    if [ $exit_code -ne 0 ]; then
+      echo -e "${green}✓"
+    else
+      echo -e "${red}✗"
+    fi
+  else
+    # Standard: If everything is normal, we want a success (exit code 0)
+    if [ $exit_code -eq 0 ]; then
+      echo -e "${green}✓"
+    else
+      echo -e "${red}✗"
+    fi
+  fi
+}
+
+
 function check_nexusp_retired_k1_2025() {
   if nexusp_absent; then
     echo -e "${cyan}-"
@@ -120,17 +158,19 @@ function info_menu_ui_k1_2025() {
   info_line "$(check_file_k1_2025 "$KLIPPER_SHELL_FILE")" 'Klipper Gcode Shell Command'
   hr
   subtitle '•IMPROVEMENTS & EXPANSIONS:'
-  # BEREINIGT: Sucht jetzt starr nach der echten Klipper-Sektion [input_shaper]
   info_line "$(check_live_status_k1_2025 "^\[input_shaper\]")" 'Restore Input Shapers'
-  # BEREINIGT: Nur noch ein einziger, exakter Eintrag fuer die Python-Erweiterung!
   info_line "$(check_live_status_k1_2025 "^\[extended_gcode_params\]")" 'Extended Gcode Params'
   info_line "$(check_live_status_k1_2025 "^\[include Helper-Script/dxc_sensor.cfg\]")" 'DXC Filament Sensor'
   info_line "$(check_file_k1_2025 "$HS_BACKUP_FOLDER/box_control.pyc.orig")" 'CFS-C Universal Purge Speed Fix'
   info_line "$(check_file_k1_2025 "$HS_BACKUP_FOLDER/box.cfg.orig")" 'Micro-Swiss FlowTech Volumetric Extension'
-  info_line "$(check_live_status_k1_2025 "^\[include Helper-Script/cfs_lll_safety.cfg\]")" 'FLY-LLL PLUS Safetysystem'
+  #info_line "$(check_live_status_k1_2025 "^\[include Helper-Script/cfs_lll_safety.cfg\]")" 'FLY-LLL PLUS Safetysystem'
   hr
   subtitle '•TOOLS & CALIBRATION:'
+  info_line "$(check_file_k1_2025 "$KLIPPER_SERVICE_DISABLED")" 'Prevent updating Klipper configuration files'
+  info_line "$(check_content_k1_2025 "^\[webcam chassis\]\|^\[webcam usb\]" "$MOONRAKER_CFG")" 'camera settings in Moonraker'
   info_line "$(check_live_status_k1_2025 "^\[include Helper-Script/calib_tool_box.cfg\]")" 'Creality Calibration Toolbox (BED MESH)'
+  # info_line "$(check_file_k1_2025 "${MAINSAIL_FOLDER}/k1c-cfs-panel.js")" 'CFS-C Mainsail Addon'
+  # info_line "$(check_file_k1_2025 "${FLUIDD_FOLDER}/k1c-cfs-panel.js")" 'CFS-C Fluidd Addon'
   # info_line "$(check_folder_k1_2025 "$KAMP_FOLDER")" 'Klipper Adaptive Meshing & Purging'
   # info_line "$(check_file_k1_2025 "$BUZZER_FILE")" 'Buzzer Support'
   # info_line "$(check_folder_k1_2025 "$NOZZLE_CLEANING_FOLDER")" 'Nozzle Cleaning Fan Control'
@@ -143,18 +183,19 @@ function info_menu_ui_k1_2025() {
   info_line "$(check_file_k1_2025 "$GIT_BACKUP_FILE")" 'Git Backup'
   hr
   subtitle '•CAMERA:'
-  info_line "$(check_file_k1_2025 "$TIMELAPSE_FILE")" 'Moonraker Timelapse'
-  info_line "$(check_file_k1_2025 "$CAMERA_SETTINGS_FILE")" 'Camera Settings Control'
+  info_line "$(check_file_k1_2025 "$GO2RTC_FILE")" 'Go2rtc'
   info_line "$(check_any_file_k1_2025 "$USB_CAMERA_FILE" "$USB_CAMERA_LEGACY_FILE")" 'USB Camera Support'
   info_line "$(check_any_file_k1_2025 "$BUILTIN_CAMERA_FILE" "$BUILTIN_CAMERA_LEGACY_FILE")" 'Built-in Camera Fix'
+  info_line "$(check_file_k1_2025 "$CAMERA_SETTINGS_FILE")" 'Camera Settings Control'
+  info_line "$(check_file_k1_2025 "$TIMELAPSE_FILE")" 'Moonraker Timelapse'
   hr
   subtitle '•REMOTE ACCESS:'
-  info_line "$(check_folder_k1_2025 "$OCTOEVERYWHERE_FOLDER")" 'OctoEverywhere'
+  #info_line "$(check_folder_k1_2025 "$OCTOEVERYWHERE_FOLDER")" 'OctoEverywhere'
   info_line "$(check_folder_k1_2025 "$MOONRAKER_OBICO_FOLDER")" 'Obico'
-  info_line "$(check_folder_k1_2025 "$GUPPYFLO_FOLDER")" 'GuppyFLO'
+  #info_line "$(check_folder_k1_2025 "$GUPPYFLO_FOLDER")" 'GuppyFLO'
   info_line "$(check_folder_k1_2025 "$MOBILERAKER_COMPANION_FOLDER")" 'Mobileraker Companion'
-  info_line "$(check_folder_k1_2025 "$OCTOAPP_COMPANION_FOLDER")" 'OctoApp Companion'
-  info_line "$(check_simplyprint_k1_2025)" 'SimplyPrint'
+  #info_line "$(check_folder_k1_2025 "$OCTOAPP_COMPANION_FOLDER")" 'OctoApp Companion'
+  #info_line "$(check_simplyprint_k1_2025)" 'SimplyPrint'
   hr
   subtitle '•CUSTOMIZATION:'
   info_line "$(check_file_k1_2025 "$FLUIDD_LOGO_FILE")" 'Creality Dynamic Logos for Fluidd'

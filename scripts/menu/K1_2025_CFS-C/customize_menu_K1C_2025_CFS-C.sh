@@ -12,10 +12,10 @@ function customize_menu_ui_k1_2025_cfs_c() {
   hr
   menu_option '2' 'Install' 'Block Creality Cloud Telemetry'
   menu_option '3' 'Remove' 'Block Creality Cloud Telemetry'
-  disabled_menu_option '4' 'Disable' 'Creality Stock Services'
+#  menu_option '4' 'Disable' 'Creality Stock Services'
   menu_option '5' 'Restore' 'Creality Stock Services'
   hr
-  disabled_menu_option '6' 'Retire' 'Nexusp Backend'
+#  menu_option '6' 'Retire' 'Nexusp Backend'
   menu_option '7' 'Restore' 'Nexusp Backend'
   hr
   menu_option '8' 'Remove' 'CFS-C recognition (back to K1_2025)'
@@ -133,9 +133,7 @@ function customize_menu_k1_2025_cfs_c() {
         ;;
       4)
         clear
-        if grep -q "mb-料盒" /usr/data/printer_data/config/printer.cfg 2>/dev/null; then
-          disabled_feature
-        elif creality_services_absent; then
+        if creality_services_absent; then
           customize_menu_ui_k1_2025_cfs_c
           echo
           error_msg "No Creality stock services were found on this firmware!"

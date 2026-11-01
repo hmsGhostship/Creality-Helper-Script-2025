@@ -30,22 +30,23 @@ function remove_menu_ui_k1_2025_cfs_c() {
   menu_option '13' 'Remove' 'DXC Filament Sensor'
   menu_option '14' 'Remove' 'CFS-C Universal Purge Speed Fix'
   menu_option '15' 'Remove' 'Micro-Swiss FlowTech Volumetric Extension'
-#  disabled_menu_option '16' 'Remove' 'FLY-LLL PLUS Safetysystem'
-#  disabled_menu_option '17' 'Remove' 'Klipper Adaptive Meshing & Purging'
+# menu_option '16' 'Remove' 'FLY-LLL PLUS Safetysystem'
+# menu_option '17' 'Remove' 'Klipper Adaptive Meshing & Purging'
   menu_option '18' 'Remove' 'Motor Sound Support'
-#  disabled_menu_option '19' 'Remove' 'Nozzle Cleaning Fan Control'
-#  disabled_menu_option '20' 'Remove' 'Fans Control Macros'
-#  disabled_menu_option '21' 'Remove' 'Improved Shapers Calibrations'
+# menu_option '19' 'Remove' 'Fans Control Macros'
+# menu_option '20' 'Remove' 'Nozzle Cleaning Fan Control'
+# menu_option '21' 'Remove' 'Improved Shapers Calibrations'
   menu_option '22' 'Remove' 'Useful Macros'
-  menu_option '23' 'Remove' 'Git Backup'
+# menu_option '23' 'Remove' 'M600 Support'
+  menu_option '24' 'Remove' 'Git Backup'
   hr
   subtitle '•REMOTE ACCESS:'
-#  disabled_menu_option '24' 'Remove' 'OctoEverywhere'
-  menu_option '25' 'Remove' 'Moonraker Obico'
-#  disabled_menu_option '26' 'Remove' 'GuppyFLO'
-  menu_option '27' 'Remove' 'Mobileraker Companion'
-#  disabled_menu_option '28' 'Remove' 'OctoApp Companion'
-#  disabled_menu_option '29' 'Remove' 'SimplyPrint'
+# menu_option '25' 'Remove' 'OctoEverywhere'
+  menu_option '26' 'Remove' 'Moonraker Obico'
+# menu_option '27' 'Remove' 'GuppyFLO'
+  menu_option '28' 'Remove' 'Mobileraker Companion'
+# menu_option '29' 'Remove' 'OctoApp Companion'
+# menu_option '30' 'Remove' 'SimplyPrint'
   hr
   inner_line
   hr
@@ -257,79 +258,79 @@ function remove_menu_k1_2025_cfs_c() {
          else
            run "remove_motor_sound" "remove_menu_ui_k1_2025_cfs_c"
          fi;;
-#     19)
-#        disabled_feature;;
-##        if [ ! -d "$NOZZLE_CLEANING_FOLDER" ]; then
-##          error_msg "Nozzle Cleaning Fan Control is not installed!"
-##        else
-##          run "remove_nozzle_cleaning_fan_control" "remove_menu_ui_k1_2025_cfs_c"
-##        fi;;
-#     20)
-#        disabled_feature;;
-##        if [ ! -f "$FAN_CONTROLS_FILE" ]; then
-##          error_msg "Fans Control Macros are not installed!"
-##        else
-##          run "remove_fans_control_macros" "remove_menu_ui_k1_2025_cfs_c"
-##        fi;;
-#     21)
-#       disabled_feature;;
-##       if [ ! -d "$IMP_SHAPERS_FOLDER" ]; then
-##         error_msg "Improved Shapers Calibrations are not installed!"
-##       else
-##         run "remove_improved_shapers" "remove_menu_ui_k1_2025_cfs_c"
-##       fi;;
-#     22)
-#        disabled_feature;;
-##        if [ ! -f "$USEFUL_MACROS_FILE" ]; then
-##          error_msg "Useful Macros are not installed!"
-##        else
-##          run "remove_useful_macros" "remove_menu_ui_k1_2025_cfs_c"
-##        fi;;
-      23)
+     19)
+       if [ ! -f "$FAN_CONTROLS_FILE" ]; then
+         error_msg "Fans Control Macros are not installed!"
+       else
+         run "remove_fans_control_macros" "remove_menu_ui_k1_2025_cfs_c"
+       fi;;
+     20)
+       if [ ! -d "$NOZZLE_CLEANING_FOLDER" ]; then
+         error_msg "Nozzle Cleaning Fan Control is not installed!"
+       else
+         run "remove_nozzle_cleaning_fan_control" "remove_menu_ui_k1_2025_cfs_c"
+       fi;;
+     21)
+       if [ ! -d "$IMP_SHAPERS_FOLDER" ]; then
+         error_msg "Improved Shapers Calibrations are not installed!"
+       else
+         run "remove_improved_shapers" "remove_menu_ui_k1_2025_cfs_c"
+       fi;;
+     22)
+       if [ ! -f "$USEFUL_MACROS_FILE" ]; then
+         error_msg "Useful Macros are not installed!"
+       else
+         run "remove_useful_macros" "remove_menu_ui_k1_2025_cfs_c"
+       fi;;
+     23)
         if [ ! -f "$GIT_BACKUP_FILE" ]; then
           error_msg "Git Backup is not installed!"
         else
           run "remove_git_backup" "install_menu_ui_k1_2025_cfs_c"
         fi;;
-#      24)
-#        if [ ! -d "$OCTOEVERYWHERE_FOLDER" ]; then
-#          error_msg "OctoEverywhere is not installed!"
-#        else
-#          run "remove_octoeverywhere" "remove_menu_ui_k1_2025_cfs_c"
-#          echo -e "\n${yellow} Press Enter to return to the menu...${white}" && read -r _
-#        fi;;
-      25)
+     24)
+       if [ ! -f "$M600_SUPPORT_FILE" ]; then
+         error_msg "M600 Support is not installed!"
+       else
+         run "remove_m600_support" "remove_menu_ui_k1_2025"
+       fi;;
+     25)
+       if [ ! -d "$OCTOEVERYWHERE_FOLDER" ]; then
+         error_msg "OctoEverywhere is not installed!"
+       else
+         run "remove_octoeverywhere" "remove_menu_ui_k1_2025_cfs_c"
+         echo -e "\n${yellow} Press Enter to return to the menu...${white}" && read -r _
+       fi;;
+      26)
         if [ ! -d "$MOONRAKER_OBICO_FOLDER" ]; then
           error_msg "Moonraker Obico is not installed!"
         else
           run "remove_moonraker_obico" "remove_menu_ui_k1_2025_cfs_c"
         fi;;
-#      26)
-#        disabled_feature;;
-##        if [ ! -d "$GUPPYFLO_FOLDER" ]; then
-##          error_msg "GuppyFLO is not installed!"
-##        else
-##          run "remove_guppyflo" "remove_menu_ui_k1_2025_cfs_c"
-##        fi;;
-      27)
-        if [ ! -d "$MOBILERAKER_COMPANION_FOLDER" ]; then
-          error_msg "Mobileraker Companion is not installed!"
-        else
-          run "remove_mobileraker_companion" "remove_menu_ui_k1_2025_cfs_c"
-        fi;;
-      28)
-        if [ ! -d "$OCTOAPP_COMPANION_FOLDER" ]; then
-          error_msg "OctoApp Companion is not installed!"
-        else
-          run "remove_octoapp_companion" "remove_menu_ui_k1_2025_cfs_c"
-        fi;;
-#      29)
-#        disabled_feature;;
-##        if ! grep -q "\[simplyprint\]" "$MOONRAKER_CFG"; then
-##          error_msg "SimplyPrint is not installed!"
-##        else
-##          run "remove_simplyprint" "remove_menu_ui_k1_2025_cfs_c"
-##        fi;;
+     27)
+       if [ ! -d "$GUPPYFLO_FOLDER" ]; then
+         error_msg "GuppyFLO is not installed!"
+       else
+         run "remove_guppyflo" "remove_menu_ui_k1_2025_cfs_c"
+       fi;;
+     28)
+       if [ ! -d "$MOBILERAKER_COMPANION_FOLDER" ]; then
+         error_msg "Mobileraker Companion is not installed!"
+       else
+         run "remove_mobileraker_companion" "remove_menu_ui_k1_2025_cfs_c"
+       fi;;
+     29)
+       if [ ! -d "$OCTOAPP_COMPANION_FOLDER" ]; then
+         error_msg "OctoApp Companion is not installed!"
+       else
+         run "remove_octoapp_companion" "remove_menu_ui_k1_2025_cfs_c"
+       fi;;
+     30)
+       if ! grep -q "\[simplyprint\]" "$MOONRAKER_CFG"; then
+         error_msg "SimplyPrint is not installed!"
+       else
+         run "remove_simplyprint" "remove_menu_ui_k1_2025_cfs_c"
+       fi;;
       B|b)
         clear; main_menu; break;;
       Q|q)
