@@ -32,24 +32,20 @@ function install_menu_ui_k1_2025_cfs_c() {
   menu_option '15' 'Install' 'Micro-Swiss FlowTech Volumetric Extension'
 #  disabled_menu_option '16' 'Install' 'FLY-LLL PLUS Safetysystem (Einschalt-Sperre)'
 #  disabled_menu_option '17' 'Install' 'Klipper Adaptive Meshing & Purging'
-#  disabled_menu_option '18' 'Install' 'Klipper Adaptive Meshing & Purging'
-#  disabled_menu_option '19' 'Install' 'Buzzer Support'
-#  disabled_menu_option '20' 'Install' 'Nozzle Cleaning Fan Control'
-#  disabled_menu_option '21' 'Install' 'Fans Control Macros'
-#  disabled_menu_option '22' 'Install' 'Improved Shapers Calibrations'
-#  disabled_menu_option '23' 'Install' 'Useful Macros'
-#  disabled_menu_option '24' 'Install' 'Save Z-Offset Macros'
-#  disabled_menu_option '25' 'Install' 'Screws Tilt Adjust Support'
-#  disabled_menu_option '26' 'Install' 'M600 Support'
-   menu_option '27' 'Install' 'Git Backup'
+  menu_option '18' 'Install' 'Motor Sound Support'
+#  disabled_menu_option '19' 'Install' 'Nozzle Cleaning Fan Control'
+#  disabled_menu_option '20' 'Install' 'Fans Control Macros'
+#  disabled_menu_option '21' 'Install' 'Improved Shapers Calibrations'
+#  disabled_menu_option '22' 'Install' 'Useful Macros'
+   menu_option '23' 'Install' 'Git Backup'
    hr
    subtitle '•REMOTE ACCESS:'
-#  disabled_menu_option '28' 'Install' 'OctoEverywhere'
-   menu_option '29' 'Install' 'Moonraker Obico'
-#  disabled_menu_option '30' 'Install' 'GuppyFLO'
-   menu_option '31' 'Install' 'Mobileraker Companion'
-#  disabled_menu_option '32' 'Install' 'OctoApp Companion'
-#  disabled_menu_option '33' 'Install' 'SimplyPrint'
+#  disabled_menu_option '24' 'Install' 'OctoEverywhere'
+   menu_option '25' 'Install' 'Moonraker Obico'
+#  disabled_menu_option '26' 'Install' 'GuppyFLO'
+   menu_option '27' 'Install' 'Mobileraker Companion'
+#  disabled_menu_option '28' 'Install' 'OctoApp Companion'
+#  disabled_menu_option '29' 'Install' 'SimplyPrint'
   hr
   inner_line
   hr
@@ -249,18 +245,69 @@ function install_menu_k1_2025_cfs_c() {
         else
           run "install_kamp" "install_menu_ui_k1_2025_cfs_c"
         fi;;
-#      28)
-#        if [ ! -d "$MOONRAKER_FOLDER" ]; then
-#          error_msg "Moonraker and Nginx are needed, please install them first!"
-#        elif [ ! -d "$FLUIDD_FOLDER" ] && [ ! -d "$MAINSAIL_FOLDER" ]; then#
-#          error_msg "Fluidd or Mainsail is needed, please install one of them first!"
-#        elif [ ! -f "$ENTWARE_FILE" ]; then
-#          error_msg "Entware is needed, please install it first!"
-#        else
-#          run "install_octoeverywhere" "install_menu_ui_k1_2025_cfs_c"
-#          echo -e "\n${yellow} Press Enter to return to the menu...${white}" && read -r _
-#        fi;;
-       29)
+      18)
+        if [ -f "$MOTOR_SOUND_TARGET_FILE" ]; then
+          error_msg "Motor sound Support is already installed!"
+        else
+          run "install_motor_sound" "install_menu_ui_k1_2025_cfs_c"
+        fi;;
+##     19)
+#        disabled_feature;;
+##        if [ -d "$NOZZLE_CLEANING_FOLDER" ]; then
+##          error_msg "Nozzle Cleaning Fan Control is already installed!"
+##        else
+##          run "install_nozzle_cleaning_fan_control" "install_menu_ui_k1_2025_cfs_c"
+##        fi;;
+#      20)
+#        disabled_feature;;
+##        if [ -f "$FAN_CONTROLS_FILE" ]; then
+##          error_msg "Fans Control Macros are already installed!"
+##        else
+##          run "install_fans_control_macros" "install_menu_ui_k1_2025_cfs_c"
+##        fi;;
+#      21)
+#        disabled_feature;;
+##        if [ -d "$IMP_SHAPERS_FOLDER" ]; then
+##          error_msg "Improved Shapers Calibrations are already installed!"
+##        elif [ -d "$GUPPY_SCREEN_FOLDER" ]; then
+##          error_msg "Guppy Screen already has these features!"
+##        elif [ ! -f "$KLIPPER_SHELL_FILE" ]; then
+##          error_msg "Klipper Gcode Shell Command is needed, please install it first!"
+##        else
+##          run "install_improved_shapers" "install_menu_ui_k1_2025_cfs_c"
+##        fi;;
+#      22)
+#        disabled_feature;;
+##        if [ -f "$USEFUL_MACROS_FILE" ]; then
+##          error_msg "Useful Macros are already installed!"
+##        elif [ ! -f "$KLIPPER_SHELL_FILE" ]; then
+##          error_msg "Klipper Gcode Shell Command is needed, please install it first!"
+##        else
+##          run "install_useful_macros" "install_menu_ui_k1_2025_cfs_c"
+##        fi;;
+      23)
+        if [ -f "$GIT_BACKUP_FILE" ]; then
+          error_msg "Git Backup is already installed!"
+        elif [ ! -f "$ENTWARE_FILE" ]; then
+          error_msg "Entware is needed, please install it first!"
+        elif [ ! -f "$KLIPPER_SHELL_FILE" ]; then
+          error_msg "Klipper Gcode Shell Command is needed, please install it first!"
+        else
+          # Startet einfach nur deine Menü-Datei
+          run "install_git_backup" "install_menu_ui_k1_2025_cfs_c"
+        fi;;
+#     24)
+##       if [ ! -d "$MOONRAKER_FOLDER" ]; then
+##         error_msg "Moonraker and Nginx are needed, please install them first!"
+##       elif [ ! -d "$FLUIDD_FOLDER" ] && [ ! -d "$MAINSAIL_FOLDER" ]; then#
+##         error_msg "Fluidd or Mainsail is needed, please install one of them first!"
+##       elif [ ! -f "$ENTWARE_FILE" ]; then
+##         error_msg "Entware is needed, please install it first!"
+##       else
+##         run "install_octoeverywhere" "install_menu_ui_k1_2025_cfs_c"
+##         echo -e "\n${yellow} Press Enter to return to the menu...${white}" && read -r _
+##       fi;;
+       25)
          clear
 		  if [ -d "$MOONRAKER_OBICO_FOLDER" ] && [ -f "$KLIPPER_CONFIG_FOLDER/moonraker-obico.cfg" ]; then
             error_msg "Moonraker Obico is already installed!"
@@ -273,7 +320,14 @@ function install_menu_k1_2025_cfs_c() {
          else
            run "install_moonraker_obico" "install_menu_ui_k1_2025_cfs_c"
          fi;;
-      22)
+#      26)
+#        disabled_feature;;
+##        if [ ! -d "$MOONRAKER_FOLDER" ] && [ ! -d "$NGINX_FOLDER" ]; then
+##          error_msg "Moonraker and Nginx are needed, please install them first!"
+##        else
+##          run "install_guppyflo" "install_menu_ui_k1_2025_cfs_c"
+##        fi;;
+      27)
         if [ -d "$MOBILERAKER_COMPANION_FOLDER" ]; then
           error_msg "Mobileraker Companion is already installed!"
         elif [ ! -d "$MOONRAKER_FOLDER" ]; then
@@ -303,7 +357,7 @@ function install_menu_k1_2025_cfs_c() {
             echo -e "\n${yellow} Press Enter to return to the menu...${white}" && read -r _
           fi
         fi;;
-      23)
+      28)
         if [ -d "$OCTOAPP_COMPANION_FOLDER" ]; then
           error_msg "OctoApp Companion is already installed!"
         elif [ ! -d "$MOONRAKER_FOLDER" ]; then
@@ -315,109 +369,7 @@ function install_menu_k1_2025_cfs_c() {
         else
           run "install_octoapp_companion" "install_menu_ui_k1_2025_cfs_c"
         fi;;
-#     18)
-#        disabled_feature;;
-##        if [ -d "$KAMP_FOLDER" ]; then
-##          error_msg "Klipper Adaptive Meshing & Purging is already installed!"
-##        else
-##          run "install_kamp" "install_menu_ui_k1_2025_cfs_c"
-##        fi;;
-#      19)
-#          disabled_feature;;
-##        if [ -f "$BUZZER_FILE" ]; then
-##          error_msg "Buzzer Support is already installed!"
-##        elif [ ! -f "$KLIPPER_SHELL_FILE" ]; then
-##          error_msg "Klipper Gcode Shell Command is needed, please install it first!"
-##        else
-##          run "install_buzzer_support" "install_menu_ui_k1_2025_cfs_c"
-##        fi;;
-#     20)
-#        disabled_feature;;
-##        if [ -d "$NOZZLE_CLEANING_FOLDER" ]; then
-##          error_msg "Nozzle Cleaning Fan Control is already installed!"
-##        else
-##          run "install_nozzle_cleaning_fan_control" "install_menu_ui_k1_2025_cfs_c"
-##        fi;;
-#      21)
-#        disabled_feature;;
-##        if [ -f "$FAN_CONTROLS_FILE" ]; then
-##          error_msg "Fans Control Macros are already installed!"
-##        else
-##          run "install_fans_control_macros" "install_menu_ui_k1_2025_cfs_c"
-##        fi;;
-#      22)
-#        disabled_feature;;
-##        if [ -d "$IMP_SHAPERS_FOLDER" ]; then
-##          error_msg "Improved Shapers Calibrations are already installed!"
-##        elif [ -d "$GUPPY_SCREEN_FOLDER" ]; then
-##          error_msg "Guppy Screen already has these features!"
-##        elif [ ! -f "$KLIPPER_SHELL_FILE" ]; then
-##          error_msg "Klipper Gcode Shell Command is needed, please install it first!"
-##        else
-##          run "install_improved_shapers" "install_menu_ui_k1_2025_cfs_c"
-##        fi;;
-#      23)
-#        disabled_feature;;
-##        if [ -f "$USEFUL_MACROS_FILE" ]; then
-##          error_msg "Useful Macros are already installed!"
-##        elif [ ! -f "$KLIPPER_SHELL_FILE" ]; then
-##          error_msg "Klipper Gcode Shell Command is needed, please install it first!"
-##        else
-##          run "install_useful_macros" "install_menu_ui_k1_2025_cfs_c"
-##        fi;;
-#      24)
-#        disabled_feature;;
-##        if [ -f "$SAVE_ZOFFSET_FILE" ]; then
-##          error_msg "Save Z-Offset Macros are already installed!"
-##        else
-##          run "install_save_zoffset_macros" "install_menu_ui_k1_2025_cfs_c"
-##        fi;;
-#      25)
-#        disabled_feature;;
-##        if [ -f "$SCREWS_ADJUST_FILE" ]; then
-##          error_msg "Screws Tilt Adjust Support is already installed!"
-##        else
-##          run "install_screws_tilt_adjust" "install_menu_ui_k1_2025_cfs_c"
-##        fi;;
-#      26)
-#        disabled_feature;;
-##        if [ -f "$M600_SUPPORT_FILE" ]; then
-##          error_msg "M600 Support is already installed!"
-##        else
-##          run "install_m600_support" "install_menu_ui_k1_2025_cfs_c"
-##        fi;;
-      27)
-        if [ -f "$GIT_BACKUP_FILE" ]; then
-          error_msg "Git Backup is already installed!"
-        elif [ ! -f "$ENTWARE_FILE" ]; then
-          error_msg "Entware is needed, please install it first!"
-        elif [ ! -f "$KLIPPER_SHELL_FILE" ]; then
-          error_msg "Klipper Gcode Shell Command is needed, please install it first!"
-        else
-          # Startet einfach nur deine Menü-Datei
-          run "install_git_backup" "install_menu_ui_k1_2025_cfs_c"
-        fi;;
-#      30)
-#        disabled_feature;;
-##        if [ ! -d "$MOONRAKER_FOLDER" ] && [ ! -d "$NGINX_FOLDER" ]; then
-##          error_msg "Moonraker and Nginx are needed, please install them first!"
-##        else
-##          run "install_guppyflo" "install_menu_ui_k1_2025_cfs_c"
-##        fi;;
-#      32)
-#        disabled_feature;;
-##        if [ -d "$OCTOAPP_COMPANION_FOLDER" ]; then
-##          error_msg "OctoApp Companion is already installed!"
-##        elif [ ! -d "$MOONRAKER_FOLDER" ]; then
-##          error_msg "Moonraker and Nginx are needed, please install them first!"
-##        elif [ ! -d "$FLUIDD_FOLDER" ] && [ ! -d "$MAINSAIL_FOLDER" ]; then
-##          error_msg "Fluidd or Mainsail is needed, please install one of them first!"
-##        elif [ ! -f "$ENTWARE_FILE" ]; then
-##          error_msg "Entware is needed, please install it first!"
-##        else
-##          run "install_octoapp_companion" "install_menu_ui_k1_2025_cfs_c"
-##        fi;;
-#      33)
+#      29)
 #        disabled_feature;;
 ##        if grep -q "\[simplyprint\]" "$MOONRAKER_CFG"; then
 ##          error_msg "SimplyPrint is already installed!"

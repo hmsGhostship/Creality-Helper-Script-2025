@@ -122,11 +122,6 @@ if [ ! -L "$BIN_FOLDER"/helper ]; then
 fi
 rm -rf /root/.cache
 
-if [ -n "$model" ] && [ "$model" != "K1_2025" ] && [ "$model" != "K1_2025_CFS-C" ] && [ ! -f $INITD_FOLDER/S58factoryreset ]; then
-  cp "$HS_FILES/services/S58factoryreset" $INITD_FOLDER/S58factoryreset
-  chmod 755 $INITD_FOLDER/S58factoryreset
-fi
-
 set_permissions
 # Repairs an existing /opt/etc/opkg.conf still pointing at the retired feed
 # host. Must not be able to fail the script -- this is the recovery tool.

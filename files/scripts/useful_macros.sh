@@ -58,12 +58,6 @@ function restore_moonraker(){
   exit 0
 }
 
-function reload_camera(){
-  echo -e "Info: Reloading camera config..."
-  ACTION=reload /usr/bin/auto_uvc.sh
-  exit 0
-}
-
 if [ "$1" == "-backup_klipper" ]; then
   backup_klipper
 elif [ "$1" == "-restore_klipper" ]; then

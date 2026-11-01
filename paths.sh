@@ -112,9 +112,9 @@ function set_paths() {
   VIRTUAL_PINS_FILE="${KLIPPER_EXTRAS_FOLDER}/virtual_pins.py"
   VIRTUAL_PINS_URL="${HS_FILES}/klipper-virtual-pins/virtual_pins.py"
   
-  # Buzzer Support #
-  BUZZER_FILE="${HS_CONFIG_FOLDER}/buzzer-support.cfg"
-  BUZZER_URL="${HS_FILES}/buzzer-support/buzzer-support.cfg"
+  # Motor Sound Support #
+  MOTOR_SOUND_TARGET_FILE="${HS_CONFIG_FOLDER}/motor-sound.cfg"
+  MOTOR_SOUND_SORCE_FILE="${HS_FILES}/motor-sound/motor-sound.cfg"
   
   # Nozzle Cleaning Fan Control #
   NOZZLE_CLEANING_FOLDER="${KLIPPER_EXTRAS_FOLDER}/prtouch_v2_fan"
