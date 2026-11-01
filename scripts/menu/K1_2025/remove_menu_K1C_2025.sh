@@ -197,7 +197,7 @@ function remove_menu_k1_2025() {
             echo
         else
             # Launches your new dxc_sensor.sh with dynamic backup restoration
-            run "remove_dxc_sensor" "remove_menu_ui_k1_2025_
+            run "remove_dxc_sensor" "remove_menu_ui_k1_2025"
         fi
         ;;
       14)
