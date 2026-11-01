@@ -6,15 +6,15 @@ This script intended for use on Creality **K1 Series** and **Ender-3 V3 Series**
 
 Additional support for K1 2025 CFS-C by @hmsGhostship.
 
-## 📋 / ✅  Prerequisites and installation
 
-1. Install a root exploit
+## 📋 / ✅ Prerequisites and installation
 
-Codebrained K1C 2025 Root Exploit https://gist.github.com/C0DEbrained  
+1. **Install a root exploit**
+   Choose one of the following methods depending on your setup:
+   * **Web-based Method (Recommended):** [Codebrained Creality-2025-Web-Exploit](https://github.com/C0DEbrained/Creality-2025-Web-Exploit) (Runs directly from your browser over LAN)
+   * **Local Python Method:** [Codebrained K1C 2025 Root Exploit Gist](https://gist.github.com/C0DEbrained/c6f508109e34f43a39f4c22e901408dd) (Requires a local Python environment and an SSH key)
 
-or  
-
-Codebrained Creality-2025-Web-Exploit https://github.com/C0DEbrained/Creality-2025-Web-Exploit
+   *⚠️ **Note:** Rooting your printer is done at your own risk. Please read the security guidelines and trust models in the respective repositories carefully.*
 
 2. Install Entware:
 
