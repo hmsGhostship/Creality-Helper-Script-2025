@@ -309,7 +309,7 @@
       let materialType = String(material.type || "").trim().toUpperCase();
       const rfid = String(material.rfid || "").trim();
       
-      // FIX: If rawState === 1 (Manual), a spool is physically loaded!
+      // FIX: Wenn rawState === 1 (Manual), ist physisch eine Spule eingelegt!
       const hardwareDetected = rawState === 1;
       
       const rfidMissing = ["", "0", "00", "000", "0000", "00000", "000000"].indexOf(rfid) >= 0;
@@ -318,14 +318,14 @@
       
       let stateValue = emptyManualSignature ? 0 : rawState;
       
-      // A coil is present if a valid state exists OR hardware presence is reported.
+      // Eine Spule ist vorhanden, wenn ein gültiger State existiert ODER Hardware-Präsenz gemeldet wird
       let present = stateValue > 0 || hardwareDetected;
       
-      // Triggers when the coil is present but no type has been assigned (your slot 1D!)
+      // Greift ein, wenn die Spule da ist, aber kein Typ zugeordnet wurde (dein Slot 1D!)
       if (hardwareDetected && (stateValue === 0 || materialType === "" || materialType === "-1" || materialType === "NONE")) {
           materialType = "UNASSIGNED";
           name = "Please assign in Screen";
-          stateValue = 1; // Forces the UI into the active state
+          stateValue = 1; // Zwingt das UI in den aktiven Status
           present = true;
       }
 
@@ -1247,30 +1247,28 @@
   }
 
   function findDashboardColumn() {
-    const fluiddList = document.querySelector("main .app-draggable.list-group");
-    if (fluiddList) {
-      const fluiddCards = Array.from(fluiddList.querySelectorAll(".collapsable-card"));
-      const jobCard = fluiddCards.find(function (card) {
-        return !!card.querySelector("[role='tablist'], .v-tabs, .v-slide-group");
-      });
-      const anchorCard = jobCard || fluiddCards[0];
-      if (anchorCard) return { column: fluiddList, after: anchorCard };
-    }
-    const consoleCard = document.querySelector("main .miniconsole-panel");
-    if (consoleCard) {
-      const col = consoleCard.closest(".col");
-      if (col) return { column: col, after: consoleCard };
-    }
+    // PRIORITÄT 1: Sucht nach den Temperaturen -> CFS dockt sich direkt DARUNTER an
     const temperaturesCard = document.querySelector("main .temperature-panel");
     if (temperaturesCard) {
       const col = temperaturesCard.closest(".col");
       if (col) return { column: col, after: temperaturesCard };
     }
+
+    // PRIORITÄT 2: Nur wenn es keine Temperaturen gibt, wird die Konsole genommen
+    const consoleCard = document.querySelector("main .miniconsole-panel");
+    if (consoleCard) {
+      const col = consoleCard.closest(".col");
+      if (col) return { column: col, after: consoleCard };
+    }
+
+    // PRIORITÄT 3: Makros
     const macrosCard = document.querySelector("main .macros-panel");
     if (macrosCard) {
       const col = macrosCard.closest(".col");
       if (col) return { column: col, after: macrosCard };
     }
+
+    // Restlicher Fallback
     const firstPanel = document.querySelector("main .v-card.panel");
     if (firstPanel) {
       const col = firstPanel.closest(".col");
@@ -1278,6 +1276,7 @@
     }
     return null;
   }
+
 
   function mountInDashboard() {
     if (!isDashboardRoute()) {
