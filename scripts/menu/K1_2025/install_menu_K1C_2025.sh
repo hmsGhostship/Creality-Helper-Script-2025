@@ -31,14 +31,17 @@ function install_menu_ui_k1_2025() {
 # menu_option '14' 'Install' 'CFS-C Universal Purge Speed Fix'
 # menu_option '15' 'Install' 'Micro-Swiss FlowTech Volumetric Extension'
 # menu_option '16' 'Install' 'FLY-LLL PLUS Safetysystem (Einschalt-Sperre)'
-# menu_option '17' 'Install' 'Klipper Adaptive Meshing & Purging'
-  menu_option '18' 'Install' 'Motor Sound Support'
-# menu_option '19' 'Install' 'Fans Control Macros'
-# menu_option '20' 'Install' 'Nozzle Cleaning Fan Control'
-# _menu_option '21' 'Install' 'Improved Shapers Calibrations'
-  menu_option '22' 'Install' 'Useful Macros'
-# menu_option '23' 'Install' 'M600 Support'
-  menu_option '24' 'Install' 'Git Backup'
+  menu_option '17' 'Install' 'Motor Sound Support'
+  menu_option '18' 'Install' 'Useful Macros'
+  menu_option '19' 'Install' 'Git Backup'
+  if ! creality_services_pending && nexusp_retired && ! nexusp_resurrected; then
+  :
+#  menu_option '20' 'Install' 'Klipper Adaptive Meshing & Purging'
+#  menu_option '21' 'Install' 'Fans Control Macros'
+#  menu_option '22' 'Install' 'Nozzle Cleaning Fan Control'
+#  menu_option '23' 'Install' 'Improved Shapers Calibrations'
+#  menu_option '24' 'Install' 'M600 Support'
+  fi
   hr
   subtitle '•REMOTE ACCESS:'
 # menu_option '25' 'Install' 'OctoEverywhere'
@@ -237,44 +240,12 @@ function install_menu_k1_2025() {
             run "restart_klipper" "install_menu_ui_k1_2025"
         fi;;
       17)
-        clear
-        if [ -d "$KAMP_FOLDER" ]; then
-          install_menu_ui_k1_2025
-          echo
-          error_msg "Klipper Adaptive Meshing & Purging is already installed!"
-          echo
-        else
-          run "install_kamp" "install_menu_ui_k1_2025"
-        fi;;
-      18)
         if [ -f "$MOTOR_SOUND_TARGET_FILE" ]; then
           error_msg "Motor sound Support is already installed!"
         else
           run "install_motor_sound" "install_menu_ui_k1_2025"
         fi;;
-      19)
-        if [ -f "$FAN_CONTROLS_FILE" ]; then
-          error_msg "Fans Control Macros are already installed!"
-        else
-          run "install_fans_control_macros" "install_menu_ui_k1_2025"
-        fi;;
-      20)
-        if [ -d "$NOZZLE_CLEANING_FOLDER" ]; then
-          error_msg "Nozzle Cleaning Fan Control is already installed!"
-        else
-          run "install_nozzle_cleaning_fan_control" "install_menu_ui_k1_2025"
-        fi;;
-      21)
-        if [ -d "$IMP_SHAPERS_FOLDER" ]; then
-          error_msg "Improved Shapers Calibrations are already installed!"
-        elif [ -d "$GUPPY_SCREEN_FOLDER" ]; then
-          error_msg "Guppy Screen already has these features!"
-        elif [ ! -f "$KLIPPER_SHELL_FILE" ]; then
-          error_msg "Klipper Gcode Shell Command is needed, please install it first!"
-        else
-          run "install_improved_shapers" "install_menu_ui_k1_2025"
-        fi;;
-     22)
+      18)
         if [ -f "$USEFUL_MACROS_FILE" ]; then
           error_msg "Useful Macros are already installed!"
         elif [ ! -f "$KLIPPER_SHELL_FILE" ]; then
@@ -282,13 +253,7 @@ function install_menu_k1_2025() {
         else
           run "install_useful_macros" "install_menu_ui_k1_2025"
         fi;;
-      23)
-        if [ -f "$M600_SUPPORT_FILE" ]; then
-          error_msg "M600 Support is already installed!"
-        else
-          run "install_m600_support" "install_menu_ui_k1_2025"
-        fi;;
-      24)
+      19)
         if [ -f "$GIT_BACKUP_FILE" ]; then
           error_msg "Git Backup is already installed!"
         elif [ ! -f "$ENTWARE_FILE" ]; then
@@ -299,88 +264,125 @@ function install_menu_k1_2025() {
           # Startet einfach nur deine Menü-Datei
           run "install_git_backup" "install_menu_ui_k1_2025"
         fi;;
-     25)
-       if [ ! -d "$MOONRAKER_FOLDER" ]; then
+      20)
+        clear
+        if [ -d "$KAMP_FOLDER" ]; then
+          install_menu_ui_k1_2025
+          echo
+          error_msg "Klipper Adaptive Meshing & Purging is already installed!"
+          echo
+        else
+          run "install_kamp" "install_menu_ui_k1_2025"
+        fi;;
+      21)
+        if [ -f "$FAN_CONTROLS_FILE" ]; then
+          error_msg "Fans Control Macros are already installed!"
+        else
+          run "install_fans_control_macros" "install_menu_ui_k1_2025"
+        fi;;
+      22)
+        if [ -d "$NOZZLE_CLEANING_FOLDER" ]; then
+          error_msg "Nozzle Cleaning Fan Control is already installed!"
+        else
+          run "install_nozzle_cleaning_fan_control" "install_menu_ui_k1_2025"
+        fi;;
+      23)
+        if [ -d "$IMP_SHAPERS_FOLDER" ]; then
+          error_msg "Improved Shapers Calibrations are already installed!"
+        elif [ -d "$GUPPY_SCREEN_FOLDER" ]; then
+          error_msg "Guppy Screen already has these features!"
+        elif [ ! -f "$KLIPPER_SHELL_FILE" ]; then
+          error_msg "Klipper Gcode Shell Command is needed, please install it first!"
+        else
+          run "install_improved_shapers" "install_menu_ui_k1_2025"
+        fi;;
+      24)
+        if [ -f "$M600_SUPPORT_FILE" ]; then
+          error_msg "M600 Support is already installed!"
+        else
+          run "install_m600_support" "install_menu_ui_k1_2025"
+        fi;;
+      25)
+        if [ ! -d "$MOONRAKER_FOLDER" ]; then
+          error_msg "Moonraker and Nginx are needed, please install them first!"
+        elif [ ! -d "$FLUIDD_FOLDER" ] && [ ! -d "$MAINSAIL_FOLDER" ]; then
+          error_msg "Fluidd or Mainsail is needed, please install one of them first!"
+        elif [ ! -f "$ENTWARE_FILE" ]; then
+          error_msg "Entware is needed, please install it first!"
+        else
+          run "install_octoeverywhere" "install_menu_ui_k1_2025"
+          echo -e "\n${yellow} Press Enter to return to the menu...${white}" && read -r _
+        fi;;
+      26)
+        clear
+        if [ -d "$MOONRAKER_OBICO_FOLDER" ] && [ -f "$KLIPPER_CONFIG_FOLDER/moonraker-obico.cfg" ]; then
+         error_msg "Moonraker Obico is already installed!"
+        elif [ ! -d "$MOONRAKER_FOLDER" ]; then
+          error_msg "Moonraker and Nginx are needed, please install them first!"
+        elif [ ! -d "$FLUIDD_FOLDER" ] && [ ! -d "$MAINSAIL_FOLDER" ]; then
+          error_msg "Fluidd or Mainsail is needed, please install one of them first!"
+        elif [ ! -f "$ENTWARE_FILE" ]; then
+          error_msg "Entware is needed, please install it first!"
+        else
+          run "install_moonraker_obico" "install_menu_ui_k1_2025"
+        fi;;
+      27)
+        if [ ! -d "$MOONRAKER_FOLDER" ] && [ ! -d "$NGINX_FOLDER" ]; then
+          error_msg "Moonraker and Nginx are needed, please install them first!"
+        else
+          run "install_guppyflo" "install_menu_ui_k1_2025"
+        fi;;
+      28)
+        if [ -d "$MOBILERAKER_COMPANION_FOLDER" ]; then
+          error_msg "Mobileraker Companion is already installed!"
+        elif [ ! -d "$MOONRAKER_FOLDER" ]; then
+          error_msg "Moonraker and Nginx are needed, please install them first!"
+        elif [ ! -d "$FLUIDD_FOLDER" ] && [ ! -d "$MAINSAIL_FOLDER" ]; then
+          error_msg "Fluidd or Mainsail is needed, please install one of them first!"
+        elif [ ! -f "$ENTWARE_FILE" ]; then
+          error_msg "Entware is needed, please install it first!"
+        else
+          run "install_mobileraker_companion" "install_menu_ui_k1_2025"
+          # Countdown and reboot after successful execution
+          if [ -d "$MOBILERAKER_COMPANION_FOLDER" ]; then
+            echo -e "${yellow}"
+            echo -e " ┌────────────────────────────────────────────────────────┐"
+            echo -e " │  WARNUNG: Um den freigegebenen Arbeitsspeicher (RAM)   │"
+            echo -e " │  wieder sauber aufzufüllen, startet der Drucker nun    │"
+            echo -e " │  automatisch neu.                                      │"
+            echo -e " └────────────────────────────────────────────────────────┘"
+            for i in 10 9 8 7 6 5 4 3 2 1; do
+                echo -e "    Drucker startet neu in $i Sekunden... \r\c"
+                sleep 1
+            done
+            echo -e "${white}\nInfo: Starte System neu..."
+            reboot
+          else
+            echo -e "\n${yellow} Press Enter to return to the menu...${white}" && read -r _
+          fi
+        fi;;
+      29)
+        if [ -d "$OCTOAPP_COMPANION_FOLDER" ]; then
+          error_msg "OctoApp Companion is already installed!"
+        elif [ ! -d "$MOONRAKER_FOLDER" ]; then
+          error_msg "Moonraker and Nginx are needed, please install them first!"
+        elif [ ! -d "$FLUIDD_FOLDER" ] && [ ! -d "$MAINSAIL_FOLDER" ]; then
+          error_msg "Fluidd or Mainsail is needed, please install one of them first!"
+        elif [ ! -f "$ENTWARE_FILE" ]; then
+          error_msg "Entware is needed, please install it first!"
+        else
+          run "install_octoapp_companion" "install_menu_ui_k1_2025"
+        fi;;
+      30)
+        if grep -q "\[simplyprint\]" "$MOONRAKER_CFG"; then
+          error_msg "SimplyPrint is already installed!"
+        elif [ ! -d "$MOONRAKER_FOLDER" ]; then
          error_msg "Moonraker and Nginx are needed, please install them first!"
-       elif [ ! -d "$FLUIDD_FOLDER" ] && [ ! -d "$MAINSAIL_FOLDER" ]; then
-         error_msg "Fluidd or Mainsail is needed, please install one of them first!"
-       elif [ ! -f "$ENTWARE_FILE" ]; then
-         error_msg "Entware is needed, please install it first!"
-       else
-         run "install_octoeverywhere" "install_menu_ui_k1_2025"
-         echo -e "\n${yellow} Press Enter to return to the menu...${white}" && read -r _
-       fi;;
-     26)
-       clear
-       if [ -d "$MOONRAKER_OBICO_FOLDER" ] && [ -f "$KLIPPER_CONFIG_FOLDER/moonraker-obico.cfg" ]; then
-        error_msg "Moonraker Obico is already installed!"
-       elif [ ! -d "$MOONRAKER_FOLDER" ]; then
-         error_msg "Moonraker and Nginx are needed, please install them first!"
-       elif [ ! -d "$FLUIDD_FOLDER" ] && [ ! -d "$MAINSAIL_FOLDER" ]; then
-         error_msg "Fluidd or Mainsail is needed, please install one of them first!"
-       elif [ ! -f "$ENTWARE_FILE" ]; then
-         error_msg "Entware is needed, please install it first!"
-       else
-         run "install_moonraker_obico" "install_menu_ui_k1_2025"
-       fi;;
-     27)
-       if [ ! -d "$MOONRAKER_FOLDER" ] && [ ! -d "$NGINX_FOLDER" ]; then
-         error_msg "Moonraker and Nginx are needed, please install them first!"
-       else
-         run "install_guppyflo" "install_menu_ui_k1_2025"
-       fi;;
-     28)
-       if [ -d "$MOBILERAKER_COMPANION_FOLDER" ]; then
-         error_msg "Mobileraker Companion is already installed!"
-       elif [ ! -d "$MOONRAKER_FOLDER" ]; then
-         error_msg "Moonraker and Nginx are needed, please install them first!"
-       elif [ ! -d "$FLUIDD_FOLDER" ] && [ ! -d "$MAINSAIL_FOLDER" ]; then
-         error_msg "Fluidd or Mainsail is needed, please install one of them first!"
-       elif [ ! -f "$ENTWARE_FILE" ]; then
-         error_msg "Entware is needed, please install it first!"
-       else
-         run "install_mobileraker_companion" "install_menu_ui_k1_2025"
-         # Countdown and reboot after successful execution
-         if [ -d "$MOBILERAKER_COMPANION_FOLDER" ]; then
-           echo -e "${yellow}"
-           echo -e " ┌────────────────────────────────────────────────────────┐"
-           echo -e " │  WARNUNG: Um den freigegebenen Arbeitsspeicher (RAM)   │"
-           echo -e " │  wieder sauber aufzufüllen, startet der Drucker nun    │"
-           echo -e " │  automatisch neu.                                      │"
-           echo -e " └────────────────────────────────────────────────────────┘"
-           
-           for i in 10 9 8 7 6 5 4 3 2 1; do
-               echo -e "    Drucker startet neu in $i Sekunden... \r\c"
-               sleep 1
-           done
-           echo -e "${white}\nInfo: Starte System neu..."
-           reboot
-         else
-           echo -e "\n${yellow} Press Enter to return to the menu...${white}" && read -r _
-         fi
-       fi;;
-     29)
-       if [ -d "$OCTOAPP_COMPANION_FOLDER" ]; then
-         error_msg "OctoApp Companion is already installed!"
-       elif [ ! -d "$MOONRAKER_FOLDER" ]; then
-         error_msg "Moonraker and Nginx are needed, please install them first!"
-       elif [ ! -d "$FLUIDD_FOLDER" ] && [ ! -d "$MAINSAIL_FOLDER" ]; then
-         error_msg "Fluidd or Mainsail is needed, please install one of them first!"
-       elif [ ! -f "$ENTWARE_FILE" ]; then
-         error_msg "Entware is needed, please install it first!"
-       else
-         run "install_octoapp_companion" "install_menu_ui_k1_2025"
-       fi;;
-     30)
-       if grep -q "\[simplyprint\]" "$MOONRAKER_CFG"; then
-         error_msg "SimplyPrint is already installed!"
-       elif [ ! -d "$MOONRAKER_FOLDER" ]; then
-        error_msg "Moonraker and Nginx are needed, please install them first!"
-       elif [ ! -d "$FLUIDD_FOLDER" ] && [ ! -d "$MAINSAIL_FOLDER" ]; then
-         error_msg "Fluidd or Mainsail is needed, please install one of them first!"
-       else
-         run "install_simplyprint" "install_menu_ui_k1_2025"
-       fi;;
+        elif [ ! -d "$FLUIDD_FOLDER" ] && [ ! -d "$MAINSAIL_FOLDER" ]; then
+          error_msg "Fluidd or Mainsail is needed, please install one of them first!"
+        else
+          run "install_simplyprint" "install_menu_ui_k1_2025"
+        fi;;
       B|b)
         clear; main_menu; break;;
       Q|q)

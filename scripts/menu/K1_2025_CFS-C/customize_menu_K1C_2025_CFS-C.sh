@@ -33,17 +33,19 @@ function customize_menu_ui_k1_2025_cfs_c() {
 function disable_cfsc_menu() {
   clear
   top_line
-  title "• DEAKTIVIERE CFS-C MENÜ-ERKENNUNG •" "${blue}"
+  title "• DISABLE CFS-C MENU DETECTION •" "${blue}"
   inner_line
-  echo -e " │ ${yellow}Info: Der Eintrag 'mb-料盒' wird aus deiner printer.cfg gelöscht.${white} │"
-  echo -e " │ Das Helper-Script startet danach wieder im Standard K1_2025 Modus. │"
+  echo -e " │ ${yellow}Info: The entry'mb-料盒' will be deleted                      ${white} │"
+  echo -e " │ ${yellow}from your printer.cfg                                          ${white}│"
+  echo -e " │ Afterwards, the helper script restarts in the standard         │"
+  echo -e " │ K1_2025 mode.                                                  │"
   hr
   bottom_line
   echo
   
   local yn
   while true; do
-    read -p " Möchtest du die Erkennung jetzt entfernen? (y/n): ${yellow}" yn
+    read -p " Do you want to remove the detection now? (y/n): ${yellow}" yn
     case "${yn}" in
       Y|y)
         # Uses the config folder from paths.sh for the temporary file
@@ -73,15 +75,15 @@ function disable_cfsc_menu() {
         # 3. Make temporary file the real printer.cfg
         mv "$tmp_file" "$PRINTER_CFG"
         
-        ok_msg "Erkennung erfolgreich entfernt und Konfiguration tiefenbereinigt!"
-        echo -e " ${green}Bitte starte das Helper-Script neu, um das K1_2025 Menü zu laden.${white}"
+        ok_msg "Detection successfully removed and configuration thoroughly cleaned!"
+        echo -e " ${green}BPlease restart the helper script to load the K1_2025 menu.${white}"
         echo
         exit 0
         break;;
       N|n)
         break;;
       *)
-        error_msg "Bitte wähle y oder n!";;
+        error_msg "Please select y or n!";;
     esac
   done
 }

@@ -33,12 +33,12 @@ function install_menu_ui_k1_2025_cfs_c() {
 # menu_option '16' 'Install' 'FLY-LLL PLUS Safetysystem (Einschalt-Sperre)'
 # menu_option '17' 'Install' 'Klipper Adaptive Meshing & Purging'
   menu_option '18' 'Install' 'Motor Sound Support'
-# menu_option '19' 'Install' 'Fans Control Macros'
-# menu_option '20' 'Install' 'Nozzle Cleaning Fan Control'
-# _menu_option '21' 'Install' 'Improved Shapers Calibrations'
-  menu_option '22' 'Install' 'Useful Macros'
-# menu_option '23' 'Install' 'M600 Support'
-  menu_option '24' 'Install' 'Git Backup'
+  menu_option '19' 'Install' 'Useful Macros'
+  menu_option '20' 'Install' 'Git Backup'
+# menu_option '21' 'Install' 'Fans Control Macros'
+# menu_option '22' 'Install' 'Nozzle Cleaning Fan Control'
+# menu_option '23' 'Install' 'Improved Shapers Calibrations'
+# menu_option '24' 'Install' 'M600 Support'
   hr
   subtitle '•REMOTE ACCESS:'
 # menu_option '25' 'Install' 'OctoEverywhere'
@@ -238,44 +238,12 @@ function install_menu_k1_2025_cfs_c() {
             run "restart_klipper" "install_menu_ui_k1_2025_cfs_c"
         fi;;
       17)
-        clear
-        if [ -d "$KAMP_FOLDER" ]; then
-          install_menu_ui_k1_2025_cfs_c
-          echo
-          error_msg "Klipper Adaptive Meshing & Purging is already installed!"
-          echo
-        else
-          run "install_kamp" "install_menu_ui_k1_2025_cfs_c"
-        fi;;
-      18)
         if [ -f "$MOTOR_SOUND_TARGET_FILE" ]; then
           error_msg "Motor sound Support is already installed!"
         else
           run "install_motor_sound" "install_menu_ui_k1_2025_cfs_c"
         fi;;
-      19)
-        if [ -f "$FAN_CONTROLS_FILE" ]; then
-          error_msg "Fans Control Macros are already installed!"
-        else
-          run "install_fans_control_macros" "install_menu_ui_k1_2025_cfs_c"
-        fi;;
-      20)
-        if [ -d "$NOZZLE_CLEANING_FOLDER" ]; then
-          error_msg "Nozzle Cleaning Fan Control is already installed!"
-        else
-          run "install_nozzle_cleaning_fan_control" "install_menu_ui_k1_2025_cfs_c"
-        fi;;
-      21)
-        if [ -d "$IMP_SHAPERS_FOLDER" ]; then
-          error_msg "Improved Shapers Calibrations are already installed!"
-        elif [ -d "$GUPPY_SCREEN_FOLDER" ]; then
-          error_msg "Guppy Screen already has these features!"
-        elif [ ! -f "$KLIPPER_SHELL_FILE" ]; then
-          error_msg "Klipper Gcode Shell Command is needed, please install it first!"
-        else
-          run "install_improved_shapers" "install_menu_ui_k1_2025_cfs_c"
-        fi;;
-     22)
+      18)
         if [ -f "$USEFUL_MACROS_FILE" ]; then
           error_msg "Useful Macros are already installed!"
         elif [ ! -f "$KLIPPER_SHELL_FILE" ]; then
@@ -283,13 +251,7 @@ function install_menu_k1_2025_cfs_c() {
         else
           run "install_useful_macros" "install_menu_ui_k1_2025_cfs_c"
         fi;;
-      23)
-        if [ -f "$M600_SUPPORT_FILE" ]; then
-          error_msg "M600 Support is already installed!"
-        else
-          run "install_m600_support" "install_menu_ui_k1_2025"
-        fi;;
-      24)
+      19)
         if [ -f "$GIT_BACKUP_FILE" ]; then
           error_msg "Git Backup is already installed!"
         elif [ ! -f "$ENTWARE_FILE" ]; then
@@ -299,6 +261,44 @@ function install_menu_k1_2025_cfs_c() {
         else
           # Startet einfach nur deine Menü-Datei
           run "install_git_backup" "install_menu_ui_k1_2025_cfs_c"
+        fi;;
+      20)
+        clear
+        if [ -d "$KAMP_FOLDER" ]; then
+          install_menu_ui_k1_2025_cfs_c
+          echo
+          error_msg "Klipper Adaptive Meshing & Purging is already installed!"
+          echo
+        else
+          run "install_kamp" "install_menu_ui_k1_2025_cfs_c"
+        fi;;
+      21)
+        if [ -f "$FAN_CONTROLS_FILE" ]; then
+          error_msg "Fans Control Macros are already installed!"
+        else
+          run "install_fans_control_macros" "install_menu_ui_k1_2025_cfs_c"
+        fi;;
+      22)
+        if [ -d "$NOZZLE_CLEANING_FOLDER" ]; then
+          error_msg "Nozzle Cleaning Fan Control is already installed!"
+        else
+          run "install_nozzle_cleaning_fan_control" "install_menu_ui_k1_2025_cfs_c"
+        fi;;
+      23)
+        if [ -d "$IMP_SHAPERS_FOLDER" ]; then
+          error_msg "Improved Shapers Calibrations are already installed!"
+        elif [ -d "$GUPPY_SCREEN_FOLDER" ]; then
+          error_msg "Guppy Screen already has these features!"
+        elif [ ! -f "$KLIPPER_SHELL_FILE" ]; then
+          error_msg "Klipper Gcode Shell Command is needed, please install it first!"
+        else
+          run "install_improved_shapers" "install_menu_ui_k1_2025_cfs_c"
+        fi;;
+      24)
+        if [ -f "$M600_SUPPORT_FILE" ]; then
+          error_msg "M600 Support is already installed!"
+        else
+          run "install_m600_support" "install_menu_ui_k1_2025"
         fi;;
      25)
        if [ ! -d "$MOONRAKER_FOLDER" ]; then
