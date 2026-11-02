@@ -296,23 +296,42 @@
     }
 
     const boxId = Number.isInteger(firstCfsBox.id) ? firstCfsBox.id : 1;
+
     (firstCfsBox.materials || []).forEach(function (material) {
       if (!material || typeof material !== "object") return;
       const materialIndex = material.id;
       if (!Number.isInteger(materialIndex) || materialIndex < 0 || materialIndex > 3) return;
+      
       const label = String(boxId) + SLOT_LETTERS[materialIndex];
       const rawState = Number(material.state || 0);
-      const name = String(material.name || "").trim();
+      let name = String(material.name || "").trim();
       const vendor = String(material.vendor || "").trim();
-      const materialType = String(material.type || "").trim().toUpperCase();
+      let materialType = String(material.type || "").trim().toUpperCase();
       const rfid = String(material.rfid || "").trim();
+      
+      // FIX: If rawState === 1 (Manual), a spool is physically loaded!
+      const hardwareDetected = rawState === 1;
+      
       const rfidMissing = ["", "0", "00", "000", "0000", "00000", "000000"].indexOf(rfid) >= 0;
       const emptyManualSignature = rawState === 1 && rfidMissing && !name && !vendor &&
         ["", "-", "OTHER", "N/A", "NA", "NONE"].indexOf(materialType) >= 0;
-      const stateValue = emptyManualSignature ? 0 : rawState;
-      const present = stateValue > 0;
+      
+      let stateValue = emptyManualSignature ? 0 : rawState;
+      
+      // A coil is present if a valid state exists OR hardware presence is reported.
+      let present = stateValue > 0 || hardwareDetected;
+      
+      // Triggers when the coil is present but no type has been assigned (your slot 1D!)
+      if (hardwareDetected && (stateValue === 0 || materialType === "" || materialType === "-1" || materialType === "NONE")) {
+          materialType = "UNASSIGNED";
+          name = "Please assign in Screen";
+          stateValue = 1; // Forces the UI into the active state
+          present = true;
+      }
+
       const color = present ? normalizeColorHex(material.color) : "";
       const temps = coerceTemperatureFields(material);
+      
       defaults[label] = {
         slot: label,
         box_id: boxId,
@@ -328,8 +347,8 @@
         manufacturer: String(material.vendor || "").trim(),
         material_db_id: inferMaterialDbId(materialType, vendor, name),
         color: color || "#d7dce4",
-        temp_min: normalizeTemperatureValue(temps[0]),
-        temp_max: normalizeTemperatureValue(temps[1]),
+        temp_min: normalizeTemperatureValue(temps),
+        temp_max: normalizeTemperatureValue(temps),
         used_material_length: normalizeTemperatureValue(material.usedMaterialLength),
         raw: material,
       };
@@ -343,6 +362,7 @@
       temp: firstCfsBox.temp,
     };
   }
+
 
   function sendJson(payload) {
     if (!ws || ws.readyState !== WebSocket.OPEN) return false;
