@@ -1,4 +1,5 @@
 #!/sh
+export GIT_CONFIG_GLOBAL=/usr/data/.gitconfig_storage/.gitconfig
 export PATH=/usr/bin:/usr/sbin:/bin:/sbin:/opt/bin:/opt/sbin
 
 # THIS LINE SAVES THE DAY: We trick Git into seeing a clean, accessible HOME directory in RAM.
