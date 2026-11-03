@@ -20,15 +20,21 @@ function install_motor_sound(){
     case "${yn}" in
       Y|y)
         echo -e "${white}"
-        if [ -f "$MOTOR_SOUND_TARGET_FILE" ]; then
-          rm -f "$MOTOR_SOUND_TARGET_FILE"
+        
+        # Sicherheits-Check: Existiert die Quelldatei überhaupt?
+        if [ ! -f "$MOTOR_SOUND_SORCE_FILE" ]; then
+          error_msg "Fehler: Quell-Makro unter $MOTOR_SOUND_SORCE_FILE nicht gefunden!"
+          return 1
         fi
+
+        # Sicherstellen, dass das Zielverzeichnis physisch existiert
         if [ ! -d "$HS_CONFIG_FOLDER" ]; then
           mkdir -p "$HS_CONFIG_FOLDER"
         fi
-        echo -e "Info: Linking file..."
-        # Verwendet deine globalen Variablen für Quelle und Ziel
-        ln -sf "$MOTOR_SOUND_SORCE_FILE" "$MOTOR_SOUND_TARGET_FILE"
+        
+        # SAUBERER FIX: Physisches Kopieren statt instabiler Verlinkung!
+        echo -e "Info: Copying macro file to configuration directory..."
+        cp -f "$MOTOR_SOUND_SORCE_FILE" "$MOTOR_SOUND_TARGET_FILE"
         
         # Holt den reinen Dateinamen (z.B. motor-sound.cfg) für das printer.cfg include
         local cfg_filename=$(basename "$MOTOR_SOUND_TARGET_FILE")
@@ -39,6 +45,7 @@ function install_motor_sound(){
           echo -e "Info: Adding Motor Sound configurations in printer.cfg file..."
           sed -i "/\[include printer_params\.cfg\]/a \[include Helper-Script/$cfg_filename\]" "$PRINTER_CFG"
         fi
+        
         echo -e "Info: Restarting Klipper service..."
         restart_klipper
         ok_msg "Motor Sound Support has been installed successfully!"
@@ -61,7 +68,9 @@ function remove_motor_sound(){
     case "${yn}" in
       Y|y)
         echo -e "${white}"
-        echo -e "Info: Removing file..."
+        
+        # Physisches Löschen der kopierten Konfigurationsdatei
+        echo -e "Info: Removing macro file..."
         rm -f "$MOTOR_SOUND_TARGET_FILE"
         
         local cfg_filename=$(basename "$MOTOR_SOUND_TARGET_FILE")
@@ -72,9 +81,12 @@ function remove_motor_sound(){
         else
           echo -e "Info: Motor Sound configurations are already removed in printer.cfg file..."
         fi
-        if [ ! -n "$(ls -A "$HS_CONFIG_FOLDER")" ]; then
+        
+        # Ordner aufräumen, falls er nach dem Löschen komplett leer sein sollte
+        if [ -d "$HS_CONFIG_FOLDER" ] && [ ! -n "$(ls -A "$HS_CONFIG_FOLDER")" ]; then
           rm -rf "$HS_CONFIG_FOLDER"
         fi
+        
         echo -e "Info: Restarting Klipper service..."
         restart_klipper
         ok_msg "Motor Sound Support has been removed successfully!"

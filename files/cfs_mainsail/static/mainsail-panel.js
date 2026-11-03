@@ -1375,6 +1375,14 @@
       if (!dbData.result || !dbData.result.value || !dbData.result.value.T1) return;
       if (!klipperData.result || !klipperData.result.status || !klipperData.result.status.idle_timeout) return;
 
+      // ➔ REPRÄSENTATIVER FIX FÜR VUE.JS: 
+      // Jedes Mal, wenn neue Live-Daten reinkommen, erzwingen wir die Überschrift auf der Karte!
+      // Das überschreibt den sturen Vue-Template-Wert dauerhaft.
+      const panelTitle = document.querySelector(".k1c-cfs-panel-card .v-card__title span, .k1c-cfs-panel-card .v-toolbar__title, .k1c-cfs-panel-card h2");
+      if (panelTitle && panelTitle.textContent !== "CFS-C") {
+        panelTitle.textContent = "CFS-C";
+      }
+
       const boxes = dbData.result.value;
       const currentFilamentState = boxes.T1.filament || "";
       const klipperState = klipperData.result.status.idle_timeout.state || "";
@@ -1391,7 +1399,7 @@
       // 2. COMPLETION TRIGGER (Once Klipper returns to a stable "Ready" state)
       if (cfsIsMoving && klipperState === "Ready") {
         
-         // We determine whether the action was successful, based on the original state of the add-on
+        // We determine whether the action was successful, based on the original state of the add-on
         // pendingAction keeps track of whether we pressed "feed" or "retract"
         const currentAction = (pendingAction && pendingAction.type) ? pendingAction.type : "";
         let isActionDone = false;

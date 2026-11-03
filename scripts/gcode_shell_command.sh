@@ -22,13 +22,18 @@ function install_gcode_shell_command(){
     case "${yn}" in
       Y|y)
         echo -e "${white}"
-        echo -e "Info: Linking file..."
-        ln -sf "$KLIPPER_SHELL_URL" "$KLIPPER_EXTRAS_FOLDER"/gcode_shell_command.py
+        
+        # Sicherheits-Check: Existiert die lokale Quelldatei am definierten Pfad?
+        if [ ! -f "$KLIPPER_SHELL_URL" ]; then
+          error_msg "Fehler: Quelldatei unter $KLIPPER_SHELL_URL nicht gefunden!"
+          return 1
+        fi
+        # SAUBERER FIX: Physisches Kopieren statt symbolischer Verlinkung!
+        echo -e "Info: Copying file locally..."
+        cp -f "$KLIPPER_SHELL_URL" "$KLIPPER_EXTRAS_FOLDER"/gcode_shell_command.py
+        
         echo -e "Info: Restarting Klipper service..."
         restart_klipper
-        # Verify with the Klipper API method "gcode/help" (RUN_SHELL_COMMAND will be
-        # listed) — Creality's Klipper does NOT surface gcode_shell_command via
-        # "objects/list", so the extra can look like it failed to load when it works.
         ok_msg "Klipper Gcode Shell Command has been installed successfully!"
         return;;
       N|n)

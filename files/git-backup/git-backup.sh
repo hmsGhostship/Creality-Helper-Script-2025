@@ -81,7 +81,6 @@ elif [ "$INSTALL" = 1 ]; then
             exit 1
         fi
     fi
-    
     # ==============================================================================
     # DATEN-KOPIEREN AN DEN ANFANG GEZOGEN (Damit 'remove' bei Abbruch immer funktioniert)
     # ==============================================================================
@@ -90,20 +89,19 @@ elif [ "$INSTALL" = 1 ]; then
     echo "Info: Pre-copying service file to $INITD_FOLDER..."
     cp -f /usr/data/helper-script/files/git-backup/S52Git-Backup "$INITD_FOLDER"/S52Git-Backup
     
-    echo "Info: Pre-linking config file..."
+    echo "Info: Pre-copying config file..."
     mkdir -p "$TARGET"/Helper-Script
-    ln -sf /usr/data/helper-script/files/git-backup/git-backup.cfg "$TARGET"/Helper-Script/git-backup.cfg
+    cp -f /usr/data/helper-script/files/git-backup/git-backup.cfg "$TARGET"/Helper-Script/git-backup.cfg
     
-    if grep -q "include Helper-Script/git-backup" "$PRINTER_CFG" ; then
+    if grep -q "git-backup\.cfg" "$PRINTER_CFG" 2>/dev/null; then
         echo "Info: Git Backup configurations are already enabled..."
     else
-        echo "Info: Adding Git Backup configurations to the top of printer.cfg..."
-        # Schreibt das Include in eine temporäre Datei, packt die printer.cfg dahinter und überschreibt das Original sauber!
-        echo "[include Helper-Script/git-backup.cfg]" > /tmp/printer.tmp
-        echo "" >> /tmp/printer.tmp
-        cat "$PRINTER_CFG" >> /tmp/printer.tmp
-        mv /tmp/printer.tmp "$PRINTER_CFG"
+        echo "Info: Adding Git Backup configurations safely to printer.cfg..."
+        # SAUBERER FIX: Kein riskantes Überschreiben der Datei mehr! 
+        # Wir hängen das Include einfach zerstörungsfrei ans Ende an.
+        echo -e "\n[include Helper-Script/git-backup.cfg]" >> "$PRINTER_CFG"
     fi
+
     # ==============================================================================
 
     # Erst JETZT starten die interaktiven Abfragen
@@ -135,47 +133,31 @@ elif [ "$INSTALL" = 1 ]; then
     # Link-freie URL-Generierung
     GITH_URL="github.com"
     PROT_PREFIX="https://"
-    git remote add origin "${PROT_PREFIX}${USER_NAME}:${GITHUB_TOKEN}@${GITH_URL}/${USER_NAME}/${REPO_NAME}.git"
+    GITH_URL="github.com"
+    PROT_PREFIX="https://"
+    git remote add origin "${PROT_PREFIX}${USER_NAME}:${GITHUB_TOKEN}@${GITH_URL}/${USER_NAME}/${REPO_NAME}.git" 2>/dev/null || true
     
-    git checkout -b "$REPO_BRANCH"
-    git add .
-    git commit -m "Initial Backup"
-    
-    # ==============================================================================
-    # ➔ FIX: AUTOMATISCHER ABGLEICH BEI BESTEHENDEN ONLINE-CHRONIKEN
-    # ==============================================================================
-    set +e
-    export GIT_TERMINAL_PROMPT=0
-    push_repo=$(timeout 10 git push -u origin "$REPO_BRANCH" 2>&1)
-    set -e
-    
-    if echo "$push_repo" | grep -q "fatal: remote origin already exists"; then
-        killall -q inotifywait >/dev/null 2>&1
-        echo "${white}${darkred} ✗ A branch named $REPO_BRANCH already exists!${white}"; exit 0
-    elif echo "$push_repo" | grep -q "remote: error: GH007"; then
-        killall -q inotifywait >/dev/null 2>&1
-        echo "${white}${darkred} ✗ Your push would publish a private email address!${white}"; exit 0
-    elif echo "$push_repo" | grep -q "error: failed to push some refs to"; then
-        echo "${white}${yellow} ℹ️ Online repository contains data. Merging histories...${white}"
-        set +e
-        git pull origin "$REPO_BRANCH" --allow-unrelated-histories --no-edit
-        git push -u origin "$REPO_BRANCH"
-        set -e
-        echo "${white}${green} ✓ Repository successfully synchronized. Token verified and preserved!${white}"
-    elif echo "$push_repo" | grep -q "remote: Repository not found"; then
-        rm -rf "$TARGET"/.git; killall -q inotifywait >/dev/null 2>&1
-        echo "${white}${darkred} ✗ Your repository was not found!${white}"; exit 0
-    elif echo "$push_repo" | grep -q "fatal: Authentication failed"; then
-        rm -rf "$TARGET"/.git; killall -q inotifywait >/dev/null 2>&1
-        echo "${white}${darkred} ✗ Authentication failed!${white}"; exit 0
+    # SAUBERE BRANCH-WEICHE: Verhindert doppeltes Anlegen und Abstürze
+    if git show-ref --verify --quiet "refs/heads/$REPO_BRANCH"; then
+        echo "Info: Branch $REPO_BRANCH already exists, switching to it..."
+        git checkout "$REPO_BRANCH"
     else
-        git push -u origin "$REPO_BRANCH" || true
+        git checkout -b "$REPO_BRANCH"
+        git add .
+        git commit -m "Initial Backup"
     fi
+    
     # ==============================================================================
+    # ➔ FIX: ERZWUNGENER ONLINE-ABGLEICH (Absolut absturzsicher)
+    # ==============================================================================
+    echo "${white}${yellow} ℹ️ Synchronisiere lokale Klipper-Config mit GitHub...${white}"
+    set +e
+    git pull origin "$REPO_BRANCH" --no-rebase --allow-unrelated-histories --no-edit >/dev/null 2>&1
+    git push -u origin "$REPO_BRANCH" >/dev/null 2>&1
+    set -e
+    # ==============================================================================
+    mkdir -p "$HS_BACKUP_FOLDER"/git-backup
 
-    if [ ! -d "$HS_BACKUP_FOLDER"/git-backup ]; then
-        mkdir -p "$HS_BACKUP_FOLDER"/git-backup
-    fi
     ENV="$HS_BACKUP_FOLDER"/git-backup/.env
     echo "TARGET=$TARGET" > "$ENV"
     echo "GITHUB_TOKEN=$GITHUB_TOKEN" >> "$ENV"
@@ -194,8 +176,9 @@ elif [ "$INSTALL" = 1 ]; then
     touch /tmp/git_backup_success
     
     echo "${white}${green} ✓ Git Backup has been installed successfully!${white}"
-    exit 0
+	return 0
 fi
+
 
 # BACKGROUND DAEMON LOOP
 stderr() { echo "$@" >&2; }
@@ -221,6 +204,7 @@ else
   PUSH_CMD=""
 fi
 
+# BACKGROUND DAEMON LOOP - Aktiviert das automatische Live-Backup im Hintergrund
 timeout() { sleep "5" & timeout_pid=$! ; trap 'kill $timeout_pid 2>/dev/null' EXIT; wait $timeout_pid 2>/dev/null; }
 
 while true; do

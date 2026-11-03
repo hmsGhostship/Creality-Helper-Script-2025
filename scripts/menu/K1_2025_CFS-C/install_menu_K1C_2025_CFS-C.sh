@@ -238,12 +238,22 @@ function install_menu_k1_2025_cfs_c() {
             run "restart_klipper" "install_menu_ui_k1_2025_cfs_c"
         fi;;
       17)
+        clear
+        if [ -d "$KAMP_FOLDER" ]; then
+          install_menu_ui_k1_2025_cfs_c
+          echo
+          error_msg "Klipper Adaptive Meshing & Purging is already installed!"
+          echo
+        else
+          run "install_kamp" "install_menu_ui_k1_2025_cfs_c"
+        fi;;
+      18)
         if [ -f "$MOTOR_SOUND_TARGET_FILE" ]; then
           error_msg "Motor sound Support is already installed!"
         else
           run "install_motor_sound" "install_menu_ui_k1_2025_cfs_c"
         fi;;
-      18)
+      19)
         if [ -f "$USEFUL_MACROS_FILE" ]; then
           error_msg "Useful Macros are already installed!"
         elif [ ! -f "$KLIPPER_SHELL_FILE" ]; then
@@ -251,7 +261,7 @@ function install_menu_k1_2025_cfs_c() {
         else
           run "install_useful_macros" "install_menu_ui_k1_2025_cfs_c"
         fi;;
-      19)
+      20)
         if [ -f "$GIT_BACKUP_FILE" ]; then
           error_msg "Git Backup is already installed!"
         elif [ ! -f "$ENTWARE_FILE" ]; then
@@ -261,16 +271,6 @@ function install_menu_k1_2025_cfs_c() {
         else
           # Startet einfach nur deine Menü-Datei
           run "install_git_backup" "install_menu_ui_k1_2025_cfs_c"
-        fi;;
-      20)
-        clear
-        if [ -d "$KAMP_FOLDER" ]; then
-          install_menu_ui_k1_2025_cfs_c
-          echo
-          error_msg "Klipper Adaptive Meshing & Purging is already installed!"
-          echo
-        else
-          run "install_kamp" "install_menu_ui_k1_2025_cfs_c"
         fi;;
       21)
         if [ -f "$FAN_CONTROLS_FILE" ]; then

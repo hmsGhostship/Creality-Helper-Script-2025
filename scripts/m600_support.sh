@@ -1,5 +1,7 @@
 #!/bin/sh
 
+SOURCE_DIR="$HS_FILES/macros"
+
 set -e
 
 function m600_support_message(){
@@ -29,11 +31,11 @@ function install_m600_support(){
         fi
         echo -e "Info: Linking file..."
         if [ "$model" = "K1" ]; then
-          ln -sf "$M600_SUPPORT_URL" "$HS_CONFIG_FOLDER"/M600-support.cfg
-        elif [ "$model" = "3KE" ]; then
-          ln -sf "$M600_SUPPORT_3KE_URL" "$HS_CONFIG_FOLDER"/M600-support.cfg
+          echo "Info: Copying M600 K1 configuration file..."
+          cp -f "$SOURCE_DIR/M600-support-k1.cfg" "$HS_CONFIG_FOLDER/M600-support.cfg"
         else
-          ln -sf "$M600_SUPPORT_3V3_URL" "$HS_CONFIG_FOLDER"/M600-support.cfg
+          echo "Info: Copying M600 standard configuration file..."
+          cp -f "$SOURCE_DIR/M600-support-3v3.cfg" "$HS_CONFIG_FOLDER/M600-support.cfg"
         fi
         if grep -q "include Helper-Script/M600-support" "$PRINTER_CFG" ; then
           echo -e "Info: M600 Support configurations are already enabled in printer.cfg file..."

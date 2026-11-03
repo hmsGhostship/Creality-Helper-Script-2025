@@ -23,10 +23,13 @@ function install_git_backup(){
     case "${yn}" in
       Y|y)
         echo -e "${white}"
+        
+        # FIX: Das gefährliche 'rm -rf .git' wurde restlos gestrichen!
+        # Deine mühsam aufgebaute Historie und Identität bleiben absolut geschützt.
         if [ -f "$HS_CONFIG_FOLDER"/git-backup.cfg ]; then rm -f "$HS_CONFIG_FOLDER"/git-backup.cfg; fi
-        if [ -d "$KLIPPER_CONFIG_FOLDER"/.git ]; then rm -rf "$KLIPPER_CONFIG_FOLDER"/.git; fi
         if [ -d "$HS_BACKUP_FOLDER"/git-backup ]; then rm -rf "$HS_BACKUP_FOLDER"/git-backup; fi
         if [ ! -d "$HS_CONFIG_FOLDER" ]; then mkdir -p "$HS_CONFIG_FOLDER"; fi
+        
         echo -e "Info: Running Git Backup installer..."
         chmod 755 "$HS_FILES"/git-backup/git-backup.sh
         sh "$HS_FILES"/git-backup/git-backup.sh -i
@@ -55,6 +58,7 @@ function remove_git_backup(){
         killall -q git-backup.sh
         killall -q inotifywait
         set -e
+        
         echo -e "Info: Removing files..."
         rm -f "$HS_CONFIG_FOLDER"/git-backup.cfg
         if [ -f "$INITD_FOLDER"/S52Git-Backup ];then
@@ -63,20 +67,18 @@ function remove_git_backup(){
         if [ -f "$INITD_FOLDER"/disabled.S52Git-Backup ];then
           rm -f "$INITD_FOLDER"/disabled.S52Git-Backup
         fi
-        rm -rf "$KLIPPER_CONFIG_FOLDER"/.git
+        
+        # FIX: Nur den Addon-spezifischen Unterordner entfernen.
+        # Kein blindes Löschen des Hauptordners oder der Git-Historie!
         rm -rf "$HS_BACKUP_FOLDER"/git-backup
-        if [ ! -n "$(ls -A "$HS_BACKUP_FOLDER")" ]; then
-          rm -rf "$HS_BACKUP_FOLDER"
-        fi
+        
         if grep -q "include Helper-Script/git-backup" "$PRINTER_CFG" ; then
           echo -e "Info: Removing Git Backup configurations in printer.cfg file..."
           sed -i '/include Helper-Script\/git-backup\.cfg/d' "$PRINTER_CFG"
         else
           echo -e "Info: Git Backup configurations are already removed in printer.cfg file..."
         fi
-        if [ ! -n "$(ls -A "$HS_CONFIG_FOLDER")" ]; then
-          rm -rf "$HS_CONFIG_FOLDER"
-        fi
+        
         ok_msg "Git Backup has been removed successfully!"
         restart_klipper
         return;;
