@@ -76,14 +76,41 @@ function install_moonraker_obico(){
         # K1C-LOG-FIX: Corrects the "path =" variable in the config to point to the K1C log directory
         sed -i "s|path = /home/pi/.*|path = /usr/data/printer_data/logs/moonraker-obico.log|g" "$obico_cfg"
 
-        # 5. INTEGRATE INTO MOONRAKER.CONF (Safe cleanup bypass)
-        # Instead of adding a faulty include, we ensure that any legacy 
-        # crash entries are removed from moonraker.conf, allowing Moonraker to boot.
+        # 5. INTEGRATE INTO MOONRAKER.CONF & AUTO-CONFIGURE TRUSTED CLIENTS (Firewall Fix)
         if [ -f "$MOONRAKER_CFG" ]; then
           sed -i '/\[include moonraker-obico-update\.cfg\]/d' "$MOONRAKER_CFG"
+          
+          # Prüft, ob trusted_clients in der Sektion [authorization] existiert
+          if grep -q "trusted_clients:" "$MOONRAKER_CFG"; then
+            if ! grep -q "127.0.0.1" "$MOONRAKER_CFG"; then
+              sed -i '/trusted_clients:/a \    127.0.0.1' "$MOONRAKER_CFG"
+            fi
+          else
+            if grep -q "\[authorization\]" "$MOONRAKER_CFG"; then
+              sed -i '/\[authorization\]/a trusted_clients:\n    127.0.0.1\n    192.168.178.0/24' "$MOONRAKER_CFG"
+            fi
+          fi
         fi
 
-        # 6. SET UP AUTOSTART (Using the correct module name .app)
+        # 6. ORDENTLICHE MAKRO-EINSORTIERUNG IN PRINTER.CFG (UnterDXC-Sensor / CreateDate)
+        local obico_macros_src="$MOONRAKER_OBICO_FOLDER/klipper_macros/moonraker_obico_macros.cfg"
+        local obico_macros_dest="$KLIPPER_CONFIG_FOLDER/Helper-Script/moonraker_obico_macros.cfg"
+        
+        if [ -f "$obico_macros_src" ]; then
+          echo -e "Info: Moving Obico macros to Helper-Script folder..."
+          cp -f "$obico_macros_src" "$obico_macros_dest"
+        fi
+
+        if [ -f "$PRINTER_CFG" ]; then
+          # Loescht eventuell alte, falsch gesetzte Include-Leichen aus der Datei
+          sed -i '/moonraker_obico_macros\.cfg/d' "$PRINTER_CFG"
+          
+          # Platziert das neue Include praezise unter der dxc_sensor.cfg Zeile im oberen Drittel
+          echo -e "Info: Injecting structured include into printer.cfg..."
+          sed -i '/\[include Helper-Script\/dxc_sensor\.cfg\]/a \[include Helper-Script\/moonraker_obico_macros\.cfg\]' "$PRINTER_CFG"
+        fi
+
+        # 7. SET UP AUTOSTART
         echo -e "Info: Creating init service in $INITD_FOLDER..."
         cat << EOF > "$INITD_FOLDER/S99moonraker_obico"
 #!/bin/sh
@@ -108,7 +135,7 @@ EOF
 
         ok_msg "Moonraker Obico has been installed successfully!"
         
-        # 7. AUTOMATIC PAIRING PROCESS & FULLY AUTOMATIC SYSTEM STARTUP
+        # 8. AUTOMATIC PAIRING PROCESS
         echo -e "${yellow}--------------------------------------------------------"
         echo -e "Starte automatischen Kopplungsprozess..."
         echo -e "Bitte gib gleich den angezeigten Code in der Obico-App ein."
@@ -116,22 +143,17 @@ EOF
         echo -e "--------------------------------------------------------${white}"
         sleep 2
         
-        # The OR (|| echo...) prevents "set -e" from abruptly terminating the script in the event of a timeout!
         if ! PYTHONPATH="$MOONRAKER_OBICO_FOLDER" $active_python -m moonraker_obico.link -c "$obico_cfg"; then
           echo -e "\n${yellow}Hinweis: Der Kopplungsprozess wurde unterbrochen oder das Zeitfenster ist abgelaufen."
           echo -e "Du kannst die Kopplung später jederzeit manuell im Terminal nachholen mit:"
           echo -e "PYTHONPATH=\"$MOONRAKER_OBICO_FOLDER\" $active_python -m moonraker_obico.link -c $obico_cfg${white}\n"
         fi
         
-        # THE SERVICES ARE STARTED NONETHELESS (So that the system is ready in the background):
         echo -e "Info: Konfiguriere Systemstarts für den Live-Betrieb..."
-        
-        # 1. Start the newly created Obico background service directly
         if [ -f "$INITD_FOLDER/S99moonraker_obico" ]; then
           "$INITD_FOLDER/S99moonraker_obico" start > /dev/null 2>&1 || true
         fi
         
-        # 2. Perform a clean restart of Moonraker so that the plugin is loaded
         if command -v stop_moonraker >/dev/null 2>&1 && command -v start_moonraker >/dev/null 2>&1; then
           stop_moonraker && sleep 1 && start_moonraker
         elif [ -f "$INITD_FOLDER/S56moonraker_service" ]; then
@@ -159,43 +181,33 @@ function remove_moonraker_obico(){
       Y|y)
         echo -e "${white}"
         
-        # 1. First, cleanly stop the Obico service, if it is running
         if [ -f "$INITD_FOLDER"/S99moonraker_obico ]; then
           echo -e "Info: Stopping Moonraker Obico service..."
           "$INITD_FOLDER"/S99moonraker_obico stop > /dev/null 2>&1 || true
           rm -f "$INITD_FOLDER"/S99moonraker_obico
-          # Sicherheits-Kill falls das Init-Skript hakt
           kill $(pgrep -f "moonraker_obico.app") > /dev/null 2>&1 || true
         fi
 
-        # 2. Remove configurations from moonraker.conf
         if grep -q "\[include moonraker-obico-update.cfg\]" "$MOONRAKER_CFG" ; then
           echo -e "Info: Removing Moonraker Obico configurations in moonraker.conf file..."
           sed -i '/\[include moonraker-obico-update\.cfg\]/d' "$MOONRAKER_CFG"
-        else
-          echo -e "Info: Moonraker Obico configurations are already removed in moonraker.conf file..."
         fi
 
-        # 3. Remove remnants from printer.cfg (if present)
-        if [ -f "$PRINTER_CFG" ] && grep -q "include moonraker_obico_macros" "$PRINTER_CFG" ; then
-          echo -e "Info: Removing Moonraker Obico configurations in printer.cfg file..."
-          sed -i '/include moonraker_obico_macros\.cfg/d' "$PRINTER_CFG"
+        if [ -f "$PRINTER_CFG" ]; then
+          echo -e "Info: Cleanly removing Obico macro includes from printer.cfg..."
+          sed -i '/moonraker_obico_macros\.cfg/d' "$PRINTER_CFG"
         fi
 
-        # 4. Deleting files completely and cleanly
         echo -e "Info: Removing files..."
         rm -rf "$MOONRAKER_OBICO_FOLDER"
         rm -rf /usr/data/moonraker-obico-env
         rm -f "$KLIPPER_CONFIG_FOLDER"/moonraker-obico-update.cfg 
         rm -f "$KLIPPER_CONFIG_FOLDER"/moonraker-obico.cfg
-        rm -f "$KLIPPER_CONFIG_FOLDER"/config/moonraker-obico.cfg
+        rm -f "$KLIPPER_CONFIG_FOLDER"/Helper-Script/moonraker_obico_macros.cfg
 
-        # 5. Cleanly restart services
         echo -e "Info: Restarting Moonraker service..."
         if command -v stop_moonraker >/dev/null 2>&1 && command -v start_moonraker >/dev/null 2>&1; then
-          stop_moonraker
-          sleep 1
-          start_moonraker
+          stop_moonraker && sleep 1 && start_moonraker
         else
           if [ -f "$INITD_FOLDER"/S56moonraker_service ]; then
             "$INITD_FOLDER"/S56moonraker_service restart > /dev/null 2>&1 || true
