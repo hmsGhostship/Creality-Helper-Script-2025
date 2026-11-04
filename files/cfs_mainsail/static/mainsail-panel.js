@@ -84,7 +84,7 @@
       ".k1c-cfs-badge svg{width:15px;height:15px;fill:currentColor;opacity:.95}",
       ".k1c-cfs-badge.humidity{color:#77a7ff;background:#232323;box-shadow:inset 0 1px 0 rgba(255,255,255,.02)}",
       ".k1c-cfs-badge.temperature{color:#f7b955;background:#232323;box-shadow:inset 0 1px 0 rgba(255,255,255,.02)}",
-      ".k1c-cfs-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}",
+      ".k1c-cfs-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}",
       ".k1c-cfs-item{position:relative;background:#242424;border:1px solid #3a3a3a;border-radius:8px;padding:14px;display:flex;justify-content:space-between;align-items:center;gap:12px;cursor:pointer;transition:background .2s ease,border-color .2s ease}",
       ".k1c-cfs-item:hover{background:#2e2e2e}",
       ".k1c-cfs-item.active{background:#2a2a2a;border-color:var(--spool-color,#666)}",
@@ -1247,36 +1247,32 @@
   }
 
   function findDashboardColumn() {
-    // PRIORITÄT 1: Sucht nach den Temperaturen -> CFS dockt sich direkt DARUNTER an
-    const temperaturesCard = document.querySelector("main .temperature-panel");
-    if (temperaturesCard) {
-      const col = temperaturesCard.closest(".col");
-      if (col) return { column: col, after: temperaturesCard };
+    // 1. MAINSAlL PFAD: Sucht die bekannte Klasse
+    const mainsailTemp = document.querySelector("main .temperature-panel");
+    if (mainsailTemp) {
+      const col = mainsailTemp.closest(".col");
+      if (col) return { column: col, after: mainsailTemp };
     }
 
-    // PRIORITÄT 2: Nur wenn es keine Temperaturen gibt, wird die Konsole genommen
-    const consoleCard = document.querySelector("main .miniconsole-panel");
-    if (consoleCard) {
-      const col = consoleCard.closest(".col");
-      if (col) return { column: col, after: consoleCard };
+    // 2. FLUIDD PFAD: Wir suchen nach JEDER Karte im Dashboard, die ein Diagramm (Chart) enthält.
+    // Da die Temperaturen die einzige Karte mit einem Diagramm im Hauptbereich sind, greift das unfehlbar!
+    const fluiddChartCard = document.querySelector("main .f-card:has(.apexcharts-canvas)") || 
+                            document.querySelector("main .v-card:has(canvas)") ||
+                            document.querySelector("main .f-card:has(canvas)");
+                            
+    if (fluiddChartCard) {
+      const col = fluiddChartCard.closest(".col, .v-col, .flex-column, [class*='col']");
+      if (col) return { column: col, after: fluiddChartCard };
     }
 
-    // PRIORITÄT 3: Makros
-    const macrosCard = document.querySelector("main .macros-panel");
-    if (macrosCard) {
-      const col = macrosCard.closest(".col");
-      if (col) return { column: col, after: macrosCard };
+    // 3. BOMBENFESTER FALLBACK: Die mittlere/erste Spalte im Grid
+    const firstColumn = document.querySelector("main .col, main .v-col");
+    if (firstColumn) {
+      return { column: firstColumn, after: null };
     }
 
-    // Restlicher Fallback
-    const firstPanel = document.querySelector("main .v-card.panel");
-    if (firstPanel) {
-      const col = firstPanel.closest(".col");
-      if (col) return { column: col, after: firstPanel };
-    }
     return null;
   }
-
 
   function mountInDashboard() {
     if (!isDashboardRoute()) {
