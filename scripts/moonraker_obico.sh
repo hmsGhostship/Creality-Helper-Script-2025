@@ -51,7 +51,7 @@ function install_moonraker_obico(){
         echo -e "Info: Installing Obico dependencies..."
         $active_python -m pip install --no-cache-dir -r requirements.txt
 
-        # 4. CONFIG CREATION, PORT ADJUSTMENT & K1C LOG FIX
+                # 4. CONFIG CREATION, PORT ADJUSTMENT, AUTOMATIC CAMERA-PRIORITY & K1C LOG FIX
         local obico_cfg="$KLIPPER_CONFIG_FOLDER/moonraker-obico.cfg"
         echo -e "Info: Creating moonraker-obico.cfg..."
         
@@ -73,6 +73,20 @@ function install_moonraker_obico(){
         sed -i "s/host =.*/host = 127.0.0.1/g" "$obico_cfg"
         sed -i "s/port =.*/port = $real_port/g" "$obico_cfg"
         
+        # ➔ INTELLIGENT & INDESTRUCTIBLE BLOCK REPLACEMENT FOR THE WEBCAM SECTION:
+        if [ -f "$USB_CAMERA_FILE" ]; then
+          echo -e "Info: USB camera detected (priority 1). Configuring port 8082..."
+          # Replace the entire [webcam] section—up to the blank line—with the USB block
+          sed -i '/\[webcam\]/,/^$/c\[webcam\]\ndisable_video_streaming = False\nstream_url = http://localhost:8082/?action=stream\nsnapshot_url = http://localhost:8082/?action=snapshot\n' "$obico_cfg"
+        elif [ -f "$BUILTIN_CAMERA_FILE" ]; then
+          echo -e "Info: Only original camera detected. Configuring Nginx system path..."
+          # Replaces the entire [webcam] section—up to the blank line—neatly with the built-in block
+          sed -i '/\[webcam\]/,/^$/c\[webcam\]\ndisable_video_streaming = False\nstream_url = http://localhost/webcam/?action=stream\nsnapshot_url = http://localhost/webcam/?action=snapshot\n' "$obico_cfg"
+        else
+          echo -e "Info: No active camera found in the framework. Leaving the webcam section neutral."
+          sed -i '/\[webcam\]/,/^$/c\[webcam\]\ndisable_video_streaming = False\n' "$obico_cfg"
+        fi
+        
         # K1C-LOG-FIX: Corrects the "path =" variable in the config to point to the K1C log directory
         sed -i "s|path = /home/pi/.*|path = /usr/data/printer_data/logs/moonraker-obico.log|g" "$obico_cfg"
 
@@ -80,34 +94,56 @@ function install_moonraker_obico(){
         if [ -f "$MOONRAKER_CFG" ]; then
           sed -i '/\[include moonraker-obico-update\.cfg\]/d' "$MOONRAKER_CFG"
           
-          # Prüft, ob trusted_clients in der Sektion [authorization] existiert
+          # Checks whether trusted_clients exists in moonraker.conf
           if grep -q "trusted_clients:" "$MOONRAKER_CFG"; then
-            if ! grep -q "127.0.0.1" "$MOONRAKER_CFG"; then
-              sed -i '/trusted_clients:/a \    127.0.0.1' "$MOONRAKER_CFG"
+            echo "Info: trusted_clients found. Adding IPs intelligently..."
+            if ! grep -q "127.0.0.1" "$MOONRAKER_CFG" && ! grep -q "127.0.0.0/8" "$MOONRAKER_CFG"; then
+              sed -i '/trusted_clients:/a \  127.0.0.1' "$MOONRAKER_CFG"
+            fi
+            if ! grep -q "192.168.178.0" "$MOONRAKER_CFG" && ! grep -q "192.168.0.0/16" "$MOONRAKER_CFG"; then
+              sed -i '/trusted_clients:/a \  192.168.178.0/24' "$MOONRAKER_CFG"
             fi
           else
+            echo "Info: trusted_clients fehlt komplett. Erstelle Sektion neu..."
             if grep -q "\[authorization\]" "$MOONRAKER_CFG"; then
-              sed -i '/\[authorization\]/a trusted_clients:\n    127.0.0.1\n    192.168.178.0/24' "$MOONRAKER_CFG"
+              sed -i '/\[authorization\]/a trusted_clients:\n  127.0.0.1\n  192.168.178.0/24' "$MOONRAKER_CFG"
             fi
           fi
         fi
 
-        # 6. ORDENTLICHE MAKRO-EINSORTIERUNG IN PRINTER.CFG (UnterDXC-Sensor / CreateDate)
-        local obico_macros_src="$MOONRAKER_OBICO_FOLDER/klipper_macros/moonraker_obico_macros.cfg"
+        # 6. CLEAN VIRTUAL LINKING & AUTOMATIC LIVE-PATCHING OF OBICO MACROS
         local obico_macros_dest="$KLIPPER_CONFIG_FOLDER/Helper-Script/moonraker_obico_macros.cfg"
+        local obico_macros_src=""
+
+        # Intelligently check whether the folder include_cfg or include_cfgs exists in the cloned repository
+        if [ -f "$MOONRAKER_OBICO_FOLDER/include_cfg/moonraker_obico_macros.cfg" ]; then
+          obico_macros_src="$MOONRAKER_OBICO_FOLDER/include_cfg/moonraker_obico_macros.cfg"
+        elif [ -f "$MOONRAKER_OBICO_FOLDER/include_cfgs/moonraker_obico_macros.cfg" ]; then
+          obico_macros_src="$MOONRAKER_OBICO_FOLDER/include_cfgs/moonraker_obico_macros.cfg"
+        fi
         
-        if [ -f "$obico_macros_src" ]; then
-          echo -e "Info: Moving Obico macros to Helper-Script folder..."
-          cp -f "$obico_macros_src" "$obico_macros_dest"
+        if [ ! -z "$obico_macros_src" ] && [ -f "$obico_macros_src" ]; then
+          echo -e "Info: Permanently patch the Obico macro variable to True."
+          sed -i 's/variable_is_linked:.*/variable_is_linked: True/g' "$obico_macros_src"
+          
+          echo -e "Info: Creating a virtual symlink in the helper script folder..."
+          rm -f "$obico_macros_dest"
+          ln -s "$obico_macros_src" "$obico_macros_dest"
+        else
+          error_msg "Error: Original Obico macro file not found in the repository!"
+          return 1
         fi
 
         if [ -f "$PRINTER_CFG" ]; then
-          # Loescht eventuell alte, falsch gesetzte Include-Leichen aus der Datei
           sed -i '/moonraker_obico_macros\.cfg/d' "$PRINTER_CFG"
           
-          # Platziert das neue Include praezise unter der dxc_sensor.cfg Zeile im oberen Drittel
-          echo -e "Info: Injecting structured include into printer.cfg..."
-          sed -i '/\[include Helper-Script\/dxc_sensor\.cfg\]/a \[include Helper-Script\/moonraker_obico_macros\.cfg\]' "$PRINTER_CFG"
+          if grep -q "# CreateDate:" "$PRINTER_CFG"; then
+            echo -e "Info: Injecting include directly below CreateDate..."
+            sed -i '/# CreateDate:/a \[include Helper-Script\/moonraker_obico_macros\.cfg\]' "$PRINTER_CFG"
+          else
+            echo -e "Info: CreateDate not found, injecting safely into line 5..."
+            sed -i '5i \[include Helper-Script\/moonraker_obico_macros\.cfg\]' "$PRINTER_CFG"
+          fi
         fi
 
         # 7. SET UP AUTOSTART
@@ -137,30 +173,40 @@ EOF
         
         # 8. AUTOMATIC PAIRING PROCESS
         echo -e "${yellow}--------------------------------------------------------"
-        echo -e "Starte automatischen Kopplungsprozess..."
-        echo -e "Bitte gib gleich den angezeigten Code in der Obico-App ein."
-        echo -e "Hinweis: Der Code ist ca. 3-5 Minuten gültig."
+        echo -e "Starting automatic pairing process..."
+        echo -e "Please enter the displayed code into the Obico app right away."
+        echo -e "Note: The code is valid for approximately 3–5 minutes."
         echo -e "--------------------------------------------------------${white}"
         sleep 2
         
         if ! PYTHONPATH="$MOONRAKER_OBICO_FOLDER" $active_python -m moonraker_obico.link -c "$obico_cfg"; then
-          echo -e "\n${yellow}Hinweis: Der Kopplungsprozess wurde unterbrochen oder das Zeitfenster ist abgelaufen."
-          echo -e "Du kannst die Kopplung später jederzeit manuell im Terminal nachholen mit:"
+          echo -e "\n${yellow}Note: The pairing process was interrupted or the time window has expired."
+          echo -e "The pairing can be performed manually in the terminal at any later time using:"
           echo -e "PYTHONPATH=\"$MOONRAKER_OBICO_FOLDER\" $active_python -m moonraker_obico.link -c $obico_cfg${white}\n"
         fi
         
-        echo -e "Info: Konfiguriere Systemstarts für den Live-Betrieb..."
+        echo -e "Info: Configuring system startups for live operation..."
         if [ -f "$INITD_FOLDER/S99moonraker_obico" ]; then
           "$INITD_FOLDER/S99moonraker_obico" start > /dev/null 2>&1 || true
         fi
         
+        # ➔ HERE, WE NOW MAKE USE OF THE PURE FRAMEWORK FUNCTIONS FOR MOONRAKER & KLIPPER:
+        echo -e "Info: Performing a controlled system restart..."
+        
+        # 1. Stop Moonraker cleanly and start it fresh (bypasses the Creality restart bug)
         if command -v stop_moonraker >/dev/null 2>&1 && command -v start_moonraker >/dev/null 2>&1; then
           stop_moonraker && sleep 1 && start_moonraker
         elif [ -f "$INITD_FOLDER/S56moonraker_service" ]; then
           "$INITD_FOLDER/S56moonraker_service" restart > /dev/null 2>&1 || true
         fi
 
-        ok_msg "Installation abgeschlossen! Der Drucker sollte jetzt in der App online gehen."
+        # 2. Freshly load Klipper using the official framework function
+        if command -v restart_klipper >/dev/null 2>&1; then
+          echo -e "Info: Initiating Klipper restart via framework.."
+          restart_klipper
+        fi
+
+        ok_msg "Installation complete! All services have been successfully loaded."
         return;;
 
       N|n)
@@ -214,8 +260,22 @@ function remove_moonraker_obico(){
           fi
         fi
 
+        echo -e "Info: Restarting services..."
+        if command -v stop_moonraker >/dev/null 2>&1 && command -v start_moonraker >/dev/null 2>&1; then
+          stop_moonraker && sleep 1 && start_moonraker
+        else
+          if [ -f "$INITD_FOLDER"/S56moonraker_service ]; then
+            "$INITD_FOLDER"/S56moonraker_service restart > /dev/null 2>&1 || true
+          fi
+        fi
+        # Also perform a fresh load of Klipper after removal
+        if command -v restart_klipper >/dev/null 2>&1; then
+          restart_klipper
+        fi
+
         ok_msg "Moonraker Obico has been removed successfully!"
         return;;
+
       N|n)
         error_msg "Deletion canceled!"
         return;;
