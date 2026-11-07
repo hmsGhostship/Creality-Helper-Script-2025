@@ -163,9 +163,8 @@ function set_paths() {
   
   # Camera Settings Control #
   CAMERA_SETTINGS_FILE="${HS_CONFIG_FOLDER}/camera-settings.cfg"
-  CAMERA_SETTINGS_URL="${HS_FILES}/camera-settings/camera-settings.cfg"
-  CAMERA_SETTINGS_NEBULA_URL="${HS_FILES}/camera-settings/camera-settings-nebula.cfg"
   CAMERA_SETTINGS_K1_2025_URL="${HS_FILES}/camera-settings/camera-settings-k1c-2025.cfg"
+  #CAMERA_SETTINGS_XX_URL=""${HS_FILES}/camera-settings/xxxxx.cfg"
   
   # USB Camera Support
   if [ "$model" = "K1_2025" ] || [ "$model" = "K1_2025_CFS-C" ]; then
