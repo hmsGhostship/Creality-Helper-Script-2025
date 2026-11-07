@@ -115,6 +115,15 @@ G1 Z1 F600
 * To drastically save material while maintaining clean color transitions, open the **Flushing Volumes** configuration in Orca Slicer.
 * Set the **Flush multiplier** to a minimal value of **`0.4`** and recalculate. This prevents color bleeding on critical switches (e.g., Black to White) without wasting filament on giant purge towers.
 
+#### 5. Layer change G-Code (Required for time-lapse recordings)
+To ensure the hardware-optimized snapshot engine triggers seamlessly at every layer change, insert the following macro into the **Layer change G-code** field. If there are existing entries, place this command on a new line directly after them:
+
+```gcode
+TIMELAPSE_TAKE_FRAME
+```
+
+> ⚠️ **Crucial Operational Note:** By default, the timelapse engine initializes in a secure **Deep Sleep (OFF)** state upon printer boot to prevent any unwanted or accidental background recordings. Before starting a print where you want a timelapse video to be generated, you **MUST** click the **`TIMELAPSE_LAYER_CONTROL`** button on your Mainsail/Fluidd dashboard once. This will un-toggle the safety block and confirm via the console: `Timelapse: Layer changing snapshots 🟩 ENABLED 🟩`.
+
 ---
 *Disclaimer: This software is provided "as is" without warranty of any kind. Use it at your own risk.*
 

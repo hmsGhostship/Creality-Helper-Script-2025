@@ -30,8 +30,6 @@ function install_camera_settings_control(){
         echo -e "Info: Linking file..."
         if [ "$model" = "K1_2025" ] || [ "$model" = "K1_2025_CFS-C" ]; then
           cp "$CAMERA_SETTINGS_K1_2025_URL" "$HS_CONFIG_FOLDER"/camera-settings.cfg
-        elif v4l2-ctl --list-devices | grep -q 'CCX2F3298'; then
-          cp "$CAMERA_SETTINGS_NEBULA_URL" "$HS_CONFIG_FOLDER"/camera-settings.cfg
         else
           cp "$CAMERA_SETTINGS_URL" "$HS_CONFIG_FOLDER"/camera-settings.cfg
         fi

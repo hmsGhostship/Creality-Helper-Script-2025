@@ -23,7 +23,7 @@ function install_git_backup(){
     case "${yn}" in
       Y|y)
         echo -e "${white}"
-        
+        ensure_respond_module
         # FIX: Das gefährliche 'rm -rf .git' wurde restlos gestrichen!
         # Deine mühsam aufgebaute Historie und Identität bleiben absolut geschützt.
         if [ -f "$HS_CONFIG_FOLDER"/git-backup.cfg ]; then rm -f "$HS_CONFIG_FOLDER"/git-backup.cfg; fi

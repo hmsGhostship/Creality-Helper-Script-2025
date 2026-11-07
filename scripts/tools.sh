@@ -537,3 +537,20 @@ function reset_factory_settings(){
     esac
   done
 }
+
+function ensure_respond_module(){
+  if [ -f "$PRINTER_CFG" ]; then
+    if grep -q "^\[respond\]" "$PRINTER_CFG"; then
+      echo -e "Info: [respond] module is already enabled in printer.cfg..."
+    elif grep -q "^# CreateDate:" "$PRINTER_CFG" ; then
+      echo -e "Info: Adding [respond] module under CreateDate block..."
+      sed -i '/^# CreateDate:/a \[respond\]' "$PRINTER_CFG"
+    elif grep -q "\[include printer_params\.cfg\]" "$PRINTER_CFG" ; then
+      echo -e "Info: Adding [respond] module under printer_params include..."
+      sed -i '/\[include printer_params\.cfg\]/a \[respond\]' "$PRINTER_CFG"
+    else
+      echo -e "Info: Adding [respond] module at the top of printer.cfg..."
+      { echo -e "[respond]\n"; cat "$PRINTER_CFG"; } > "$PRINTER_CFG.hs_tmp" && cat "$PRINTER_CFG.hs_tmp" > "$PRINTER_CFG" && rm -f "$PRINTER_CFG.hs_tmp"
+    fi
+  fi
+}

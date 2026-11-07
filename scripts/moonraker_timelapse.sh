@@ -21,6 +21,7 @@ function install_moonraker_timelapse(){
     case "${yn}" in
       Y|y)
         echo -e "${white}"
+        ensure_respond_module
         if [ -f "$HS_CONFIG_FOLDER"/timelapse.cfg ]; then
           rm -f "$HS_CONFIG_FOLDER"/timelapse.cfg
         fi
@@ -53,18 +54,17 @@ function install_moonraker_timelapse(){
           sed -i '/^# CreateDate:/a \[include Helper-Script/timelapse\.cfg\]' "$PRINTER_CFG"
         elif grep -q "\[include printer_params\.cfg\]" "$PRINTER_CFG" ; then
           echo -e "Info: Adding Moonraker Timelapse configurations in printer.cfg file..."
-          sed -i '/\[include printer_params\.cfg\]/a \[include Helper-Script/timelapse\.cfg\]' "$PRINTER_CFG"
+          body_include='/\[include printer_params\.cfg\]/a \[include Helper-Script/timelapse\.cfg\]'
+          sed -i "$body_include" "$PRINTER_CFG"
         else
           echo -e "Info: Adding Moonraker Timelapse configurations in printer.cfg file..."
           { echo "[include Helper-Script/timelapse.cfg]"; cat "$PRINTER_CFG"; } > "$PRINTER_CFG.hs_tmp" && cat "$PRINTER_CFG.hs_tmp" > "$PRINTER_CFG" && rm -f "$PRINTER_CFG.hs_tmp"
         fi
-        # -> INTELLIGENT MULTI-CAMERA DETECTION & INTERACTIVE ROTATION
+        # -> INTELLIGENT MULTI-CAMERA DETECTION FOR HARDWARE NATIVE RENDERING
         if [ -f "$MOONRAKER_CFG" ]; then
           sed -i '/\[timelapse\]/,/^[[:space:]]*$/d' "$MOONRAKER_CFG"
           
           local CAM_PORT="8080"
-          local CAM_PARAMS=""
-          local NEED_ROTATION_ASK="false"
           
           if grep -q "^\[webcam usb\]" "$MOONRAKER_CFG" && grep -q "^\[webcam chassis\]" "$MOONRAKER_CFG"; then
             echo -e "Note: Multiple active webcam setups detected in moonraker.conf!"
@@ -76,7 +76,6 @@ function install_moonraker_timelapse(){
                 1)
                   echo -e "${white}Info: Routing Timelapse to USB Camera (Port 8082)."
                   CAM_PORT="8082"
-                  NEED_ROTATION_ASK="true"
                   break;;
                 2)
                   echo -e "${white}Info: Routing Timelapse to Built-in Camera (Port 8080)."
@@ -89,7 +88,6 @@ function install_moonraker_timelapse(){
           elif grep -q "^\[webcam usb\]" "$MOONRAKER_CFG"; then
             echo -e "Info: Active USB webcam configuration found. Using port 8082..."
             CAM_PORT="8082"
-            NEED_ROTATION_ASK="true"
           elif grep -q "^\[webcam chassis\]" "$MOONRAKER_CFG"; then
             echo -e "Info: Active Built-in webcam configuration found. Using port 8080..."
             CAM_PORT="8080"
@@ -97,41 +95,25 @@ function install_moonraker_timelapse(){
             echo -e "Warning: No custom webcam section found. Falling back to default port 8080."
           fi
 
-          # Interaktive Abfrage, falls eine USB-Kamera verwendet wird
-          if [ "$NEED_ROTATION_ASK" = "true" ]; then
-            echo
-            local rot_choice
-            while true; do
-              read -p " Rotate Timelapse image by 180°? (${yellow}y${white}/${yellow}n${white}): ${yellow}" rot_choice
-              case "${rot_choice}" in
-                Y|y)
-                  echo -e "${white}Info: 180° rotation parameters will be applied."
-                  CAM_PARAMS="&flip=1&mirror=1"
-                  break;;
-                N|n)
-                  echo -e "${white}Info: Image will be kept in default orientation."
-                  CAM_PARAMS=""
-                  break;;
-                *)
-                  error_msg "Please select a correct choice! (y or n)";;
-              esac
-            done
-          fi
-          
           echo -e "Info: Writing hardware-optimized paths to moonraker.conf..."
-          echo -e "" >> "$MOONRAKER_CFG"
-          echo -e "[timelapse]" >> "$MOONRAKER_CFG"
+          echo -e "\n[timelapse]" >> "$MOONRAKER_CFG"
           echo -e "output_path: /usr/data/printer_data/timelapse/" >> "$MOONRAKER_CFG"
           echo -e "frame_path: /usr/data/printer_data/frames/" >> "$MOONRAKER_CFG"
-          echo -e "ffmpeg_binary_path: /usr/bin/ffmpeg" >> "$MOONRAKER_CFG"
-          echo -e "snapshoturl: http://localhost:${CAM_PORT}/?action=snapshot${CAM_PARAMS}" >> "$MOONRAKER_CFG"
+          # -> WIR TRAGEN HIER DIE UNZENSURIERTE ENTWARE-VERSION EIN, DAMIT DIE AUTOMATIK BEIM DRUCKENDE NIE WIEDER ABSTÜRZT:
+          echo -e "ffmpeg_binary_path: /opt/bin/ffmpeg" >> "$MOONRAKER_CFG"
+          echo -e "snapshoturl: http://localhost:${CAM_PORT}/?action=snapshot" >> "$MOONRAKER_CFG"
         fi
         
-        if [ -f "/usr/bin/ffmpeg" ]; then
-          echo -e "Info: Factory hardware-accelerated ffmpeg detected. Skipping Entware download."
+        # -> AUTOMATISCHES ENTWARE-FFMPEG SETUP FÜR NATIVEN CODER-SUPPORT
+        if [ -f "/opt/bin/ffmpeg" ]; then
+          echo -e "Info: Full-featured Entware ffmpeg detected. Ready for web-native streaming."
         else
-          echo -e "Info: Factory ffmpeg missing. Updating via Entware..."
-          "$ENTWARE_FILE" update && "$ENTWARE_FILE" upgrade ffmpeg
+          echo -e "Info: Installing full-featured ffmpeg via Entware package manager..."
+          if [ -x "$ENTWARE_FILE" ]; then
+            "$ENTWARE_FILE" update && "$ENTWARE_FILE" install ffmpeg
+          else
+            echo -e "Warning: Entware package manager not found. Please install Entware first!"
+          fi
         fi
         
         echo -e "Info: Reinitializing Klipper service first..."
@@ -181,10 +163,13 @@ function remove_moonraker_timelapse(){
           sed -i '/^moonraker\/components\/timelapse\.py$/d' "$MOONRAKER_REPO_DIR"/.git/info/exclude
         fi
         
-        if [ -f /opt/bin/ffmpeg ] && [ ! -f /usr/bin/ffmpeg ]; then
-          set +e
-          "$ENTWARE_FILE" --autoremove remove ffmpeg
-          set -e
+        if [ -f /opt/bin/ffmpeg ]; then
+          echo -e "Info: Autoremoving Entware ffmpeg and unneeded libraries..."
+          if [ -x "$ENTWARE_FILE" ]; then
+            set +e
+            "$ENTWARE_FILE" --autoremove remove ffmpeg
+            set -e
+          fi
         fi
         
         if grep -q "include Helper-Script/timelapse" "$PRINTER_CFG" ; then

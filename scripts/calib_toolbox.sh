@@ -25,16 +25,15 @@ install_calib_toolbox() {
     case "${yn}" in
       Y|y)
         echo "Starte Installation der Creality Calibration Toolbox..."
-
+        ensure_respond_module
         if [ ! -f "$SOURCE_FILE" ]; then
           echo "Fehler: Quell-Makro calib_tool_box.cfg nicht unter $SOURCE_FILE gefunden!"
           return 1
         fi
 
         [ ! -d "/usr/data/printer_data/config/Helper-Script" ] && mkdir -p "/usr/data/printer_data/config/Helper-Script"
-    
         cp -f "$SOURCE_FILE" "$TARGET_FILE"
-    
+
         # Bereinigt alte kamp_only.cfg Eintraege restlos
         sed -i '/kamp_only\.cfg/d' "$PRINTER_CFG"
     
