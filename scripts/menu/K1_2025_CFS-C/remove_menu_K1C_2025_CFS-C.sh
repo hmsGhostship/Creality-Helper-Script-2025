@@ -31,10 +31,10 @@ function remove_menu_ui_k1_2025_cfs_c() {
   menu_option '14' 'Remove' 'CFS-C Universal Purge Speed Fix'
   menu_option '15' 'Remove' 'Micro-Swiss FlowTech Volumetric Extension'
 # menu_option '16' 'Remove' 'FLY-LLL PLUS Safetysystem'
-# menu_option '17' 'Remove' 'Klipper Adaptive Meshing & Purging'
-  menu_option '18' 'Remove' 'Motor Sound Support'
-  menu_option '19' 'Remove' 'Useful Macros'
-  menu_option '20' 'Remove' 'Git Backup'
+  menu_option '17' 'Remove' 'Motor Sound Support'
+  menu_option '18' 'Remove' 'Useful Macros'
+  menu_option '19' 'Remove' 'Git Backup'
+# menu_option '20' 'Remove' 'Klipper Adaptive Meshing & Purging'
 # menu_option '21' 'Remove' 'Fans Control Macros'
 # menu_option '22' 'Remove' 'Nozzle Cleaning Fan Control'
 # menu_option '23' 'Remove' 'Improved Shapers Calibrations'
@@ -44,7 +44,7 @@ function remove_menu_ui_k1_2025_cfs_c() {
   subtitle '•REMOTE ACCESS:'
 # menu_option '25' 'Remove' 'OctoEverywhere'
   menu_option '26' 'Remove' 'Moonraker Obico'
-# menu_option '27' 'Remove' 'GuppyFLO'
+  menu_option '27' 'Remove' 'GuppyFLO'
   menu_option '28' 'Remove' 'Mobileraker Companion'
 # menu_option '29' 'Remove' 'OctoApp Companion'
 # menu_option '30' 'Remove' 'SimplyPrint'
@@ -238,6 +238,24 @@ function remove_menu_k1_2025_cfs_c() {
             run "restart_klipper" "remove_menu_ui_k1_2025_cfs_c"
         fi;;
       17)
+         if [ ! -f "$MOTOR_SOUND_TARGET_FILE" ]; then
+           error_msg "Motor Sound Support is not installed!"
+         else
+           run "remove_motor_sound" "remove_menu_ui_k1_2025_cfs_c"
+         fi;;
+      18)
+       if [ ! -f "$USEFUL_MACROS_FILE" ]; then
+         error_msg "Useful Macros are not installed!"
+       else
+         run "remove_useful_macros" "remove_menu_ui_k1_2025_cfs_c"
+       fi;;
+      19)
+         if [ ! -f "$GIT_BACKUP_FILE" ]; then
+           error_msg "Git Backup is not installed!"
+         else
+           run "remove_git_backup" "install_menu_ui_k1_2025_cfs_c"
+         fi;;
+      20)
         clear
         if [ ! -d "$KAMP_FOLDER" ]; then
           remove_menu_ui_k1_2025_cfs_c
@@ -247,24 +265,6 @@ function remove_menu_k1_2025_cfs_c() {
         else
           run "remove_kamp" "remove_menu_ui_k1_2025_cfs_c"
         fi;;
-      18)
-         if [ ! -f "$MOTOR_SOUND_TARGET_FILE" ]; then
-           error_msg "Motor Sound Support is not installed!"
-         else
-           run "remove_motor_sound" "remove_menu_ui_k1_2025_cfs_c"
-         fi;;
-      19)
-       if [ ! -f "$USEFUL_MACROS_FILE" ]; then
-         error_msg "Useful Macros are not installed!"
-       else
-         run "remove_useful_macros" "remove_menu_ui_k1_2025_cfs_c"
-       fi;;
-      20)
-         if [ ! -f "$GIT_BACKUP_FILE" ]; then
-           error_msg "Git Backup is not installed!"
-         else
-           run "remove_git_backup" "install_menu_ui_k1_2025_cfs_c"
-         fi;;
       21)
         if [ ! -f "$FAN_CONTROLS_FILE" ]; then
           error_msg "Fans Control Macros are not installed!"

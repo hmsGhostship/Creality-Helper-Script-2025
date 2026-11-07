@@ -31,10 +31,10 @@ function install_menu_ui_k1_2025_cfs_c() {
   menu_option '14' 'Install' 'CFS-C Universal Purge Speed Fix'
   menu_option '15' 'Install' 'Micro-Swiss FlowTech Volumetric Extension'
 # menu_option '16' 'Install' 'FLY-LLL PLUS Safetysystem (Einschalt-Sperre)'
-# menu_option '17' 'Install' 'Klipper Adaptive Meshing & Purging'
-  menu_option '18' 'Install' 'Motor Sound Support'
-  menu_option '19' 'Install' 'Useful Macros'
-  menu_option '20' 'Install' 'Git Backup'
+  menu_option '17' 'Install' 'Motor Sound Support'
+  menu_option '18' 'Install' 'Useful Macros'
+  menu_option '19' 'Install' 'Git Backup'
+# menu_option '20' 'Install' 'Klipper Adaptive Meshing & Purging'
 # menu_option '21' 'Install' 'Fans Control Macros'
 # menu_option '22' 'Install' 'Nozzle Cleaning Fan Control'
 # menu_option '23' 'Install' 'Improved Shapers Calibrations'
@@ -43,7 +43,7 @@ function install_menu_ui_k1_2025_cfs_c() {
   subtitle '•REMOTE ACCESS:'
 # menu_option '25' 'Install' 'OctoEverywhere'
   menu_option '26' 'Install' 'Moonraker Obico'
-# menu_option '27' 'Install' 'GuppyFLO'
+  menu_option '27' 'Install' 'GuppyFLO'
   menu_option '28' 'Install' 'Mobileraker Companion'
 # menu_option '29' 'Install' 'OctoApp Companion'
 # menu_option '30' 'Install' 'SimplyPrint'
@@ -238,22 +238,12 @@ function install_menu_k1_2025_cfs_c() {
             run "restart_klipper" "install_menu_ui_k1_2025_cfs_c"
         fi;;
       17)
-        clear
-        if [ -d "$KAMP_FOLDER" ]; then
-          install_menu_ui_k1_2025_cfs_c
-          echo
-          error_msg "Klipper Adaptive Meshing & Purging is already installed!"
-          echo
-        else
-          run "install_kamp" "install_menu_ui_k1_2025_cfs_c"
-        fi;;
-      18)
         if [ -f "$MOTOR_SOUND_TARGET_FILE" ]; then
           error_msg "Motor sound Support is already installed!"
         else
           run "install_motor_sound" "install_menu_ui_k1_2025_cfs_c"
         fi;;
-      19)
+      18)
         if [ -f "$USEFUL_MACROS_FILE" ]; then
           error_msg "Useful Macros are already installed!"
         elif [ ! -f "$KLIPPER_SHELL_FILE" ]; then
@@ -261,7 +251,7 @@ function install_menu_k1_2025_cfs_c() {
         else
           run "install_useful_macros" "install_menu_ui_k1_2025_cfs_c"
         fi;;
-      20)
+      19)
         if [ -f "$GIT_BACKUP_FILE" ]; then
           error_msg "Git Backup is already installed!"
         elif [ ! -f "$ENTWARE_FILE" ]; then
@@ -271,6 +261,16 @@ function install_menu_k1_2025_cfs_c() {
         else
           # Startet einfach nur deine Menü-Datei
           run "install_git_backup" "install_menu_ui_k1_2025_cfs_c"
+        fi;;
+      20)
+        clear
+        if [ -d "$KAMP_FOLDER" ]; then
+          install_menu_ui_k1_2025_cfs_c
+          echo
+          error_msg "Klipper Adaptive Meshing & Purging is already installed!"
+          echo
+        else
+          run "install_kamp" "install_menu_ui_k1_2025_cfs_c"
         fi;;
       21)
         if [ -f "$FAN_CONTROLS_FILE" ]; then

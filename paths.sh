@@ -83,7 +83,6 @@ function set_paths() {
 	KLIPPER_SERVICE_DISABLED="${INITD_FOLDER}/disabled.S55klipper_service"
   fi
   KLIPPER_GCODE_URL="${HS_FILES}/fixes/gcode.py"
-  KLIPPER_GCODE_3V3_URL="${HS_FILES}/fixes/gcode_3v3.py"
   
   # Fluidd #
   FLUIDD_FOLDER="${USR_DATA}/fluidd"
@@ -210,9 +209,6 @@ function set_paths() {
   BOOT_DISPLAY_K1_URL="${HS_FILES}/boot-display/k1_boot_display.tar.gz"
   BOOT_DISPLAY_K1M_URL="${HS_FILES}/boot-display/k1max_boot_display.tar.gz"
   BOOT_DISPLAY_STOCK_URL="${HS_FILES}/boot-display/stock_boot_display.tar.gz"
-  
-  # Creality Web Interface #
-  CREALITY_WEB_FILE="${BIN_FOLDER}/web-server"
 
   # Creality Stock Services (K1C 2025) #
   # INITD_FOLDER is already model-branched above; these files only exist on the
@@ -238,10 +234,10 @@ function set_paths() {
 
   # Guppy Screen #
   GUPPY_SCREEN_FOLDER="${USR_DATA}/guppyscreen"
+  GUPPY_SCREEN_URL="https://github.com/SnorritxD/GuppyScreen-K1C-2025"
+  GUPPY_SCREEN_SOURCE="${USR_DATA}/GuppyScreen-K1C-2025"
   GUPPY_SCREEN_URL1="${HS_FILES}/guppy-screen/guppy_update.cfg"
   GUPPY_SCREEN_URL2="${HS_FILES}/guppy-screen/guppy-update.sh"
-  GUPPY_SCREEN_3V3_URL="${HS_FILES}/guppy-screen/guppy_update-3v3.cfg"
-  GUPPY_SCREEN_CONFIG_3V3_URL="${HS_FILES}/guppy-screen/guppyconfig-3v3.json"
   
   # Creality Dynamic Logos for Fluidd #
   FLUIDD_LOGO_FILE="${USR_DATA}/fluidd/logo_creality_v2.svg"

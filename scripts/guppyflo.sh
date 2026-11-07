@@ -7,8 +7,8 @@ function guppyflo_message(){
   title 'GuppyFLO' "${yellow}"
   inner_line
   hr
-  echo -e " │ ${cyan}GuppyFLO is a self-hosted service that enables local/remote  ${white}│"
-  echo -e " │ ${cyan}management of multiple Klipper printers using Moonraker.     ${white}│"
+  echo -e " │ GuppyFLO is a self-hosted service that enables local/remote    │"
+  echo -e " │ management of multiple Klipper printers using Moonraker.       │"
   hr
   bottom_line
 }
@@ -21,43 +21,68 @@ function install_guppyflo(){
     case "${yn}" in
       Y|y)
         echo -e "${white}"
+        
+        # Safe stopping of old service
         if [ -f "$INITD_FOLDER"/S99guppyflo ]; then
-          echo -e "Info: Stopping GuppyFLO service..."
-          /etc/init.d/S99guppyflo stop &> /dev/null
+          echo -e "Info: Stopping old GuppyFLO service..."
+          "$INITD_FOLDER"/S99guppyflo stop > /dev/null 2>&1 || true
         fi
+        
         if [ -f "$GUPPYFLO_FOLDER"/guppytunnel.json ]; then
           mv "$GUPPYFLO_FOLDER"/guppytunnel.json "$USR_DATA"/guppytunnel.json
         fi
-        if [ -d "$GUPPYFLO_FOLDER" ]; then
-          rm -rf "$GUPPYFLO_FOLDER"
-        fi
-        if [ -f "$INITD_FOLDER"/S99guppyflo ]; then
-          rm -f "$INITD_FOLDER"/S99guppyflo
-        fi
-        if [ -f /lib/libeinfo.so.1 ]; then
-          rm -f /lib/libeinfo.so.1
-        fi
-        if [ -f /lib/librc.so.1 ]; then
-          rm -f /lib/librc.so.1
-        fi
-        echo -e "Info: Downloading GuppyFLO file..."
+        
+        echo -e "Info: Cleaning up old installation folders safely..."
+        rm -rf "$GUPPYFLO_FOLDER"
+        rm -f "$INITD_FOLDER"/S99guppyflo
+        
+        echo -e "Info: Downloading GuppyFLO package..."
         "$CURL" -L "$GUPPYFLO_URL" -o "$USR_DATA"/guppyflo.zip
-        echo -e "Info: Creating directory..."
-        mkdir -p "$GUPPYFLO_FOLDER"
         echo -e "Info: Extracting files..."
+        mkdir -p "$GUPPYFLO_FOLDER"
         unzip "$USR_DATA"/guppyflo.zip -d "$GUPPYFLO_FOLDER"
         rm -f "$USR_DATA"/guppyflo.zip
-        echo -e "Info: Linking files..."
-        ln -sf "$GUPPYFLO_FOLDER"/services/S99guppyflo "$INITD_FOLDER"/S99guppyflo
-        ln -sf "$GUPPYFLO_FOLDER"/services/respawn/libeinfo.so.1 /lib/libeinfo.so.1
-        ln -sf "$GUPPYFLO_FOLDER"/services/respawn/librc.so.1 /lib/librc.so.1
+        
         if [ -f "$USR_DATA"/guppytunnel.json ]; then
           mv "$USR_DATA"/guppytunnel.json "$GUPPYFLO_FOLDER"/guppytunnel.json
         fi
+        
+        # -> SAFE SERVICE CREATION WITHOUT TOUCHING SYSTEM LIBRARIES
+        echo -e "Info: Creating isolated initialization script..."
+        cat << EOF > "$INITD_FOLDER/S99guppyflo"
+#!/bin/sh
+case "\$1" in
+  start)
+    echo "Starting GuppyFLO..."
+    # Starts the service directly from data directory
+    cd $GUPPYFLO_FOLDER
+    ./guppyflo > /dev/null 2>&1 &
+    ;;
+  stop)
+    echo "Stopping GuppyFLO..."
+    killall guppyflo > /dev/null 2>&1 || true
+    ;;
+  *)
+    echo "Usage: \$0 {start|stop}"
+    exit 1
+esac
+exit 0
+EOF
+        chmod +x "$INITD_FOLDER"/S99guppyflo
+        
         echo -e "Info: Starting GuppyFLO service..."
-        /etc/init.d/S99guppyflo start &> /dev/null
+        "$INITD_FOLDER"/S99guppyflo start > /dev/null 2>&1 || true
+        
+        # -> DER NEUE, VOLLSTÄNDIGE INFO-BLOCK FÜR DEINEN REPOSITORY-STANDARD:
         ok_msg "GuppyFLO has been installed successfully!"
-        echo -e "   You can now connect to GuppyFLO Web Interface with ${yellow}http://$(check_ipaddress):9873${white}"
+        echo -e "   ----------------------------------------------------------------"
+        echo -e "   Local Access:  ${yellow}http://\$(check_ipaddress):9873${white}"
+        echo -e "   ----------------------------------------------------------------"
+        echo -e "   Remote Access Note:"
+        echo -e "   To configure Remote Access via Tailscale or Ngrok, simply open"
+        echo -e "   the Web Interface above and follow the instructions on the screen."
+        echo -e "   No additional system packages are required!"
+        echo -e "   ----------------------------------------------------------------"
         return;;
       N|n)
         error_msg "Installation canceled!"
@@ -76,15 +101,24 @@ function remove_guppyflo(){
     case "${yn}" in
       Y|y)
         echo -e "${white}"
-        if [ -f "$INITD_FOLDER"/S99guppyflo ]; then
+        
+        # Stops and removes the service if the init script exists
+        if [ -f "$INITD_FOLDER/S99guppyflo" ]; then
           echo -e "Info: Stopping GuppyFLO service..."
-          /etc/init.d/S99guppyflo stop &> /dev/null
+          "$INITD_FOLDER/S99guppyflo" stop > /dev/null 2>&1 || true
+          echo -e "Info: Removing service initialization script..."
+          rm -f "$INITD_FOLDER/S99guppyflo"
         fi
-        echo -e "Info: Removing files..."
-        rm -rf "$GUPPYFLO_FOLDER"
-        rm -f "$INITD_FOLDER"/S99guppyflo
-        rm -f /lib/libeinfo.so.1
-        rm -f /lib/librc.so.1
+        
+        # Cleans up the installation directory completely
+        if [ -d "$GUPPYFLO_FOLDER" ]; then
+          echo -e "Info: Removing GuppyFLO installation files..."
+          rm -rf "$GUPPYFLO_FOLDER"
+        fi
+        
+        # Safely cleans up the backup json from the user data folder if left behind
+        rm -f "$USR_DATA/guppytunnel.json"
+        
         ok_msg "GuppyFLO has been removed successfully!"
         return;;
       N|n)

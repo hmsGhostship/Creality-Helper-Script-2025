@@ -78,20 +78,12 @@ function remove_menu_k1_2025() {
       2)
         if [ ! -d "$FLUIDD_FOLDER" ]; then
           error_msg "Fluidd is not installed!"
-        elif [ ! -f "$CREALITY_WEB_FILE" ] && [ ! -d "$MAINSAIL_FOLDER" ]; then
-          error_msg "Creality Web Interface is removed!"
-          echo -e " ${darkred}Please restore Creality Web Interface first if you want to remove Fluidd.${white}"
-          echo
         else
           run "remove_fluidd" "remove_menu_ui_k1_2025"
         fi;;
       3)
         if [ ! -d "$MAINSAIL_FOLDER" ]; then
           error_msg "Mainsail is not installed!"
-        elif [ ! -f "$CREALITY_WEB_FILE" ] && [ ! -d "$FLUIDD_FOLDER" ]; then
-          error_msg "Creality Web Interface is removed!"
-          echo -e " ${darkred}Please restore Creality Web Interface first if you want to remove Mainsail.${white}"
-          echo
         else
           run "remove_mainsail" "remove_menu_ui_k1_2025"
         fi;;
