@@ -31,22 +31,30 @@ function sync_timelapse_snapshot_url_k1_2025() {
 
   echo -e "Info: Syncing Timelapse snapshot URL with current camera topology..."
   
-  # Wir prüfen, ob die Sektion [timelapse] überhaupt in der moonraker.conf existiert
+  # Wir prüfen zuerst, ob die Sektion [timelapse] überhaupt existiert
   if grep -q "^\[timelapse\]" "$MOONRAKER_CFG"; then
-    # 1. Wenn die USB-Kamera reell installiert ist, nutzen wir zwingend den USB-Port 8082
-    if [ -f "$USB_CAMERA_FILE" ] || [ -f "$USB_CAMERA_LEGACY_FILE" ]; then
-      echo -e " -> USB Camera active. Routing Timelapse to Port 8082..."
-      sed -i '/^\[timelapse\]/,/^$/ { /^snapshoturl:/d }' "$MOONRAKER_CFG"
-      sed -i '/^\[timelapse\]/a snapshoturl: http:\/\/localhost:8082\/?action=snapshot' "$MOONRAKER_CFG"
+    local target_url=""
     
-    # 2. Wenn KEINE USB-Cam da ist, fallen wir bedingungslos auf den Standard-Chassis/Werks-Port 8080 zurück!
+    # 1. Bestimme die korrekte URL basierend auf der Hardware-Existenz
+    if [ -f "$USB_CAMERA_FILE" ] || [ -f "$USB_CAMERA_LEGACY_FILE" ]; then
+      echo -e " -> USB Camera verified. Target routing: Port 8082..."
+      target_url="http://localhost:8082/?action=snapshot"
     else
-      echo -e " -> USB Camera inactive. Falling back to Port 8080 to prevent Moonraker crash..."
-      sed -i '/^\[timelapse\]/,/^$/ { /^snapshoturl:/d }' "$MOONRAKER_CFG"
-      sed -i '/^\[timelapse\]/a snapshoturl: http:\/\/localhost:8080\/?action=snapshot' "$MOONRAKER_CFG"
+      echo -e " -> USB Camera inactive. Target routing fallback: Port 8080..."
+      target_url="http://localhost:8080/?action=snapshot"
+    fi
+
+    # 2. Prüfen, ob bereits eine snapshoturl-Zeile im Timelapse-Block existiert
+    if sed -n '/^\[timelapse\]/,/^\[/p' "$MOONRAKER_CFG" | grep -q "^snapshoturl:"; then
+      # Falls vorhanden, ersetzen wir sie unbestechlich genau am Platz, ohne die Struktur zu verschieben!
+      sed -i '/^\[timelapse\]/,/^\[/ s|^snapshoturl:.*|snapshoturl: '"$target_url"'|' "$MOONRAKER_CFG"
+    else
+      # Falls sie komplett fehlt, fügen wir sie sauber direkt unter dem Header ein
+      sed -i '/^\[timelapse\]/a snapshoturl: '"$target_url"'' "$MOONRAKER_CFG"
     fi
   fi
 }
+
 
 function configure_usb_camera_k1_2025(){
   local usb_dev
