@@ -288,67 +288,75 @@ function remove_moonraker_obico(){
 function repair_pairing_moonraker_obico(){
   moonraker_obico_message
   
-  if [ ! -d "$MOONRAKER_OBICO_FOLDER" ] || [ ! -f "$KLIPPER_CONFIG_FOLDER/moonraker-obico.cfg" ]; then
-    error_msg "Fehler: Moonraker Obico ist aktuell nicht installiert!"
+  local obico_cfg="$KLIPPER_CONFIG_FOLDER/moonraker-obico.cfg"
+  
+  if [ ! -d "$MOONRAKER_OBICO_FOLDER" ] || [ ! -f "$obico_cfg" ]; then
+    error_msg "Error: Moonraker Obico is currently not installed!"
     return 1
   fi
 
   local yn
   while true; do
-    echo -e " ${yellow}➔ Möchtest du den Drucker neu mit der Obico-App verknüpfen?${white}"
-    read -p "   Aktion bestätigen? (y/n): " yn
+    echo -e " ${yellow}➔ Do you want to re-link your printer with the Obico app?${white}"
+    read -p "   Confirm action? (y/n): " yn
     case "${yn}" in
       Y|y)
         echo -e "${white}"
         
-        # 1. Dynamische Python-Umgebung live ermitteln (analog zur Installation)
-        echo -e "Info: Ermittle Moonraker Python-Umgebung..."
+        # 1. Dynamically detect the active Moonraker Python environment
+        echo -e "Info: Detecting Moonraker Python Environment..."
         local active_python=$(ps w | grep moonraker | grep -v grep | awk '{print $5}')
         if [ -z "$active_python" ] || [ ! -f "$active_python" ]; then
           active_python="$MOONRAKER_ENV_PYTHON"
         fi
         
         if [ ! -f "$active_python" ]; then
-          error_msg "Fehler: Keine gültige Moonraker Python-Umgebung gefunden!"
+          error_msg "Error: No valid Moonraker Python environment found!"
           return 1
         fi
 
-        # 2. Obico-Dienst stoppen, um Port- und Tokenkonflikte beim Linken zu vermeiden
+        # 2. Stop the active Obico daemon to prevent token/port conflicts during configuration
         if [ -f "$INITD_FOLDER/S99moonraker_obico" ]; then
-          echo -e "Info: Stoppe aktiven Obico-Dienst für das Re-Pairing..."
+          echo -e "Info: Stopping active Obico service for re-pairing..."
           "$INITD_FOLDER/S99moonraker_obico" stop > /dev/null 2>&1 || true
           kill $(pgrep -f "moonraker_obico.app") > /dev/null 2>&1 || true
         fi
 
-        # 3. Automatischen Koppelungsprozess aufrufen
-        local obico_cfg="$KLIPPER_CONFIG_FOLDER/moonraker-obico.cfg"
+        # ====================================================================
+        # THE CORE ANCHOR TRICK: Clear the old token value to completely 
+        # bypass the blocking interactive prompt inside the Python script!
+        # ====================================================================
+        echo -e "Info: Preparing configuration file for a clean pairing process..."
+        sed -i 's/^api_token[[:space:]]*=.*/api_token = /g' "$obico_cfg"
+
+        # 3. Launch the linking process in full interactive live-waiting mode
         echo -e "${yellow}--------------------------------------------------------"
-        echo -e "Starte den automatischen Koppelungsprozess (Re-Pairing)..."
-        echo -e "Bitte gib den angezeigten Code direkt in deiner Obico-App ein."
-        echo -e "Hinweis: Der Code ist für ca. 3–5 Minuten gültig."
+        echo -e "Starting the automatic pairing wizard..."
+        echo -e "Please follow the instructions displayed below."
+        echo -e "The script will pause and wait for your app confirmation."
         echo -e "--------------------------------------------------------${white}"
-        sleep 2
+        sleep 1
         
+        # Fully interactive terminal handshake without any piped inputs
         if ! PYTHONPATH="$MOONRAKER_OBICO_FOLDER" $active_python -m moonraker_obico.link -c "$obico_cfg"; then
-          echo -e "\n${yellow}Hinweis: Der Koppelungsprozess wurde abgebrochen oder das Zeitfenster ist abgelaufen."
-          echo -e "Das Pairing kann später jederzeit manuell im Terminal wiederholt werden.${white}\n"
+          echo -e "\n${yellow}Note: The pairing process was canceled or timed out.${white}\n"
         fi
         
-        # 4. Dienst nach dem Pairing-Versuch wieder reaktivieren
-        echo -e "Info: Starte Obico-Dienst wieder für den Live-Betrieb..."
+        # 4. Safely bring up the daemon back into action for live operations
+        echo -e "Info: Restoring Obico service startups for live operations..."
         if [ -f "$INITD_FOLDER/S99moonraker_obico" ]; then
           "$INITD_FOLDER/S99moonraker_obico" start > /dev/null 2>&1 || true
         fi
 
-        ok_msg "Re-Pairing-Vorgang abgeschlossen!"
+        ok_msg "Re-pairing sequence completed successfully!"
         return 0
         ;;
       N|n)
-        error_msg "Aktion abgebrochen!"
+        error_msg "Action canceled!"
         return 0
         ;;
       *)
-        error_msg "Bitte treffe eine korrekte Auswahl!";;
+        error_msg "Please select a correct choice!";;
     esac
   done
 }
