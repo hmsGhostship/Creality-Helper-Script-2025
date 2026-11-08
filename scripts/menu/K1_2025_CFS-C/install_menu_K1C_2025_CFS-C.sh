@@ -48,6 +48,12 @@ function install_menu_ui_k1_2025_cfs_c() {
   subtitle '•REMOTE ACCESS:'
 # menu_option '25' 'Install' 'OctoEverywhere'
   menu_option '26' 'Install' 'Moonraker Obico'
+  if [ -d "$MOONRAKER_OBICO_FOLDER" ] && [ -f "$KLIPPER_CONFIG_FOLDER/moonraker-obico.cfg" ]; then
+   menu_option '26a' 'Repair' 'Moonraker Obico [Link Code neu generieren]'
+  else
+   echo -e " 26a) ${darkgrey}Repair Moonraker Obico${white}"
+   echo -e "      ${red}└─ DISABLED: Module must be installed first${white}"
+  fi
   menu_option '27' 'Install' 'GuppyFLO'
   menu_option '28' 'Install' 'Mobileraker Companion'
 # menu_option '29' 'Install' 'OctoApp Companion'
@@ -212,21 +218,18 @@ function install_menu_k1_2025_cfs_c() {
         fi;;
       16)
         clear
-        # THE INTELLIGENT TEST LOCK: Keeps a fixed watch on the live status of the DXC sensor!
         if ! grep -q "^\[include Helper-Script/dxc_sensor.cfg\]" "$PRINTER_CFG" 2>/dev/null; then
             install_menu_ui_k1_2025_cfs_c
             echo
-            error_msg "INSTALL-SPERRE: DXC Filament Sensor ist nicht aktiv!"
+            error_msg "INSTALL-SPERRE: DXC Filament Sensor ist nicht active!"
             echo -e "  Der originale Filament-Sensor belegt aktuell noch den Pin PD7."
             echo -e "  Bitte installiere zuerst den DXC Filament Sensor (Option 14)!"
             echo
-        # DUAL INSTALLATION PROTECTION
         elif grep -q "^\[include Helper-Script/cfs_lll_safety.cfg\]" "$PRINTER_CFG" 2>/dev/null; then
             install_menu_ui_k1_2025_cfs_c
             echo
             error_msg "FLY-LLL PLUS Safetysystem is already active in printer.cfg!"
             echo
-        # NATIVE INSTALL & RESTART
         else
             title "[ INSTALL: FLY-LLL PLUS SAFETYSYSTEM ]" "${yellow}"
             echo -e "  Kopiere Konfigurationsdateien..."
@@ -264,7 +267,6 @@ function install_menu_k1_2025_cfs_c() {
         elif [ ! -f "$KLIPPER_SHELL_FILE" ]; then
           error_msg "Klipper Gcode Shell Command is needed, please install it first!"
         else
-          # Startet einfach nur deine Menü-Datei
           run "install_git_backup" "install_menu_ui_k1_2025_cfs_c"
         fi;;
       20)
@@ -316,81 +318,89 @@ function install_menu_k1_2025_cfs_c() {
          run "install_octoeverywhere" "install_menu_ui_k1_2025_cfs_c"
          echo -e "\n${yellow} Press Enter to return to the menu...${white}" && read -r _
        fi;;
-     26)
-       clear
-       if [ -d "$MOONRAKER_OBICO_FOLDER" ] && [ -f "$KLIPPER_CONFIG_FOLDER/moonraker-obico.cfg" ]; then
-        error_msg "Moonraker Obico is already installed!"
-       elif [ ! -d "$MOONRAKER_FOLDER" ]; then
-         error_msg "Moonraker and Nginx are needed, please install them first!"
-       elif [ ! -d "$FLUIDD_FOLDER" ] && [ ! -d "$MAINSAIL_FOLDER" ]; then
-         error_msg "Fluidd or Mainsail is needed, please install one of them first!"
-       elif [ ! -f "$ENTWARE_FILE" ]; then
-         error_msg "Entware is needed, please install it first!"
-       else
-         run "install_moonraker_obico" "install_menu_ui_k1_2025_cfs_c"
-       fi;;
-     27)
-       if [ ! -d "$MOONRAKER_FOLDER" ] && [ ! -d "$NGINX_FOLDER" ]; then
-         error_msg "Moonraker and Nginx are needed, please install them first!"
-       else
-         run "install_guppyflo" "install_menu_ui_k1_2025_cfs_c"
-       fi;;
-     28)
-       if [ -d "$MOBILERAKER_COMPANION_FOLDER" ]; then
-         error_msg "Mobileraker Companion is already installed!"
-       elif [ ! -d "$MOONRAKER_FOLDER" ]; then
-         error_msg "Moonraker and Nginx are needed, please install them first!"
-       elif [ ! -d "$FLUIDD_FOLDER" ] && [ ! -d "$MAINSAIL_FOLDER" ]; then
-         error_msg "Fluidd or Mainsail is needed, please install one of them first!"
-       elif [ ! -f "$ENTWARE_FILE" ]; then
-         error_msg "Entware is needed, please install it first!"
-       else
-         run "install_mobileraker_companion" "install_menu_ui_k1_2025_cfs_c"
-         # Countdown and reboot after successful execution
-         if [ -d "$MOBILERAKER_COMPANION_FOLDER" ]; then
-           echo -e "${yellow}"
-           echo -e " ┌────────────────────────────────────────────────────────┐"
-           echo -e " │  WARNUNG: Um den freigegebenen Arbeitsspeicher (RAM)   │"
-           echo -e " │  wieder sauber aufzufüllen, startet der Drucker nun    │"
-           echo -e " │  automatisch neu.                                      │"
-           echo -e " └────────────────────────────────────────────────────────┘"
-           
-           for i in 10 9 8 7 6 5 4 3 2 1; do
-               echo -e "    Drucker startet neu in $i Sekunden... \r\c"
-               sleep 1
-           done
-           echo -e "${white}\nInfo: Starte System neu..."
-           reboot
-         else
-           echo -e "\n${yellow} Press Enter to return to the menu...${white}" && read -r _
-         fi
-       fi;;
-     29)
-       if [ -d "$OCTOAPP_COMPANION_FOLDER" ]; then
-         error_msg "OctoApp Companion is already installed!"
-       elif [ ! -d "$MOONRAKER_FOLDER" ]; then
-         error_msg "Moonraker and Nginx are needed, please install them first!"
-       elif [ ! -d "$FLUIDD_FOLDER" ] && [ ! -d "$MAINSAIL_FOLDER" ]; then
-         error_msg "Fluidd or Mainsail is needed, please install one of them first!"
-       elif [ ! -f "$ENTWARE_FILE" ]; then
-         error_msg "Entware is needed, please install it first!"
-       else
-         run "install_octoapp_companion" "install_menu_ui_k1_2025_cfs_c"
-       fi;;
-     30)
-       if grep -q "\[simplyprint\]" "$MOONRAKER_CFG"; then
-         error_msg "SimplyPrint is already installed!"
-       elif [ ! -d "$MOONRAKER_FOLDER" ]; then
-        error_msg "Moonraker and Nginx are needed, please install them first!"
-       elif [ ! -d "$FLUIDD_FOLDER" ] && [ ! -d "$MAINSAIL_FOLDER" ]; then
-         error_msg "Fluidd or Mainsail is needed, please install one of them first!"
-       else
-         run "install_simplyprint" "install_menu_ui_k1_2025_cfs_c"
-       fi;;
+      26)
+        clear
+        if [ -d "$MOONRAKER_OBICO_FOLDER" ] && [ -f "$KLIPPER_CONFIG_FOLDER/moonraker-obico.cfg" ]; then
+          error_msg "Moonraker Obico is already installed!"
+        elif [ ! -d "$MOONRAKER_FOLDER" ]; then
+          error_msg "Moonraker and Nginx are needed, please install them first!"
+        elif [ ! -d "$FLUIDD_FOLDER" ] && [ ! -d "$MAINSAIL_FOLDER" ]; then
+          error_msg "Fluidd or Mainsail is needed, please install one of them first!"
+        elif [ ! -f "$ENTWARE_FILE" ]; then
+          error_msg "Entware is needed, please install it first!"
+        else
+          run "install_moonraker_obico" "install_menu_ui_k1_2025_cfs_c"
+        fi;;
+      26a|26A)
+        clear
+        if [ -d "$MOONRAKER_OBICO_FOLDER" ] && [ -f "$KLIPPER_CONFIG_FOLDER/moonraker-obico.cfg" ]; then
+          run "repair_pairing_moonraker_obico" "install_menu_ui_k1_2025_cfs_c"
+        else
+          install_menu_ui_k1_2025_cfs_c
+          echo
+          error_msg "RE-PAIRING SPERRE: Moonraker Obico ist aktuell nicht installiert!"
+          echo
+        fi;;
+      27)
+        if [ ! -d "$MOONRAKER_FOLDER" ] && [ ! -d "$NGINX_FOLDER" ]; then
+          error_msg "Moonraker and Nginx are needed, please install them first!"
+        else
+          run "install_guppyflo" "install_menu_ui_k1_2025_cfs_c"
+        fi;;
+      28)
+        if [ -d "$MOBILERAKER_COMPANION_FOLDER" ]; then
+          error_msg "Mobileraker Companion is already installed!"
+        elif [ ! -d "$MOONRAKER_FOLDER" ]; then
+          error_msg "Moonraker and Nginx are needed, please install them first!"
+        elif [ ! -d "$FLUIDD_FOLDER" ] && [ ! -d "$MAINSAIL_FOLDER" ]; then
+          error_msg "Fluidd or Mainsail is needed, please install one of them first!"
+        elif [ ! -f "$ENTWARE_FILE" ]; then
+          error_msg "Entware is needed, please install it first!"
+        else
+          run "install_mobileraker_companion" "install_menu_ui_k1_2025_cfs_c"
+          if [ -d "$MOBILERAKER_COMPANION_FOLDER" ]; then
+            echo -e "${yellow}"
+            echo -e " ┌────────────────────────────────────────────────────────┐"
+            echo -e " │  WARNUNG: Um den freigegebenen Arbeitsspeicher (RAM)   │"
+            echo -e " │  wieder sauber aufzufüllen, startet der Drucker nun    │"
+            echo -e " │  automatisch neu.                                      │"
+            echo -e " └────────────────────────────────────────────────────────┘"
+            for i in 10 9 8 7 6 5 4 3 2 1; do
+              echo -e "    Drucker startet neu in $i Sekunden... \r\c"
+              sleep 1
+            done
+            echo -e "${white}\nInfo: Starte System neu..."
+            reboot
+          else
+            echo -e "\n${yellow} Press Enter to return to the menu...${white}" && read -r _
+          fi
+        fi;;
+      29)
+        if [ -d "$OCTOAPP_COMPANION_FOLDER" ]; then
+          error_msg "OctoApp Companion is already installed!"
+        elif [ ! -d "$MOONRAKER_FOLDER" ]; then
+          error_msg "Moonraker and Nginx are needed, please install them first!"
+        elif [ ! -d "$FLUIDD_FOLDER" ] && [ ! -d "$MAINSAIL_FOLDER" ]; then
+          error_msg "Fluidd or Mainsail is needed, please install one of them first!"
+        elif [ ! -f "$ENTWARE_FILE" ]; then
+          error_msg "Entware is needed, please install it first!"
+        else
+          run "install_octoapp_companion" "install_menu_ui_k1_2025_cfs_c"
+        fi;;
+      30)
+        if grep -q "\[simplyprint\]" "$MOONRAKER_CFG"; then
+          error_msg "SimplyPrint is already installed!"
+        elif [ ! -d "$MOONRAKER_FOLDER" ]; then
+          error_msg "Moonraker and Nginx are needed, please install them first!"
+        elif [ ! -d "$FLUIDD_FOLDER" ] && [ ! -d "$MAINSAIL_FOLDER" ]; then
+          error_msg "Fluidd or Mainsail is needed, please install one of them first!"
+        else
+          run "install_simplyprint" "install_menu_ui_k1_2025_cfs_c"
+        fi;;
       B|b)
         clear; main_menu; break;;
       Q|q)
-         clear; exit 0;;
+        clear; exit 0;;
       *)
         error_msg "Please select a correct choice!";;
     esac

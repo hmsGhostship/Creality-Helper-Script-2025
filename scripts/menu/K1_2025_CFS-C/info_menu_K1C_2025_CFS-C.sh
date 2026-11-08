@@ -120,14 +120,14 @@ function check_content_k1_2025() {
 }
 
 function check_camera_capabilities_k1_2025() {
-  # 1. Wir prüfen im RAM, welcher mjpg_streamer-Port aktiv atmet
+  # 1. Check in the RAM which mjpg_streamer port is actively running
   if ps -w | grep '[m]jpg_streamer' | grep -q "video2"; then
     return 0 # USB-Fix läuft aktiv
   elif ps -w | grep '[m]jpg_streamer' | grep -q "video0"; then
     return 0 # Chassis-Fix läuft aktiv
   fi
 
-  # 2. Fallback: Wenn kein Fix läuft, machen wir den schnellen Hardware-Scan
+  # 2. Fallback: If no fix works, we’ll perform a quick hardware scan
   local i
   for i in 0 2; do
     if [ -e "/dev/video$i" ]; then
@@ -140,18 +140,17 @@ function check_camera_capabilities_k1_2025() {
 }
 
 function check_camera_settings_hardware_ui() {
-  # Gibt NUR das reine Statussymbol für info_line aus!
+  # Outputs ONLY the pure status symbol for info_line!
   if ps -w | grep '[m]jpg_streamer' | grep -qE "video0|video2"; then
     echo -e "${green}✓" # Fix läuft reell im RAM
   else
     if check_camera_capabilities_k1_2025; then
-      echo -e "${yellow}~" # Kein Fix aktiv, aber Hardware ist bereit (Stock)
+      echo -e "${yellow}~" 
     else
-      echo -e "${red}✗" # Keine steuerbare Hardware gefunden
+      echo -e "${red}✗"
     fi
   fi
 }
-
 
 function check_nexusp_retired_k1_2025() {
   if nexusp_absent; then
@@ -217,23 +216,19 @@ function info_menu_ui_k1_2025_cfs_c() {
   hr
   subtitle '•CAMERA:'
   info_line "$(check_file_k1_2025 "$CAMERA_SETTINGS_FILE")" 'Camera Settings Control Module'
-  
-  # NEUE, MULTI-KAMERA LIVE-AUSWERTUNG:
+  # NEW, MULTI-CAMERA LIVE ANALYSIS:
   local cam_text="Hardware Register Capability"
   local usb_status=""
   local chassis_status=""
-
-  # 1. Prüfe USB-Laufzeit
+  # 1. Check USB camera runtime
   if ps -w | grep '[m]jpg_streamer' | grep -q "video2" && v4l2-ctl -d /dev/video2 --list-ctrls 2>/dev/null | grep -q "brightness"; then
     usb_status="USB"
   fi
-
-  # 2. Prüfe Chassis-Laufzeit
+  # 2. Check chassis camera runtime
   if ps -w | grep '[m]jpg_streamer' | grep -q "video0" && v4l2-ctl -d /dev/video0 --list-ctrls 2>/dev/null | grep -q "brightness"; then
     chassis_status="Chassis"
   fi
-
-  # 3. Text dynamisch zusammenbauen je nach Kombination
+  # 3. Dynamically assemble text based on the combination
   if [ -n "$usb_status" ] && [ -n "$chassis_status" ]; then
     cam_text="Hardware Register Capability (Active: USB & Chassis)"
   elif [ -n "$usb_status" ]; then

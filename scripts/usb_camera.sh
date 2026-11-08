@@ -31,11 +31,9 @@ function sync_timelapse_snapshot_url_k1_2025() {
 
   echo -e "Info: Syncing Timelapse snapshot URL with current camera topology..."
   
-  # Wir prüfen zuerst, ob die Sektion [timelapse] überhaupt existiert
   if grep -q "^\[timelapse\]" "$MOONRAKER_CFG"; then
     local target_url=""
     
-    # 1. Bestimme die korrekte URL basierend auf der Hardware-Existenz
     if [ -f "$USB_CAMERA_FILE" ] || [ -f "$USB_CAMERA_LEGACY_FILE" ]; then
       echo -e " -> USB Camera verified. Target routing: Port 8082..."
       target_url="http://localhost:8082/?action=snapshot"
@@ -44,17 +42,13 @@ function sync_timelapse_snapshot_url_k1_2025() {
       target_url="http://localhost:8080/?action=snapshot"
     fi
 
-    # 2. Prüfen, ob bereits eine snapshoturl-Zeile im Timelapse-Block existiert
     if sed -n '/^\[timelapse\]/,/^\[/p' "$MOONRAKER_CFG" | grep -q "^snapshoturl:"; then
-      # Falls vorhanden, ersetzen wir sie unbestechlich genau am Platz, ohne die Struktur zu verschieben!
       sed -i '/^\[timelapse\]/,/^\[/ s|^snapshoturl:.*|snapshoturl: '"$target_url"'|' "$MOONRAKER_CFG"
     else
-      # Falls sie komplett fehlt, fügen wir sie sauber direkt unter dem Header ein
       sed -i '/^\[timelapse\]/a snapshoturl: '"$target_url"'' "$MOONRAKER_CFG"
     fi
   fi
 }
-
 
 function configure_usb_camera_k1_2025(){
   local usb_dev
@@ -215,16 +209,16 @@ function install_usb_camera(){
         sync_timelapse_snapshot_url_k1_2025
         if [ -f "/usr/data/printer_data/config/Helper-Script/camera-settings.cfg" ]; then
           echo -e "Info: Activating USB flag (video2) in camera-settings.cfg..."
-          sed -i 's/variable_has_video2:[[:space:]]*False/variable_has_video2: True/g' "/usr/data/printer_data/config/Helper-Script/camera-settings.cfg"
+          sed -i 's/variable_has_video2.*/variable_has_video2: True/g' "/usr/data/printer_data/config/Helper-Script/camera-settings.cfg"
         fi
         # ====================================================================
 
-        if [ -f "$INITD_FOLDER"/S56moonraker_service ]; then
-          stop_moonraker
-          start_moonraker
-        fi
         echo -e "Info: Starting service..."
         "$USB_CAMERA_FILE" start
+        
+        # ZENTRALER FIRMWARE RESTART TRIGERÜBERGABE FÜR SYNCHRONISIERUNG:
+        trigger_klipper_firmware_restart
+        
         ok_msg "USB Camera Support has been installed successfully!"
         return;;
       N|n)
@@ -270,16 +264,16 @@ function install_builtin_camera(){
         sync_timelapse_snapshot_url_k1_2025
         if [ -f "/usr/data/printer_data/config/Helper-Script/camera-settings.cfg" ]; then
           echo -e "Info: Activating Chassis flag (video0) in camera-settings.cfg..."
-          sed -i 's/variable_has_video0:[[:space:]]*False/variable_has_video0: True/g' "/usr/data/printer_data/config/Helper-Script/camera-settings.cfg"
+          sed -i 's/variable_has_video0.*/variable_has_video0: True/g' "/usr/data/printer_data/config/Helper-Script/camera-settings.cfg"
         fi
         # ====================================================================
         
-        if [ -f "$INITD_FOLDER"/S56moonraker_service ]; then
-          stop_moonraker
-          start_moonraker
-        fi
         echo -e "Info: Starting service..."
         "$BUILTIN_CAMERA_FILE" start
+        
+        # ZENTRALER FIRMWARE RESTART TRIGERÜBERGABE FÜR SYNCHRONISIERUNG:
+        trigger_klipper_firmware_restart
+        
         ok_msg "Built-in Camera Fix has been installed successfully!"
         return;;
       N|n)
@@ -338,14 +332,13 @@ function remove_builtin_camera(){
         sync_timelapse_snapshot_url_k1_2025
         if [ -f "/usr/data/printer_data/config/Helper-Script/camera-settings.cfg" ]; then
           echo -e "Info: Deactivating Chassis flag (video0) in camera-settings.cfg..."
-          sed -i 's/variable_has_video0:[[:space:]]*True/variable_has_video0: False/g' "/usr/data/printer_data/config/Helper-Script/camera-settings.cfg"
+          sed -i 's/variable_has_video0.*/variable_has_video0: False/g' "/usr/data/printer_data/config/Helper-Script/camera-settings.cfg"
         fi
         # ====================================================================
 
-        if [ -f "$INITD_FOLDER"/S56moonraker_service ]; then
-          stop_moonraker
-          start_moonraker
-        fi
+        # ZENTRALER FIRMWARE RESTART TRIGERÜBERGABE FÜR SYNCHRONISIERUNG:
+        trigger_klipper_firmware_restart
+
         ok_msg "Built-in Camera Fix has been removed successfully!"
         return;;
       N|n)
@@ -370,36 +363,28 @@ function remove_usb_camera(){
         [ -f "$USB_CAMERA_FILE" ] && "$USB_CAMERA_FILE" stop
         [ -f "$USB_CAMERA_LEGACY_FILE" ] && "$USB_CAMERA_LEGACY_FILE" stop
         set -e
-        
-        # HIER DAS rm -f ENTFERNEN! Die Dateien müssen für Moonraker noch existieren!
 
         if { [ "$model" = "K1_2025" ] || [ "$model" = "K1_2025_CFS-C" ]; } && [ -f "$MOONRAKER_CFG" ]; then
           echo -e "Info: Removing USB Camera configurations in moonraker.conf file..."
           sed -i '/^\[webcam usb\]/,/^$/d' "$MOONRAKER_CFG"
         fi
-        
+
         echo -e "Info: Removing packages..."
         set +e
         if { [ "$model" != "K1_2025" ] && [ "$model" != "K1_2025_CFS-C" ]; } || { [ ! -f "$BUILTIN_CAMERA_FILE" ] && [ ! -f "$BUILTIN_CAMERA_LEGACY_FILE" ]; }; then
           "$ENTWARE_FILE" --autoremove remove mjpg-streamer-www mjpg-streamer-output-http mjpg-streamer-input-uvc mjpg-streamer-input-http mjpg-streamer
         fi
         set -e
-        
+
         # ====================================================================
         # AUTOMATISCHE RUNTIME-SYNC: PORT RETTEN & MAKRO-FLAGS DEAKTIVIEREN
         # ====================================================================
         sync_timelapse_snapshot_url_k1_2025
         if [ -f "/usr/data/printer_data/config/Helper-Script/camera-settings.cfg" ]; then
           echo -e "Info: Deactivating USB flag (video2) in camera-settings.cfg..."
-          sed -i 's/variable_has_video2:[[:space:]]*True/variable_has_video2: False/g' "/usr/data/printer_data/config/Helper-Script/camera-settings.cfg"
+          sed -i 's/variable_has_video2.*/variable_has_video2: False/g' "/usr/data/printer_data/config/Helper-Script/camera-settings.cfg"
         fi
         # ====================================================================
-
-        # Moonraker stoppt jetzt sauber, weil die Datei auf der Platte noch da ist!
-        if [ -f "$INITD_FOLDER"/S56moonraker_service ]; then
-          stop_moonraker
-          start_moonraker
-        fi
 
         # ====================================================================
         # ERST JETZT GANZ AM ENDE WERDEN DIE DATEIEN RESTLOS GELÖSCHT!
@@ -408,6 +393,9 @@ function remove_usb_camera(){
         rm -f "$USB_CAMERA_FILE"
         rm -f "$USB_CAMERA_LEGACY_FILE"
         # ====================================================================
+
+        # ZENTRALER FIRMWARE RESTART TRIGERÜBERGABE FÜR SYNCHRONISIERUNG:
+        trigger_klipper_firmware_restart
 
         ok_msg "USB Camera Support has been removed successfully!"
         echo -e "   Please reboot your printer by using power switch on back!"

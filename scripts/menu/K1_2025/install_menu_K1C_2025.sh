@@ -21,7 +21,12 @@ function install_menu_ui_k1_2025() {
   menu_option ' 6' 'Install' 'Go2rtc'
   menu_option ' 7' 'Install' 'USB Camera Support'
   menu_option ' 8' 'Install' 'Built-in Camera Fix'
+  if check_camera_capabilities_k1_2025; then
   menu_option ' 9' 'Install' 'Camera Settings Control'
+    else
+    echo -e " 9) ${darkgrey}Install Camera Settings Control${white}"
+    echo -e "     ${red}└─ DISABLED: No compatible hardware found${white}"
+  fi
   menu_option '10' 'Install' 'Moonraker Timelapse'
   hr
   subtitle '•IMPROVEMENTS:'
@@ -46,7 +51,13 @@ function install_menu_ui_k1_2025() {
   subtitle '•REMOTE ACCESS:'
 # menu_option '25' 'Install' 'OctoEverywhere'
   menu_option '26' 'Install' 'Moonraker Obico'
-# menu_option '27' 'Install' 'GuppyFLO'
+  if [ -d "$MOONRAKER_OBICO_FOLDER" ] && [ -f "$KLIPPER_CONFIG_FOLDER/moonraker-obico.cfg" ]; then
+   menu_option '26a' 'Repair' 'Moonraker Obico [Link Code neu generieren]'
+  else
+   echo -e " 26a) ${darkgrey}Repair Moonraker Obico${white}"
+   echo -e "      ${red}└─ DISABLED: Module must be installed first${white}"
+  fi
+  menu_option '27' 'Install' 'GuppyFLO'
   menu_option '28' 'Install' 'Mobileraker Companion'
 # menu_option '29' 'Install' 'OctoApp Companion'
 # menu_option '30' 'Install' 'SimplyPrint'
@@ -325,6 +336,16 @@ function install_menu_k1_2025() {
           error_msg "Entware is needed, please install it first!"
         else
           run "install_moonraker_obico" "install_menu_ui_k1_2025"
+        fi;;
+      26a|26A)
+        clear
+        if [ -d "$MOONRAKER_OBICO_FOLDER" ] && [ -f "$KLIPPER_CONFIG_FOLDER/moonraker-obico.cfg" ]; then
+          run "repair_pairing_moonraker_obico" "install_menu_ui_k1_2025_cfs_c"
+        else
+          install_menu_ui_k1_2025_cfs_c
+          echo
+          error_msg "RE-PAIRING SPERRE: Moonraker Obico ist aktuell nicht installiert!"
+          echo
         fi;;
       27)
         if [ ! -d "$MOONRAKER_FOLDER" ] && [ ! -d "$NGINX_FOLDER" ]; then

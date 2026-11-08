@@ -21,7 +21,12 @@ function remove_menu_ui_k1_2025() {
   menu_option ' 6' 'Remove' 'Go2rtc'
   menu_option ' 7' 'Remove' 'USB Camera Support'
   menu_option ' 8' 'Remove' 'Built-in Camera Fix'
+  if check_camera_capabilities_k1_2025; then
   menu_option ' 9' 'Remove' 'Camera Settings Control'
+    else
+    echo -e " 9) ${darkgrey}Remove Camera Settings Control${white}"
+    echo -e "     ${red}└─ DISABLED: No compatible hardware found${white}"
+  fi
   menu_option '10' 'Remove' 'Moonraker Timelapse'
   hr
   subtitle '•IMPROVEMENTS:'
@@ -46,7 +51,7 @@ function remove_menu_ui_k1_2025() {
   subtitle '•REMOTE ACCESS:'
 # menu_option '25' 'Remove' 'OctoEverywhere'
   menu_option '26' 'Remove' 'Moonraker Obico'
-# menu_option '27' 'Remove' 'GuppyFLO'
+  menu_option '27' 'Remove' 'GuppyFLO'
   menu_option '28' 'Remove' 'Mobileraker Companion'
 # menu_option '29' 'Remove' 'OctoApp Companion'
 # menu_option '30' 'Remove' 'SimplyPrint'
