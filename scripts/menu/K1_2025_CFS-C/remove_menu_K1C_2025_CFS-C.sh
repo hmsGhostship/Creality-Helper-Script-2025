@@ -201,15 +201,14 @@ function remove_menu_k1_2025_cfs_c() {
         ;;
       14)
         clear
-        if [ ! -f "$HS_BACKUP_FOLDER/box_control.pyc.orig" ]; then
+        if ! grep -q -a -b -o "E-10 F120" "${KLIPPER_EXTRAS_FOLDER}/box_control.pyc" 2>/dev/null; then
           remove_menu_ui_k1_2025_cfs_c
           echo
-          error_msg "CFS-C Universal Purge Speed Fix is not installed!"
+          error_msg "CFS-C Universal Purge Speed Fix is not active in bytecode!"
           echo
         else
           run "remove_cfs_c_speed_fix" "remove_menu_ui_k1_2025_cfs_c"
-        fi
-        ;;
+        fi;;
       15)
         clear
         # We check the actual file content: If it does NOT contain 50, it is not installed
