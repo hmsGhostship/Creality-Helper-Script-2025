@@ -7,9 +7,9 @@ function simplyprint_message(){
   title 'SimplyPrint' "${yellow}"
   inner_line
   hr
-  echo -e " │ ${cyan}SimplyPrint allows you to start those prints that you just   ${white}│"
-  echo -e " │ ${cyan}need to be done sooner rather than later. You can send print ${white}│"
-  echo -e " │ ${cyan}jobs to your printer from anywhere in the world.             ${white}│"
+  echo -e " │ ${cyan}SimplyPrint allows you to start those prints that you just     ${white}│"
+  echo -e " │ ${cyan}need to be done sooner rather than later. You can send print   ${white}│"
+  echo -e " │ ${cyan}jobs to your printer from anywhere in the world.               ${white}│"
   hr
   bottom_line
 }

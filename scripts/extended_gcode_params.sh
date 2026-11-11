@@ -7,10 +7,10 @@ function extended_gcode_params_message(){
   title 'Extended Gcode Params' "${yellow}"
   inner_line
   hr
-  echo -e " │ ${cyan}Klipper's extended g-code parser treats '#', ';' and '*' as  ${white}│"
-  echo -e " │ ${cyan}comment characters even inside quotes, so a gcode file with  ${white}│"
-  echo -e " │ ${cyan}one in its name cannot be printed from the web interface.    ${white}│"
-  echo -e " │ ${cyan}This installs upstream's fixed parser (Klipper PR #6749).    ${white}│"
+  echo -e " │ ${cyan}Klipper's extended g-code parser treats '#', ';' and '*' as    ${white}│"
+  echo -e " │ ${cyan}comment characters even inside quotes, so a gcode file with    ${white}│"
+  echo -e " │ ${cyan}one in its name cannot be printed from the web interface.      ${white}│"
+  echo -e " │ ${cyan}This installs upstream's fixed parser (Klipper PR #6749).      ${white}│"
   hr
   bottom_line
 }

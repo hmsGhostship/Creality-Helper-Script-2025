@@ -2,18 +2,22 @@
 
 set -e
 
-function improved_shapers_message(){
+# Global C13 path variables are dynamically loaded from your central paths.sh
+# No redundant definitions needed here.
+
+improved_shapers_message(){
   top_line
-  title 'Improved Shapers Calibrations' "${yellow}"
+  title 'Improved Shapers Calibrations (C13 Edition)' "${yellow}"
   inner_line
   hr
-  echo -e " │ ${cyan}It allows to calibrate Input Shaper, Belts Tension and       ${white}│"
-  echo -e " │ ${cyan}generate Graphs.                                             ${white}│"
+  echo -e " │ ${cyan}Installs advanced Shaper configurations into User-Space.       ${white}│"
+  echo -e " │ ${cyan}Allows to test Belt Tension, separate X/Y resonances,          ${white}│"
+  echo -e " │ ${cyan}and generate CSV tables natively on the C13 platform.          ${white}│"
   hr
   bottom_line
 }
 
-function install_improved_shapers(){
+install_improved_shapers(){
   improved_shapers_message
   local yn
   while true; do
@@ -21,57 +25,50 @@ function install_improved_shapers(){
     case "${yn}" in
       Y|y)
         echo -e "${white}"
-        echo -e "Info: Backing up original file..."
-        if [ ! -d "$HS_BACKUP_FOLDER"/improved-shapers ]; then
-          mkdir -p "$HS_BACKUP_FOLDER"/improved-shapers
+        
+        # 1. VALIDATION: Check if required Klipper files exist on the C13 platform
+        if [ ! -f "$PRINTER_CFG" ]; then
+            error_msg "Error: printer.cfg was not found!"
+            break
         fi
-        if [ ! -f "$HS_BACKUP_FOLDER"/ft2font.cpython-38-mipsel-linux-gnu.so ]; then
-          mv /usr/lib/python3.8/site-packages/matplotlib/ft2font.cpython-38-mipsel-linux-gnu.so "$HS_BACKUP_FOLDER"/improved-shapers
-        fi
-        echo -e "Info: Copying files locally..."
-        local source_dir="$HS_FILES/improved-shapers"
-        
-        cp -f "$source_dir/calibrate_shaper_config.py" "$KLIPPER_EXTRAS_FOLDER"/calibrate_shaper_config.py
-        
-        if [ ! -d "/usr/lib/python3.8/site-packages/matplotlib-2.2.3-py3.8.egg-info" ]; then
-          echo -e "Info: matplotlib ft2font module is not replaced. PSD graphs might not work..."
-        else
-          echo -e "Info: Replacing matplotlib ft2font module to generate PSD graphs..."
-          cp -f "$source_dir/ft2font.cpython-38-mipsel-linux-gnu.so" /usr/lib/python3.8/site-packages/matplotlib/ft2font.cpython-38-mipsel-linux-gnu.so
-        fi
-        
-        rm -rf "$HS_CONFIG_FOLDER"/improved-shapers
-        mkdir -p "$HS_CONFIG_FOLDER"/improved-shapers/scripts
-        
-        cp -f "$source_dir"/scripts/*.py "$HS_CONFIG_FOLDER"/improved-shapers/scripts/
-        cp -f "$source_dir"/improved-shapers.cfg "$HS_CONFIG_FOLDER"/improved-shapers/improved-shapers.cfg
 
-        if grep -q 'variable_autotune_shapers:' "$MACROS_CFG" ; then
-          echo -e "Info: Disabling [gcode_macro AUTOTUNE_SHAPERS] configurations in gcode_macro.cfg file..."
+        echo -e "Info: Creating writeable configuration folders in User-Space..."
+        # Utilizing your global variables from central paths.sh
+        mkdir -p "$IMP_SHAPERS_FOLDER"/scripts
+        
+        # 2. FILE OPERATIONS: Copy macros and mathematical python scripts (NO system .so files!)
+        echo -e "Info: Copying macro files locally..."
+        cp -f "$IMP_SHAPERS_URL"/scripts/*.py "$IMP_SHAPERS_FOLDER"/scripts/ 2>/dev/null || true
+        cp -f "$IMP_SHAPERS_URL"/improved-shapers.cfg "$IMP_SHAPERS_FOLDER"/improved-shapers.cfg
+
+        # 3. STOCK MACRO DEACTIVATION: Comment out Creality's limited factory autotune macro
+        if grep -q 'variable_autotune_shapers:' "$MACROS_CFG" 2>/dev/null; then
+          echo -e "Info: Disabling factory AUTOTUNE_SHAPERS configuration..."
           sed -i 's/variable_autotune_shapers:/#&/' "$MACROS_CFG"
-        else
-          echo -e "Info: [gcode_macro AUTOTUNE_SHAPERS] configurations are already disabled in gcode_macro.cfg file..."
         fi
-        if [ "$model" = "K1" ]; then
-          if grep -q '\[gcode_macro INPUTSHAPER\]' "$MACROS_CFG" ; then
-            echo -e "Info: Replacing [gcode_macro INPUTSHAPER] configurations in gcode_macro.cfg file..."
-            sed -i 's/SHAPER_CALIBRATE AXIS=y/SHAPER_CALIBRATE/' "$MACROS_CFG"
-          else
-            echo -e "Info: [gcode_macro INPUTSHAPER] configurations are already replaced in gcode_macro.cfg file..."
-          fi
-        fi
-        if grep -q "include Helper-Script/improved-shapers/improved-shapers" "$PRINTER_CFG" ; then
-          echo -e "Info: Improved Shapers Calibration configurations are already enabled in printer.cfg file..."
+
+        # 4. ENFORCE INDEPENDENT X/Y CALIBRATION: Vital for your modified DXC printhead weight
+        # We append the [resonance_tester] block safely to our own configuration file
+        if grep -q "axis_x_use_y" "$IMP_SHAPERS_FOLDER/improved-shapers.cfg" 2>/dev/null; then
+          echo -e "Info: Independent X/Y calibration is already configured in improved-shapers.cfg."
         else
-          echo -e "Info: Adding Improved Shapers Calibration configurations in printer.cfg file..."
+          echo -e "Info: Adding independent X/Y tuning under [resonance_tester] in improved-shapers.cfg..."
+          echo -e "\n[resonance_tester]\naxis_x_use_y: false" >> "$IMP_SHAPERS_FOLDER/improved-shapers.cfg"
+        fi
+
+        # 5. INJECT CONFIGURATION INCLUDE INTO PRINTER.CFG
+        if grep -q "improved-shapers.cfg" "$PRINTER_CFG" ; then
+          echo -e "Info: Include configuration is already present in printer.cfg."
+        else
+          echo -e "Info: Adding Improved Shapers include configuration to printer.cfg..."
           sed -i '/\[include printer_params\.cfg\]/a \[include Helper-Script/improved-shapers/improved-shapers\.cfg\]' "$PRINTER_CFG"
         fi
-        echo -e "Info: Restarting Moonraker service..."
-        stop_moonraker
-        start_moonraker
+        
+        # 6. SERVICE RESTART: Safely cycle Klipper using C13 framework commands
         echo -e "Info: Restarting Klipper service..."
         restart_klipper
-        ok_msg "Improved Shapers Calibrations have been installed successfully!"
+        
+        ok_msg "Improved Shapers (C13 Edition) has been installed successfully!"
         return;;
       N|n)
         error_msg "Installation canceled!"
@@ -82,7 +79,7 @@ function install_improved_shapers(){
   done
 }
 
-function remove_improved_shapers(){
+remove_improved_shapers(){
   improved_shapers_message
   local yn
   while true; do
@@ -91,57 +88,26 @@ function remove_improved_shapers(){
       Y|y)
         echo -e "${white}"
         
-        # 1. Das Original-Systemmodul wiederherstellen, falls Backup existiert
-        if [ -f "$HS_BACKUP_FOLDER"/improved-shapers/ft2font.cpython-38-mipsel-linux-gnu.so ]; then
-          echo -e "Info: Restoring original file..."
-          mv "$HS_BACKUP_FOLDER"/improved-shapers/ft2font.cpython-38-mipsel-linux-gnu.so /usr/lib/python3.8/site-packages/matplotlib
-          rm -rf "$HS_BACKUP_FOLDER"/improved-shapers
-        fi
+        echo -e "Info: Removing Shaper configuration files..."
+        rm -rf "$IMP_SHAPERS_FOLDER"
         
-        if [ -d "$HS_BACKUP_FOLDER" ] && [ ! -n "$(ls -A "$HS_BACKUP_FOLDER")" ]; then
-          rm -rf "$HS_BACKUP_FOLDER"
-        fi
-        
-        # 2. FIX: Gezielt nur den Shaper-Ordner loeschen! (Schuetzt deine restlichen Makros!)
-        echo -e "Info: Removing Shaper files..."
-        rm -rf "$HS_CONFIG_FOLDER"/improved-shapers
-        
-        # Klipper-Dateien loeschen
-        rm -f "$KLIPPER_EXTRAS_FOLDER"/calibrate_shaper_config.py
-        rm -f "$KLIPPER_EXTRAS_FOLDER"/calibrate_shaper_config.pyc
-        
-        # 3. Klipper-Makro Konfigurationen in gcode_macro.cfg restaurieren
-        if grep -q "#variable_autotune_shapers:" "$MACROS_CFG"; then
-          echo -e "Info: Restoring [gcode_macro AUTOTUNE_SHAPERS] configurations in gcode_macro.cfg file..."
+        # 1. Restore factory Autotune macros
+        if grep -q "#variable_autotune_shapers:" "$MACROS_CFG" 2>/dev/null; then
+          echo -e "Info: Restoring original factory AUTOTUNE_SHAPERS configuration..."
           sed -i 's/#variable_autotune_shapers:/variable_autotune_shapers:/' "$MACROS_CFG"
-        else
-          echo -e "Info: [gcode_macro AUTOTUNE_SHAPERS] configurations are already restored in gcode_macro.cfg file..."
         fi
         
-        if [ "$model" = "K1" ]; then
-          if grep -q '\[gcode_macro INPUTSHAPER\]' "$MACROS_CFG" ; then
-            echo -e "Info: Restoring [gcode_macro INPUTSHAPER] configurations in gcode_macro.cfg file..."
-            sed -i 's/SHAPER_CALIBRATE/SHAPER_CALIBRATE AXIS=y/' "$MACROS_CFG"
-          else
-            echo -e "Info: [gcode_macro INPUTSHAPER] configurations are already restored in gcode_macro.cfg file..."
-          fi
+        # 2. Clean up the include line from printer.cfg
+        if grep -q "improved-shapers.cfg" "$PRINTER_CFG" ; then
+          echo -e "Info: Removing include statement from printer.cfg..."
+          sed -i '/improved-shapers\.cfg/d' "$PRINTER_CFG"
         fi
         
-        # 4. Include aus printer.cfg saubermachen
-        if grep -q "include Helper-Script/improved-shapers/improved-shapers" "$PRINTER_CFG" ; then
-          echo -e "Info: Removing Improved Shapers Calibrations in printer.cfg file..."
-          sed -i '/include Helper-Script\/improved-shapers\/improved-shapers\.cfg/d' "$PRINTER_CFG"
-        else
-          echo -e "Info: Improved Shapers Calibrations are already removed in printer.cfg file..."
-        fi
-        
-        # 5. Dienste neu starten
-        echo -e "Info: Restarting Moonraker service..."
-        stop_moonraker
-        start_moonraker
+        # 3. Service cycle to apply final removal
         echo -e "Info: Restarting Klipper service..."
         restart_klipper
-        ok_msg "Improved Shapers Calibrations have been removed successfully!"
+        
+        ok_msg "Improved Shapers (C13 Edition) has been removed successfully!"
         return;;
       N|n)
         error_msg "Deletion canceled!"

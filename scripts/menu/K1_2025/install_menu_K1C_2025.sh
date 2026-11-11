@@ -30,7 +30,7 @@ function install_menu_ui_k1_2025() {
   menu_option '10' 'Install' 'Moonraker Timelapse'
   hr
   subtitle '•IMPROVEMENTS:'
-  menu_option '11' 'Install' 'Restore Input Shapers'
+# menu_option '11' 'Install' 'Restore Input Shapers'
   menu_option '12' 'Install' 'Extended Gcode Params'
   menu_option '13' 'Install' 'DXC Filament Sensor'
 # menu_option '14' 'Install' 'CFS-C Universal Purge Speed Fix'
@@ -60,7 +60,7 @@ function install_menu_ui_k1_2025() {
   menu_option '27' 'Install' 'GuppyFLO'
   menu_option '28' 'Install' 'Mobileraker Companion'
 # menu_option '29' 'Install' 'OctoApp Companion'
-# menu_option '30' 'Install' 'SimplyPrint'
+  menu_option '30' 'Install' 'SimplyPrint'
   hr
   inner_line
   hr
@@ -210,13 +210,14 @@ function install_menu_k1_2025() {
         fi;;
       15)
         clear
-        if [ -f "$HS_BACKUP_FOLDER/box.cfg.orig" ]; then
-          install_menu_ui_k1_2025
+        # LIVE-CHECK: Verify the active value of 40 directly within the menu, based on the actual box.cfg file.
+        if grep -q "extrude_length:[[:space:]]*40" "$BOX_CFG" 2>/dev/null; then
+          install_menu_ui_k1_2025_cfs_c
           echo
-          error_msg "Micro-Swiss FlowTech Volumetric Extension is already installed!"
+          error_msg "Micro-Swiss FlowTech Volumetric Extension is already active!"
           echo
         else
-          run "install_cfs_c_flowtech_extension" "install_menu_ui_k1_2025"
+          run "install_cfs_c_flowtech_extension" "install_menu_ui_k1_2025_cfs_c"
         fi;;
       16)
         clear
@@ -298,13 +299,20 @@ function install_menu_k1_2025() {
           run "install_nozzle_cleaning_fan_control" "install_menu_ui_k1_2025"
         fi;;
       23)
+        clear
+        # C13-Check: Nutzt deine globale Variable aus der paths.sh
         if [ -d "$IMP_SHAPERS_FOLDER" ]; then
-          error_msg "Improved Shapers Calibrations are already installed!"
+          install_menu_ui_k1_2025
+          echo
+          error_msg "Improved Shapers Calibrations (C13 Edition) are already installed!"
+          echo
         elif [ -d "$GUPPY_SCREEN_FOLDER" ]; then
+          install_menu_ui_k1_2025
+          echo
           error_msg "Guppy Screen already has these features!"
-        elif [ ! -f "$KLIPPER_SHELL_FILE" ]; then
-          error_msg "Klipper Gcode Shell Command is needed, please install it first!"
+          echo
         else
+          # Startet die bereinigte, schreibfeste C13-Installationsroutine
           run "install_improved_shapers" "install_menu_ui_k1_2025"
         fi;;
       24)

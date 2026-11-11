@@ -12,7 +12,7 @@ function customize_menu_ui_k1_2025_cfs_c() {
   hr
   menu_option '2' 'Install' 'Block Creality Cloud Telemetry'
   menu_option '3' 'Remove' 'Block Creality Cloud Telemetry'
-#  menu_option '4' 'Disable' 'Creality Stock Services'
+  menu_option '4' 'Disable' 'Creality Stock Services'
   menu_option '5' 'Restore' 'Creality Stock Services'
   hr
 #  menu_option '6' 'Retire' 'Nexusp Backend'

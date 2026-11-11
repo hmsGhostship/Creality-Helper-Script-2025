@@ -30,7 +30,7 @@ function remove_menu_ui_k1_2025() {
   menu_option '10' 'Remove' 'Moonraker Timelapse'
   hr
   subtitle '•IMPROVEMENTS:'
-  menu_option '11' 'Remove' 'Restore Input Shapers'
+# menu_option '11' 'Remove' 'Restore Input Shapers'
   menu_option '12' 'Remove' 'Extended Gcode Params'
   menu_option '13' 'Remove' 'DXC Filament Sensor'
 # menu_option '14' 'Remove' 'CFS-C Universal Purge Speed Fix'
@@ -45,7 +45,7 @@ function remove_menu_ui_k1_2025() {
 # menu_option '21' 'Remove' 'Fans Control Macros'
 # menu_option '22' 'Remove' 'Nozzle Cleaning Fan Control'
 # menu_option '23' 'Remove' 'Improved Shapers Calibrations'
-# menu_option '24' 'Remove' 'M600 Support'
+#  menu_option '24' 'Remove' 'M600 Support'
   fi
   hr
   subtitle '•REMOTE ACCESS:'
@@ -54,7 +54,7 @@ function remove_menu_ui_k1_2025() {
   menu_option '27' 'Remove' 'GuppyFLO'
   menu_option '28' 'Remove' 'Mobileraker Companion'
 # menu_option '29' 'Remove' 'OctoApp Companion'
-# menu_option '30' 'Remove' 'SimplyPrint'
+  menu_option '30' 'Remove' 'SimplyPrint'
   hr
   inner_line
   hr
@@ -212,15 +212,15 @@ function remove_menu_k1_2025() {
         fi;;
       15)
         clear
-        if [ ! -f "$HS_BACKUP_FOLDER/box.cfg.orig" ]; then
-          remove_menu_ui_k1_2025
+        # LIVE-CHECK: If 40 is not active, the menu blocks removal
+        if ! grep -q "extrude_length:[[:space:]]*40" "$BOX_CFG" 2>/dev/null; then
+          remove_menu_ui_k1_2025_cfs_c
           echo
-          error_msg "Micro-Swiss FlowTech Volumetric Extension is not installed!"
+          error_msg "Micro-Swiss FlowTech Volumetric Extension is not active!"
           echo
         else
-          run "remove_cfs_c_flowtech_extension" "remove_menu_ui_k1_2025"
-        fi
-        ;;
+          run "remove_cfs_c_flowtech_extension" "remove_menu_ui_k1_2025_cfs_c"
+        fi;;
       16)
         clear
         # CHECK: Is the LLL Plus actually live and active?
@@ -282,8 +282,12 @@ function remove_menu_k1_2025() {
           run "remove_nozzle_cleaning_fan_control" "remove_menu_ui_k1_2025"
         fi;;
       23)
+        clear
         if [ ! -d "$IMP_SHAPERS_FOLDER" ]; then
-          error_msg "Improved Shapers Calibrations are not installed!"
+          remove_menu_ui_k1_2025
+          echo
+          error_msg "Improved Shapers Calibrations (C13 Edition) are not active!"
+          echo
         else
           run "remove_improved_shapers" "remove_menu_ui_k1_2025"
         fi;;
