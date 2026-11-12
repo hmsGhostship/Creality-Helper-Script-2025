@@ -28,7 +28,6 @@ function set_paths() {
   USR_SHARE="/usr/share"
   PRINTER_DATA_FOLDER="$USR_DATA/printer_data"
   PRINTER_CONFIG_FOLDER="$PRINTER_DATA_FOLDER/config"
-  KLIPPY_EXTRAS="${USR_SHARE}/klipper/klippy/extras"
 
   # Helper Script #
   HS_FILES="${HELPER_SCRIPT_FOLDER}/files"
@@ -40,9 +39,6 @@ function set_paths() {
   PRINTER_CFG="${PRINTER_DATA_FOLDER}/config/printer.cfg"
   MACROS_CFG="${PRINTER_DATA_FOLDER}/config/gcode_macro.cfg"
   BOX_CFG="${PRINTER_DATA_FOLDER}/config/box.cfg"
-  
-  # Klippy Extra Python Files # 
-  BOX_CONTROL="${KLIPPY_EXTRAS}/box_control.pyc"
   
   # Moonraker #
   MOONRAKER_FOLDER="${USR_DATA}/moonraker"
@@ -72,16 +68,13 @@ function set_paths() {
   SUDO_URL="${HS_FILES}/fixes/sudo"
   
   # Klipper #
-  KLIPPER_EXTRAS_FOLDER="/usr/share/klipper/klippy/extras"
+  KLIPPER_EXTRAS_FOLDER="${USR_SHARE}/klipper/klippy/extras"
+  KLIPPY_EXTRAS="${KLIPPER_EXTRAS_FOLDER}"
+  BOX_CONTROL="${KLIPPER_EXTRAS_FOLDER}/box_control.pyc"
   KLIPPER_CONFIG_FOLDER="${PRINTER_DATA_FOLDER}/config"
   KLIPPER_KLIPPY_FOLDER="/usr/share/klipper/klippy"
-  if [ "$model" = "K1_2025" ] || [ "$model" = "K1_2025_CFS-C" ]; then
-    KLIPPER_SERVICE_URL="${HS_FILES}/services/CS55klipper_service_minimal"
-	KLIPPER_SERVICE_DISABLED="${INITD_FOLDER}/disabled.C55klipper_service"
-  else
-    KLIPPER_SERVICE_URL="${HS_FILES}/services/S55klipper_service"
-	KLIPPER_SERVICE_DISABLED="${INITD_FOLDER}/disabled.S55klipper_service"
-  fi
+  KLIPPER_SERVICE_URL="${HS_FILES}/services/CS55klipper_service_minimal"
+  KLIPPER_SERVICE_DISABLED="${INITD_FOLDER}/disabled.CS55klipper_service"
   KLIPPER_GCODE_URL="${HS_FILES}/fixes/gcode.py"
   
   # Fluidd #
@@ -125,10 +118,6 @@ function set_paths() {
   FAN_CONTROLS_FILE="${HS_CONFIG_FOLDER}/fans-control.cfg"
   FAN_CONTROLS_URL="${HS_FILES}/macros/fans-control.cfg"
   
-  # Improved Shapers Calibrations #
-  IMP_SHAPERS_FOLDER="${HS_CONFIG_FOLDER}/improved-shapers"
-  IMP_SHAPERS_URL="${HS_FILES}/improved-shapers"
-
   # Restore Input Shapers (K1C 2025) #
   RESTORE_SHAPERS_URL="${HS_FILES}/restore-input-shapers/shaper_defs.py"
   SHAPER_DEFS_FILE="${KLIPPER_EXTRAS_FOLDER}/shaper_defs.py"
@@ -167,11 +156,7 @@ function set_paths() {
   #CAMERA_SETTINGS_XX_URL=""${HS_FILES}/camera-settings/xxxxx.cfg"
   
   # USB Camera Support
-  if [ "$model" = "K1_2025" ] || [ "$model" = "K1_2025_CFS-C" ]; then
-    USB_CAMERA_FILE="${INITD_FOLDER}/S58usb_camera"
-  else
-    USB_CAMERA_FILE="${INITD_FOLDER}/S50usb_camera"
-  fi
+  USB_CAMERA_FILE="${INITD_FOLDER}/S58usb_camera"
   USB_CAMERA_LEGACY_FILE="${INITD_FOLDER}/S50usb_camera"
   USB_CAMERA_SINGLE_URL="${HS_FILES}/services/S50usb_camera-single"
   USB_CAMERA_DUAL_URL="${HS_FILES}/services/S50usb_camera-dual"
@@ -202,18 +187,15 @@ function set_paths() {
   OCTOAPP_COMPANION_FOLDER="${USR_DATA}/octoapp"
   OCTOAPP_COMPANION_URL="https://github.com/crysxd/OctoApp-Plugin.git"
 
-  # Custom Boot Display #
-  BOOT_DISPLAY_FOLDER="/etc/boot-display"
-  BOOT_DISPLAY_FILE="${BOOT_DISPLAY_FOLDER}/part0/pic_100.jpg"
-  BOOT_DISPLAY_K1_URL="${HS_FILES}/boot-display/k1_boot_display.tar.gz"
-  BOOT_DISPLAY_K1M_URL="${HS_FILES}/boot-display/k1max_boot_display.tar.gz"
-  BOOT_DISPLAY_STOCK_URL="${HS_FILES}/boot-display/stock_boot_display.tar.gz"
-
   # Creality Stock Services (K1C 2025) #
   # INITD_FOLDER is already model-branched above; these files only exist on the
   # K1_2025, and the option using them is only reachable from its Customize menu.
   CREALITY_TELEMETRY_SERVICE="${INITD_FOLDER}/CS61alchemistp_service"
-  CREALITY_CLOUD_WEBRTC_SERVICE="${INITD_FOLDER}/CS58onyxp_service"
+  if [ -f "${INITD_FOLDER}/CS58onyxp_service" ] || [ -f "${INITD_FOLDER}/disabled.CS58onyxp_service" ]; then
+    CREALITY_CLOUD_WEBRTC_SERVICE="${INITD_FOLDER}/CS58onyxp_service"
+  else
+    CREALITY_CLOUD_WEBRTC_SERVICE="${INITD_FOLDER}/CS60onyxp_service"
+  fi
   CREALITY_LOCAL_WEBRTC_SERVICE="${INITD_FOLDER}/CS59thirteenthp"
   CREALITY_AI_SERVICE="${INITD_FOLDER}/CS57solusp_service"
   CREALITY_MDNS_SERVICE="${INITD_FOLDER}/CS99mdns"

@@ -2,26 +2,6 @@
 
 set -e
 
-# The K1C 2025 starts its stock daemons from /usr/apps/etc/init.d via /etc/init.d/rcK,
-# which iterates over "$(ls -r .../CS??*)". That glob still matches a ".disabled"
-# SUFFIX, so the suffix rename used for the /usr/bin binaries in
-# creality_web_interface.sh would be a silent no-op here - the daemon would simply
-# start again at the next boot. Every rename below therefore uses the "disabled."
-# PREFIX, matching what moonraker_nginx.sh already does for S56moonraker_service and
-# what tools_menu_K1C_2025.sh checks for the Klipper configuration lock.
-#
-# Services this option must never disable, whatever a later edit is tempted to add:
-#   klipper_service - Klipper itself.
-#   nexusp_service  - the touchscreen backend on :7125. Retiring it is possible,
-#                     but it needs a compatibility shim for two JSON-RPC methods
-#                     the screen calls and a print-history merge, so it belongs
-#                     to Retire Nexusp Backend (retire_nexusp.sh) and not here.
-#   quintusp        - HAL for the LCD backlight, chassis LED, camera arbitration
-#                     and the power-loss GPIO. Disabling it breaks power-loss
-#                     recovery, and it can cancel a running print.
-#   gui_service     - vectorp, the touchscreen itself.
-# Both the S and CS prefixes are listed because the init script names vary by
-# firmware - tools.sh and tools_menu_K1C_2025.sh already probe for both forms.
 CREALITY_SERVICES_NEVER_DISABLE="S55klipper_service CS55klipper_service S56nexusp_service CS56nexusp_service S59quintusp CS59quintusp S60gui_service CS60gui_service"
 
 function disable_creality_services_message(){
@@ -48,24 +28,46 @@ function restore_creality_services_message(){
   bottom_line
 }
 
+function disable_creality_mdns_message(){
+  top_line
+  title 'Disable Creality mDNS Advertising' "${yellow}"
+  inner_line
+  hr
+  echo -e " │ ${cyan}Disables Creality's mDNS daemon (CS99mdns). This stops the     ${white}│"
+  echo -e " │ ${cyan}<hostname>.local resolution and automatic Creality Print / app ${white}│"
+  echo -e " │ ${cyan}discovery on the local network. Useful to prevent duplicate    ${white}│"
+  echo -e " │ ${cyan}printer entries in your slicer.                                ${white}│"
+  hr
+  bottom_line
+}
+
+function restore_creality_mdns_message(){
+  top_line
+  title 'Restore Creality mDNS Advertising' "${yellow}"
+  inner_line
+  hr
+  echo -e " │ ${cyan}Re-enables Creality's mDNS daemon (CS99mdns) for local         ${white}│"
+  echo -e " │ ${cyan}<hostname>.local resolution and slicer auto-discovery.         ${white}│"
+  hr
+  bottom_line
+}
+
 function creality_service_disabled_path() {
   echo "$(dirname "$1")/disabled.$(basename "$1")"
 }
 
-# The always-attempted set. mDNS is deliberately excluded: it is opt-in, so
-# leaving it enabled is the expected outcome and must not read as "not finished".
 function creality_core_services() {
-  echo "$CREALITY_TELEMETRY_SERVICE $CREALITY_CLOUD_WEBRTC_SERVICE $CREALITY_LOCAL_WEBRTC_SERVICE $CREALITY_AI_SERVICE"
-}
-
-# Every service this option is allowed to touch, in rename order.
-function creality_stock_services() {
-  echo "$(creality_core_services) $CREALITY_MDNS_SERVICE"
+  local mode="${1:-standard}"
+  if [ "$mode" = "cfs" ]; then
+    echo "$CREALITY_TELEMETRY_SERVICE $CREALITY_CLOUD_WEBRTC_SERVICE $CREALITY_LOCAL_WEBRTC_SERVICE"
+  else
+    echo "$CREALITY_TELEMETRY_SERVICE $CREALITY_CLOUD_WEBRTC_SERVICE $CREALITY_LOCAL_WEBRTC_SERVICE $CREALITY_AI_SERVICE"
+  fi
 }
 
 function creality_services_pending() {
   local svc
-  for svc in $(creality_stock_services); do
+  for svc in $(creality_core_services "$1"); do
     if [ -f "$svc" ]; then
       return 0
     fi
@@ -75,7 +77,7 @@ function creality_services_pending() {
 
 function creality_services_disabled_present() {
   local svc
-  for svc in $(creality_stock_services); do
+  for svc in $(creality_core_services "$1"); do
     if [ -f "$(creality_service_disabled_path "$svc")" ]; then
       return 0
     fi
@@ -83,21 +85,28 @@ function creality_services_disabled_present() {
   return 1
 }
 
-# True only when none of the five names exist in either form - i.e. this firmware
-# does not ship the daemons this option knows about. Distinguishes "already done"
-# from "nothing here to do", which look identical from creality_services_pending.
 function creality_services_absent() {
-  if creality_services_pending || creality_services_disabled_present; then
+  if creality_services_pending "$1" || creality_services_disabled_present "$1"; then
     return 1
   fi
   return 0
 }
 
-# Only the Built-in Camera Fix takes /dev/video0 - files/services/S50builtin_camera-k1c-2025
-# runs mjpg_streamer against it. USB Camera Support deliberately EXCLUDES the built-in
-# device (files/services/S50usb_camera-k1c-2025 filters out $BUILTIN_DEV), so a USB-only
-# install leaves /dev/video0 free and onyxp/thirteenthp/solusp still serve the Creality
-# app camera. Gating on either fix would silently remove a working feature.
+# Eigene Menü-Prüfungen für mDNS
+function creality_mdns_absent() {
+  if [ -f "$CREALITY_MDNS_SERVICE" ] || [ -f "$(creality_service_disabled_path "$CREALITY_MDNS_SERVICE")" ]; then
+    return 1
+  fi
+  return 0
+}
+
+function creality_mdns_disabled() {
+  if [ -f "$(creality_service_disabled_path "$CREALITY_MDNS_SERVICE")" ]; then
+    return 0
+  fi
+  return 1
+}
+
 function creality_builtin_camera_fix_installed() {
   if [ ! -f "$BUILTIN_CAMERA_FILE" ] && [ ! -f "$BUILTIN_CAMERA_LEGACY_FILE" ]; then
     return 1
@@ -105,17 +114,6 @@ function creality_builtin_camera_fix_installed() {
   return 0
 }
 
-# 0 = printing or paused, 1 = confirmed idle, 2 = could not be determined.
-# Both ports are consulted and any "printing" wins, because which daemon answers which
-# port depends on whether nexusp has been retired: normally helper Moonraker is on 7126
-# (moonraker_nginx.sh) and nexusp on 7125, and after Retire Nexusp Backend the helper's
-# Moonraker is on 7125 and nothing is on 7126. Trying both covers either arrangement -
-# the unused port simply does not answer. Only an explicitly known idle state counts as
-# idle - anything else falls
-# through to 2 so the caller asks the user rather than assuming the printer is free.
-# jq is not available on the K1_2025 path, so the state is pulled out with sed/grep, and
-# the body is trimmed to the print_stats object first so an unrelated "state" key in
-# nexusp's response cannot be mistaken for the print state.
 function creality_print_in_progress() {
   local port body state seen_idle
   seen_idle=""
@@ -143,8 +141,6 @@ function creality_print_in_progress() {
   return 2
 }
 
-# Set by creality_disable_one_service / creality_restore_one_service so the caller can
-# report what actually happened instead of asserting success.
 CREALITY_SERVICES_CHANGED=0
 CREALITY_SERVICES_FAILED=0
 CREALITY_SERVICES_STILL_RUNNING=""
@@ -155,8 +151,6 @@ function creality_disable_one_service() {
   local label="$3"
   local disabled_svc never
 
-  # Enforced, not just documented: adding one of these to a tier above cannot
-  # disable it by accident.
   for never in $CREALITY_SERVICES_NEVER_DISABLE; do
     if [ "$(basename "$svc")" = "$never" ]; then
       error_msg "$never is required by the printer and will not be disabled!"
@@ -188,9 +182,6 @@ function creality_disable_one_service() {
     killall -q "$proc"
   fi
   set -e
-  # Guarded: an unguarded mv would abort the whole helper under set -e (helper.sh
-  # sets it globally and functions.sh run() calls the action as a bare $1), leaving
-  # the daemon stopped but not renamed with no message and no menu to return to.
   if ! mv "$svc" "$disabled_svc" 2>/dev/null; then
     error_msg "Could not rename $(basename "$svc") - is $(dirname "$svc") writable?"
     set +e
@@ -238,7 +229,6 @@ function creality_restore_one_service() {
   set -e
 }
 
-# Shared by both flows. 0 = safe to continue, 1 = caller should return.
 function creality_confirm_printer_idle() {
   local print_state confirm
   set +e
@@ -266,13 +256,14 @@ function creality_confirm_printer_idle() {
 }
 
 function disable_creality_services(){
+  local mode="${1:-standard}"
   disable_creality_services_message
   echo
   echo -e " ${yellow}Warning: these services live on a partition that survives a factory"
   echo -e " reset, so a reset will not bring them back. Use Restore Creality Stock"
   echo -e " Services to undo this.${white}"
   echo
-  local yn mdns_yn camera_fix
+  local yn disable_webrtc webrtc_yn disable_solusp solusp_yn
   while true; do
     disable_msg "Creality Stock Services" yn
     case "${yn}" in
@@ -282,30 +273,52 @@ function disable_creality_services(){
           return
         fi
 
-        # Every decision is collected BEFORE the first rename, so an abandoned
-        # prompt cannot leave the printer half-disabled, and the idle check below
-        # cannot go stale while the user reads a question.
-        camera_fix="no"
+        #1. WebRTC Camera Services (onyxp/thirteenthp)
+        disable_webrtc="no"
         if creality_builtin_camera_fix_installed; then
-          camera_fix="yes"
+          disable_webrtc="yes"
         else
-          echo -e "${yellow}Warning: the Built-in Camera Fix is not installed, so onyxp, thirteenthp${white}"
-          echo -e "${yellow}and solusp are left running - they still serve the Creality app camera,${white}"
-          echo -e "${yellow}local WebRTC and AI detection while /dev/video0 is free.${white}"
-          echo -e "${yellow}(USB Camera Support does not take the built-in camera, so it does not${white}"
-          echo -e "${yellow}count here.)${white}"
+          echo -e " ${yellow}Warning: the Built-in Camera Fix is not installed.${white}"
+          echo -e " ${yellow}Disabling the WebRTC services without it will stop the built-in${white}"
+          echo -e " ${yellow}camera stream in Creality Print and the Creality Cloud app.${white}"
+          echo -e " ${yellow}(Mainsail/Fluidd with a USB camera are not affected.)${white}"
           echo
-        fi
-        mdns_yn="n"
-        if [ -f "$CREALITY_MDNS_SERVICE" ]; then
-          echo -e " ${yellow}Disabling mDNS also stops <hostname>.local resolution and Creality"
-          echo -e " Print / app discovery on the local network.${white}"
-          echo
-          read -p " ${white}Also disable ${green}mDNS advertising ${white}? (${yellow}y${white}/${yellow}n${white}): ${yellow}" mdns_yn
+          read -p " ${white}Disable ${green}WebRTC camera services ${white}anyway? (${yellow}y${white}/${yellow}n${white}): ${yellow}" webrtc_yn
           echo -e "${white}"
+          case "${webrtc_yn}" in
+            Y|y)
+              disable_webrtc="yes";;
+            *)
+              echo -e "Info: Leaving WebRTC services enabled to preserve stock camera..."
+              echo;;
+          esac
         fi
 
-        # Re-check immediately before mutating: the prompts above may have taken a while.
+        # 2. solusp (AI & hardware service)
+        disable_solusp="no"
+        if [ "$mode" = "cfs" ]; then
+          disable_solusp="no"
+        elif creality_builtin_camera_fix_installed; then
+          disable_solusp="yes"
+        else
+          if [ -f "$CREALITY_AI_SERVICE" ]; then
+            echo -e " ${yellow}Warning: solusp handles Creality AI failure detection and parts${white}"
+            echo -e " ${yellow}of the stock hardware/calibration routines (e.g. Input Shaper).${white}"
+            echo -e " ${yellow}Disabling it saves RAM, but disables AI detection and may affect${white}"
+            echo -e " ${yellow}stock screen calibrations.${white}"
+            echo
+            read -p " ${white}Also disable ${green}Creality AI / hardware service (solusp) ${white}? (${yellow}y${white}/${yellow}n${white}): ${yellow}" solusp_yn
+            echo -e "${white}"
+            case "${solusp_yn}" in
+              Y|y)
+                disable_solusp="yes";;
+              *)
+                echo -e "Info: Leaving solusp enabled..."
+                echo;;
+            esac
+          fi
+        fi
+
         if ! creality_confirm_printer_idle; then
           return
         fi
@@ -314,19 +327,17 @@ function disable_creality_services(){
         CREALITY_SERVICES_FAILED=0
         CREALITY_SERVICES_STILL_RUNNING=""
         creality_disable_one_service "$CREALITY_TELEMETRY_SERVICE" "alchemistp" "Creality telemetry agent (alchemistp)"
-        if [ "$camera_fix" = "yes" ]; then
+
+        if [ "$disable_webrtc" = "yes" ]; then
           creality_disable_one_service "$CREALITY_CLOUD_WEBRTC_SERVICE" "onyxp" "Creality cloud WebRTC signalling (onyxp)"
           creality_disable_one_service "$CREALITY_LOCAL_WEBRTC_SERVICE" "thirteenthp" "Creality local WebRTC media server (thirteenthp)"
-          creality_disable_one_service "$CREALITY_AI_SERVICE" "solusp" "Creality AI failure detection (solusp)"
         fi
-        case "${mdns_yn}" in
-          Y|y)
-            creality_disable_one_service "$CREALITY_MDNS_SERVICE" "mdns" "Creality mDNS advertising (mdns)";;
-          *)
-            if [ -f "$CREALITY_MDNS_SERVICE" ]; then
-              echo -e "Info: Leaving mDNS advertising enabled..."
-            fi;;
-        esac
+
+        if [ "$disable_solusp" = "yes" ]; then
+          creality_disable_one_service "$CREALITY_AI_SERVICE" "solusp" "Creality AI failure detection (solusp)"
+        elif [ "$mode" = "cfs" ]; then
+          echo -e "Info: Leaving Creality hardware/AI service (solusp) enabled for CFS-C..."
+        fi
 
         if [ "$CREALITY_SERVICES_CHANGED" -eq 0 ]; then
           error_msg "No Creality stock services were disabled!"
@@ -358,32 +369,117 @@ function disable_creality_services(){
   done
 }
 
+function disable_creality_services_cfs_c(){
+  disable_creality_services "cfs"
+}
+
 function restore_creality_services(){
+  local mode="${1:-standard}"
   restore_creality_services_message
-  local yn
+  local yn ans restore_tele restore_webrtc restore_solusp
   while true; do
     restore_msg "Creality Stock Services" yn
     case "${yn}" in
       Y|y)
         echo -e "${white}"
-        # Restoring restarts onyxp/thirteenthp/solusp, which compete for /dev/video0
-        # with the Built-in Camera Fix, so this path needs the same idle check as disable.
         if ! creality_confirm_printer_idle; then
           return
         fi
+
+        # Special case: Built-in Camera Fix is still installed and WebRTC is disabled
         if creality_builtin_camera_fix_installed; then
-          echo -e "${yellow}Warning: the Built-in Camera Fix is installed. Restoring these services${white}"
-          echo -e "${yellow}puts them back in contention for the camera - restart the camera or${white}"
-          echo -e "${yellow}reboot if the stream misbehaves afterwards.${white}"
-          echo
+          if [ -f "$(creality_service_disabled_path "$CREALITY_CLOUD_WEBRTC_SERVICE")" ] || [ -f "$(creality_service_disabled_path "$CREALITY_LOCAL_WEBRTC_SERVICE")" ]; then
+            echo -e " ${yellow}Warning: the Built-in Camera Fix is currently installed!${white}"
+            echo -e " ${yellow}WebRTC camera services (onyxp / thirteenthp) cannot be restored${white}"
+            echo -e " ${yellow}while the Built-in Camera Fix is active (hardware conflict on /dev/video0).${white}"
+            echo
+            read -p " ${white}Do you want to remove the ${green}Built-in Camera Fix ${white}first to restore stock camera? (${yellow}y${white}/${yellow}n${white}): ${yellow}" ans
+            echo -e "${white}"
+            case "${ans}" in
+              Y|y)
+                remove_builtin_camera
+                if [ -f "$(creality_service_disabled_path "$CREALITY_TELEMETRY_SERVICE")" ]; then
+                  echo
+                  echo -e " ${cyan}Info: alchemistp sends usage statistics and logs to Creality.${white}"
+                  echo -e " ${cyan}(Not needed for local printing, Mainsail/Fluidd, or CFS-C.)${white}"
+                  echo
+                  read -p " ${white}Also restore ${green}Creality telemetry agent (alchemistp)${white}? (${yellow}y${white}/${yellow}n${white}): ${yellow}" ans
+                  echo -e "${white}"
+                  case "${ans}" in
+                    Y|y)
+                      creality_restore_one_service "$CREALITY_TELEMETRY_SERVICE" "Creality telemetry agent (alchemistp)";;
+                  esac
+                fi
+                return;;
+              *)
+                echo -e "Info: Keeping Built-in Camera Fix active. Skipping WebRTC services..."
+                echo;;
+            esac
+          fi
         fi
+
+        restore_tele="no"
+        restore_webrtc="no"
+        restore_solusp="no"
+
+        # 1. Check telemetry, if disabled
+        if [ -f "$(creality_service_disabled_path "$CREALITY_TELEMETRY_SERVICE")" ]; then
+          echo -e " ${cyan}Info: alchemistp collects and uploads usage logs and diagnostics${white}"
+          echo -e " ${cyan}to Creality servers. Not required for printing or CFS-C.${white}"
+          echo
+          read -p " ${white}Restore ${green}Creality telemetry agent (alchemistp)${white}? (${yellow}y${white}/${yellow}n${white}): ${yellow}" ans
+          echo -e "${white}"
+          case "${ans}" in
+            Y|y) restore_tele="yes";;
+          esac
+        fi
+
+        # 2. Only offer WebRTC camera services if the Camera Fix is ​​NOT installed
+        if ! creality_builtin_camera_fix_installed; then
+          if [ -f "$(creality_service_disabled_path "$CREALITY_CLOUD_WEBRTC_SERVICE")" ] || [ -f "$(creality_service_disabled_path "$CREALITY_LOCAL_WEBRTC_SERVICE")" ]; then
+            echo -e " ${cyan}Info: onyxp and thirteenthp provide the encrypted video stream${white}"
+            echo -e " ${cyan}for Creality Print and the Creality Cloud app (uses extra RAM).${white}"
+            echo
+            read -p " ${white}Restore ${green}WebRTC camera services (onyxp / thirteenthp)${white}? (${yellow}y${white}/${yellow}n${white}): ${yellow}" ans
+            echo -e "${white}"
+            case "${ans}" in
+              Y|y) restore_webrtc="yes";;
+            esac
+          fi
+        fi
+
+        # 3. Check solusp; if disabled, enable it
+        if [ -f "$(creality_service_disabled_path "$CREALITY_AI_SERVICE")" ]; then
+          if [ "$mode" = "cfs" ]; then
+            restore_solusp="yes"
+          elif ! creality_builtin_camera_fix_installed; then
+            echo -e " ${cyan}Info: solusp handles Creality AI failure detection and stock${white}"
+            echo -e " ${cyan}screen hardware routines (e.g. Input Shaper calibration).${white}"
+            echo
+            read -p " ${white}Restore ${green}Creality AI / hardware service (solusp)${white}? (${yellow}y${white}/${yellow}n${white}): ${yellow}" ans
+            echo -e "${white}"
+            case "${ans}" in
+              Y|y) restore_solusp="yes";;
+            esac
+          else
+            echo -e "Info: Leaving solusp disabled while Built-in Camera Fix is active..."
+          fi
+        fi
+
         CREALITY_SERVICES_CHANGED=0
         CREALITY_SERVICES_FAILED=0
-        creality_restore_one_service "$CREALITY_TELEMETRY_SERVICE" "Creality telemetry agent (alchemistp)"
-        creality_restore_one_service "$CREALITY_CLOUD_WEBRTC_SERVICE" "Creality cloud WebRTC signalling (onyxp)"
-        creality_restore_one_service "$CREALITY_LOCAL_WEBRTC_SERVICE" "Creality local WebRTC media server (thirteenthp)"
-        creality_restore_one_service "$CREALITY_AI_SERVICE" "Creality AI failure detection (solusp)"
-        creality_restore_one_service "$CREALITY_MDNS_SERVICE" "Creality mDNS advertising (mdns)"
+
+        if [ "$restore_tele" = "yes" ]; then
+          creality_restore_one_service "$CREALITY_TELEMETRY_SERVICE" "Creality telemetry agent (alchemistp)"
+        fi
+        if [ "$restore_webrtc" = "yes" ]; then
+          creality_restore_one_service "$CREALITY_CLOUD_WEBRTC_SERVICE" "Creality cloud WebRTC signalling (onyxp)"
+          creality_restore_one_service "$CREALITY_LOCAL_WEBRTC_SERVICE" "Creality local WebRTC media server (thirteenthp)"
+        fi
+        if [ "$restore_solusp" = "yes" ]; then
+          creality_restore_one_service "$CREALITY_AI_SERVICE" "Creality AI failure detection (solusp)"
+        fi
+
         if [ "$CREALITY_SERVICES_CHANGED" -eq 0 ]; then
           error_msg "No Creality stock services were restored!"
           echo
@@ -393,6 +489,75 @@ function restore_creality_services(){
         if [ "$CREALITY_SERVICES_FAILED" -gt 0 ]; then
           echo -e "   ${yellow}$CREALITY_SERVICES_FAILED service(s) were skipped - see the messages above.${white}"
         fi
+        return;;
+      N|n)
+        error_msg "Restoration canceled!"
+        return;;
+      *)
+        error_msg "Please select a correct choice!";;
+    esac
+  done
+}
+
+function restore_creality_services_cfs_c(){
+  restore_creality_services "cfs"
+}
+
+# --- Standalone mDNS functions ---
+
+function disable_creality_mdns(){
+  disable_creality_mdns_message
+  echo
+  echo -e " ${yellow}Warning: disabling mDNS stops <hostname>.local resolution and"
+  echo -e " automatic Creality Print / app discovery on the local network.${white}"
+  echo
+  local yn
+  while true; do
+    disable_msg "Creality mDNS Advertising" yn
+    case "${yn}" in
+      Y|y)
+        echo -e "${white}"
+        CREALITY_SERVICES_CHANGED=0
+        CREALITY_SERVICES_FAILED=0
+        CREALITY_SERVICES_STILL_RUNNING=""
+        creality_disable_one_service "$CREALITY_MDNS_SERVICE" "mdns" "Creality mDNS advertising (mdns)"
+        if [ "$CREALITY_SERVICES_CHANGED" -eq 0 ]; then
+          error_msg "Creality mDNS advertising could not be disabled!"
+          echo
+          return
+        fi
+        ok_msg "Creality mDNS advertising has been disabled successfully!"
+        if [ -n "$CREALITY_SERVICES_STILL_RUNNING" ]; then
+          echo -e "   ${yellow}Still running:$CREALITY_SERVICES_STILL_RUNNING - please reboot to stop it.${white}"
+        fi
+        echo -e "   ${cyan}The change persists across reboots and factory resets until restored.${white}"
+        return;;
+      N|n)
+        error_msg "Disabling canceled!"
+        return;;
+      *)
+        error_msg "Please select a correct choice!";;
+    esac
+  done
+}
+
+function restore_creality_mdns(){
+  restore_creality_mdns_message
+  local yn
+  while true; do
+    restore_msg "Creality mDNS Advertising" yn
+    case "${yn}" in
+      Y|y)
+        echo -e "${white}"
+        CREALITY_SERVICES_CHANGED=0
+        CREALITY_SERVICES_FAILED=0
+        creality_restore_one_service "$CREALITY_MDNS_SERVICE" "Creality mDNS advertising (mdns)"
+        if [ "$CREALITY_SERVICES_CHANGED" -eq 0 ]; then
+          error_msg "Creality mDNS advertising could not be restored!"
+          echo
+          return
+        fi
+        ok_msg "Creality mDNS advertising has been restored successfully!"
         return;;
       N|n)
         error_msg "Restoration canceled!"

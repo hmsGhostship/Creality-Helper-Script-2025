@@ -15,8 +15,11 @@ function customize_menu_ui_k1_2025() {
   menu_option '4' 'Disable' 'Creality Stock Services'
   menu_option '5' 'Restore' 'Creality Stock Services'
   hr
-  menu_option '6' 'Retire' 'Nexusp Backend'
-  menu_option '7' 'Restore' 'Nexusp Backend'
+  menu_option '6' 'Disable' 'Creality mDNS Advertising'
+  menu_option '7' 'Restore' 'Creality mDNS Advertising'
+  hr
+  menu_option '8' 'Retire' 'Nexusp Backend'
+  menu_option '9' 'Restore' 'Nexusp Backend'
   hr
   inner_line
   hr
@@ -107,6 +110,38 @@ function customize_menu_k1_2025() {
         ;;
       6)
         clear
+        if creality_mdns_absent; then
+          customize_menu_ui_k1_2025
+          echo
+          error_msg "Creality mDNS service was not found on this firmware!"
+          echo
+        elif creality_mdns_disabled; then
+          customize_menu_ui_k1_2025
+          echo
+          error_msg "Creality mDNS Advertising is already disabled!"
+          echo
+        else
+          run "disable_creality_mdns" "customize_menu_ui_k1_2025"
+        fi
+        ;;
+      7)
+        clear
+        if creality_mdns_absent; then
+          customize_menu_ui_k1_2025
+          echo
+          error_msg "Creality mDNS service was not found on this firmware!"
+          echo
+        elif ! creality_mdns_disabled; then
+          customize_menu_ui_k1_2025
+          echo
+          error_msg "Creality mDNS Advertising is not disabled!"
+          echo
+        else
+          run "restore_creality_mdns" "customize_menu_ui_k1_2025"
+        fi
+        ;;
+      8)
+        clear
         if grep -q "mb-料盒" /usr/data/printer_data/config/printer.cfg 2>/dev/null; then
           disabled_feature
         elif nexusp_absent; then
@@ -123,7 +158,7 @@ function customize_menu_k1_2025() {
           run "retire_nexusp" "customize_menu_ui_k1_2025"
         fi
         ;;
-      7)
+      9)
         clear
         if nexusp_absent; then
           customize_menu_ui_k1_2025

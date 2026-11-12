@@ -30,7 +30,7 @@ function install_menu_ui_k1_2025_cfs_c() {
   menu_option '10' 'Install' 'Moonraker Timelapse'
   hr
   subtitle '•IMPROVEMENTS:'
-# menu_option '11' 'Install' 'Restore Input Shapers'
+  menu_option '11' 'Install' 'Restore Input Shapers'
   menu_option '12' 'Install' 'Extended Gcode Params'
   menu_option '13' 'Install' 'DXC Filament Sensor'
   menu_option '14' 'Install' 'CFS-C Universal Purge Speed Fix'
@@ -167,14 +167,15 @@ function install_menu_k1_2025_cfs_c() {
         fi;;
       11)
         clear
-        if grep -q "^\[input_shaper\]" "$PRINTER_CFG" 2>/dev/null; then
+        if [ -f "$SHAPER_DEFS_FILE" ]; then
           install_menu_ui_k1_2025_cfs_c
           echo
-          error_msg "Restore Input Shapers is already active in printer.cfg!"
+          error_msg "Restore Input Shapers is already installed!"
           echo
         else
           run "install_restore_input_shapers" "install_menu_ui_k1_2025_cfs_c"
-        fi;;
+        fi
+        ;;
       12)
         clear
         if grep -q "^\[extended_gcode_params\]" "$PRINTER_CFG" 2>/dev/null; then

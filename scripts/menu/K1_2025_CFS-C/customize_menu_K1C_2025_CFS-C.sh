@@ -15,10 +15,13 @@ function customize_menu_ui_k1_2025_cfs_c() {
   menu_option '4' 'Disable' 'Creality Stock Services'
   menu_option '5' 'Restore' 'Creality Stock Services'
   hr
-#  menu_option '6' 'Retire' 'Nexusp Backend'
-  menu_option '7' 'Restore' 'Nexusp Backend'
+  menu_option '6' 'Disable' 'Creality mDNS Advertising'
+  menu_option '7' 'Restore' 'Creality mDNS Advertising'
   hr
-  menu_option '8' 'Remove' 'CFS-C recognition (back to K1_2025)'
+#  menu_option '8' 'Retire' 'Nexusp Backend'
+  menu_option '9' 'Restore' 'Nexusp Backend'
+  hr
+  menu_option '10' 'Remove' 'CFS-C recognition (back to K1_2025)'
   hr
   inner_line
   hr
@@ -35,7 +38,7 @@ function disable_cfsc_menu() {
   top_line
   title "• DISABLE CFS-C MENU DETECTION •" "${blue}"
   inner_line
-  echo -e " │ ${yellow}Info: The entry'mb-料盒' will be deleted                      ${white} │"
+  echo -e " │ ${yellow}Info: The entry 'mb-料盒' will be deleted                     ${white} │"
   echo -e " │ ${yellow}from your printer.cfg                                          ${white}│"
   echo -e " │ Afterwards, the helper script restarts in the standard         │"
   echo -e " │ K1_2025 mode.                                                  │"
@@ -48,20 +51,15 @@ function disable_cfsc_menu() {
     read -p " Do you want to remove the detection now? (y/n): ${yellow}" yn
     case "${yn}" in
       Y|y)
-        # Uses the config folder from paths.sh for the temporary file
         local tmp_file="${KLIPPER_CONFIG_FOLDER}/printer.cfg.tmp"
 
-        # 1. Save main configuration up to the first SAVE_CONFIG block
         awk '/<---------------------- SAVE_CONFIG ---------------------->/ {exit} {print}' "$PRINTER_CFG" > "$tmp_file"
 
-        # 2. Check if important calibration data needs to be protected
         if grep -qE "bed_mesh default|input_shaper" "$PRINTER_CFG"; then
-            # Header neu schreiben
             echo "#*# <---------------------- SAVE_CONFIG ---------------------->" >> "$tmp_file"
             echo "#*# DO NOT EDIT THIS BLOCK OR BELOW. The contents are auto-generated." >> "$tmp_file"
             echo "#*#" >> "$tmp_file"
             
-            # Line-by-line check: Keeps bed_mesh and input_shaper, rigorously filters out serial_can
             awk '
             BEGIN { keep = 0 }
             /\<---------------------- SAVE_CONFIG ----------------------\>/ { next }
@@ -72,11 +70,10 @@ function disable_cfsc_menu() {
             ' "$PRINTER_CFG" >> "$tmp_file" 2>/dev/null
         fi
 
-        # 3. Make temporary file the real printer.cfg
         mv "$tmp_file" "$PRINTER_CFG"
         
         ok_msg "Detection successfully removed and configuration thoroughly cleaned!"
-        echo -e " ${green}BPlease restart the helper script to load the K1_2025 menu.${white}"
+        echo -e " ${green}Please restart the helper script to load the K1_2025 menu.${white}"
         echo
         exit 0
         break;;
@@ -135,37 +132,69 @@ function customize_menu_k1_2025_cfs_c() {
         ;;
       4)
         clear
-        if creality_services_absent; then
+        if creality_services_absent "cfs"; then
           customize_menu_ui_k1_2025_cfs_c
           echo
           error_msg "No Creality stock services were found on this firmware!"
           echo
-        elif ! creality_services_pending; then
+        elif ! creality_services_pending "cfs"; then
           customize_menu_ui_k1_2025_cfs_c
           echo
           error_msg "Creality Stock Services are already disabled!"
           echo
         else
-          run "disable_creality_services" "customize_menu_ui_k1_2025_cfs_c"
+          run "disable_creality_services_cfs_c" "customize_menu_ui_k1_2025_cfs_c"
         fi
         ;;
       5)
         clear
-        if creality_services_absent; then
+        if creality_services_absent "cfs"; then
           customize_menu_ui_k1_2025_cfs_c
           echo
           error_msg "No Creality stock services were found on this firmware!"
           echo
-        elif ! creality_services_disabled_present; then
+        elif ! creality_services_disabled_present "cfs"; then
           customize_menu_ui_k1_2025_cfs_c
           echo
           error_msg "Creality Stock Services are not disabled!"
           echo
         else
-          run "restore_creality_services" "customize_menu_ui_k1_2025_cfs_c"
+          run "restore_creality_services_cfs_c" "customize_menu_ui_k1_2025_cfs_c"
         fi
         ;;
       6)
+        clear
+        if creality_mdns_absent; then
+          customize_menu_ui_k1_2025_cfs_c
+          echo
+          error_msg "Creality mDNS service was not found on this firmware!"
+          echo
+        elif creality_mdns_disabled; then
+          customize_menu_ui_k1_2025_cfs_c
+          echo
+          error_msg "Creality mDNS Advertising is already disabled!"
+          echo
+        else
+          run "disable_creality_mdns" "customize_menu_ui_k1_2025_cfs_c"
+        fi
+        ;;
+      7)
+        clear
+        if creality_mdns_absent; then
+          customize_menu_ui_k1_2025_cfs_c
+          echo
+          error_msg "Creality mDNS service was not found on this firmware!"
+          echo
+        elif ! creality_mdns_disabled; then
+          customize_menu_ui_k1_2025_cfs_c
+          echo
+          error_msg "Creality mDNS Advertising is not disabled!"
+          echo
+        else
+          run "restore_creality_mdns" "customize_menu_ui_k1_2025_cfs_c"
+        fi
+        ;;
+      8)
         clear
         if grep -q "mb-料盒" /usr/data/printer_data/config/printer.cfg 2>/dev/null; then
           disabled_feature
@@ -183,7 +212,7 @@ function customize_menu_k1_2025_cfs_c() {
           run "retire_nexusp" "customize_menu_ui_k1_2025_cfs_c"
         fi
         ;;
-      7)
+      9)
         clear
         if nexusp_absent; then
           customize_menu_ui_k1_2025_cfs_c
@@ -199,7 +228,7 @@ function customize_menu_k1_2025_cfs_c() {
           run "restore_nexusp" "customize_menu_ui_k1_2025_cfs_c"
         fi
         ;;
-      8)
+      10)
         clear
         disable_cfsc_menu
         break

@@ -30,7 +30,7 @@ function remove_menu_ui_k1_2025_cfs_c() {
   menu_option '10' 'Remove' 'Moonraker Timelapse'
   hr
   subtitle '•IMPROVEMENTS:'
-# menu_option '11' 'Remove' 'Restore Input Shapers'
+  menu_option '11' 'Remove' 'Restore Input Shapers'
   menu_option '12' 'Remove' 'Extended Gcode Params'
   menu_option '13' 'Remove' 'DXC Filament Sensor'
   menu_option '14' 'Remove' 'CFS-C Universal Purge Speed Fix'
@@ -160,14 +160,15 @@ function remove_menu_k1_2025_cfs_c() {
         fi;;
       11)
         clear
-        if ! grep -q "^\[input_shaper\]" "$PRINTER_CFG" 2>/dev/null; then
+        if [ ! -f "$SHAPER_DEFS_FILE" ]; then
           remove_menu_ui_k1_2025_cfs_c
           echo
-          error_msg "Restore Input Shapers is not active in printer.cfg!"
+          error_msg "Restore Input Shapers is not installed!"
           echo
         else
           run "remove_restore_input_shapers" "remove_menu_ui_k1_2025_cfs_c"
-        fi;;
+        fi
+        ;;
       12)
         clear
         if ! grep -q "^\[extended_gcode_params\]" "$PRINTER_CFG" 2>/dev/null; then
