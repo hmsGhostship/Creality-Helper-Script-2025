@@ -2,58 +2,64 @@
 
 set -e
 
-BOX_CFG_ORIG="${HS_BACKUP_FOLDER}/box.cfg.orig"
+BOX_CONTROL="${KLIPPER_EXTRAS_FOLDER}/box_control.pyc"
+PYC_ORIG="${HS_BACKUP_FOLDER}/box_control.pyc.orig"
 
-cfs_c_flowtech_extension_message(){
+cfs_c_speed_fix_message(){
   top_line
-  title 'MicroSwiss FlowTech Hotend Patch:' "${yellow}"
+  title 'CFS-C Speed Fix (Filament Change Optimization):' "${yellow}"
   inner_line
   hr
-  echo -e " │ ${cyan}Eliminates empty extrusion inside the Purge Tower              ${white}│"
-  echo -e " │ ${cyan} during toolchanges and optimizes the filament feeding speed.  ${white}│"
-  echo -e " │ ${cyan}This prevents torn lines, stabilizes the Purge Tower structure,${white}│"
-  echo -e " │ ${cyan}and dramatically reduces material waste                        ${white}│"
-  echo -e " │ ${cyan}by allowing a much smaller tower size.                         ${white}│"
+  echo -e " │ ${cyan}The CFS-C Speed Fix micro-tunes and deliberately               ${white}│"
+  echo -e " │ ${cyan}slows down the initial feeding and loading speeds inside the   ${white}│"
+  echo -e " │ ${cyan}hotend context. By introducing a controlled, synchronized feed ${white}│"
+  echo -e " │ ${cyan}rate, it gives the hotend sufficient time to melt the incoming ${white}│"
+  echo -e " │ ${cyan}material safely. This entirely eliminates back-pressure        ${white}│"
+  echo -e " │ ${cyan}spikes and safeguards your extruder gears against grinding.    ${white}│"
   hr
   bottom_line
 }
 
-install_cfs_c_flowtech_extension() {
-  cfs_c_flowtech_extension_message
+install_cfs_c_speed_fix() {
+  cfs_c_speed_fix_message
   local yn
   while true; do
-    install_msg "FlowTech Extension" yn
+    install_msg "CFS-C Speed Fix" yn
     case "${yn}" in
       Y|y)
-        echo "=== Installation: Micro-Swiss FlowTech Volumetric Extension ==="
-        if [ ! -f "$BOX_CFG" ]; then
-            error_msg "Fehler: box.cfg wurde unter ${BOX_CONFIG} nicht gefunden!"
+        echo "=== Installation: CFS-C Universal Purge Speed Fix ==="
+        if [ ! -f "$BOX_CONTROL" ]; then
+            error_msg "Error: box_control.pyc was not found at ${BOX_CONTROL}!"
             break
         fi
         mkdir -p "$HS_BACKUP_FOLDER"
 
-        # 1. Live-Prüfung: Ist der Patch (Wert 40) in der aktiven box.cfg bereits aktiv?
-        if grep -q "extrude_length:[[:space:]]*40" "$BOX_CFG"; then
-            echo "[INFO] Die FlowTech-Erweiterung (E40) ist bereits aktiv!"
+        # 1. Check the actual state of the live file
+        if grep -q -a -b -o "E-10 F120" "$BOX_CONTROL"; then
+            echo "[INFO] The Speed Fix is already active in the live file!"
             break
         fi
 
-        # 2. Sichert das originale Creality-Werksprofil NUR BEIM ALLERERSTEN MAL.
-        # Das verhindert, dass ein bereits modifizierter Wert jemals als "Original" gesichert wird.
-        if [ ! -f "$BOX_CFG_ORIG" ]; then 
-            cp -f "$BOX_CFG" "$BOX_CFG_ORIG"
-            echo "[OK] Echtes Werks-Backup ($BOX_CFG_ORIG) erzeugt."
-        else
-            echo "[INFO] Altes Werks-Backup existiert bereits und wird geschuetzt."
-        fi
+        # 2. Verify factory signature
+        if grep -q -a -b -o "E-10 F180" "$BOX_CONTROL"; then
+            echo "[OK] Original factory signature (F180) verified in live file."
+            
+            # Backup original file only on the very first run
+            if [ ! -f "$PYC_ORIG" ]; then
+                cp -f "$BOX_CONTROL" "$PYC_ORIG"
+                echo "[OK] Original factory backup created."
+            else
+                echo "[INFO] Existing factory backup already present and protected."
+            fi
 
-        # 3. Gezielte Modifikation der aktiven Live-Datei auf E40
-        sed -i -E 's/extrude_length:[[:space:]]*[0-9]+/extrude_length: 40/g' "$BOX_CFG"
-        sed -i -E 's/Tn_extrude_velocity:[[:space:]]*[0-9]+/Tn_extrude_velocity: 120/g' "$BOX_CFG"
-        chmod 644 "$BOX_CFG"
-        echo "[OK] box.cfg erfolgreich auf E40 und Velocity 120 angepasst."
-        
-        restart_klipper
+            # 3. In-place bytecode patch
+            sed -i 's/E-10 F180/E-10 F120/g' "$BOX_CONTROL"
+            chmod 644 "$BOX_CONTROL"
+            echo "[OK] Bytecode successfully throttled to F120."
+            restart_klipper
+        else
+            error_msg "Error: Factory signature (F180) not found! Firmware incompatible."
+        fi
         break;;
       N|n)
         error_msg "Installation canceled!"
@@ -64,35 +70,32 @@ install_cfs_c_flowtech_extension() {
   done
 }
 
-remove_cfs_c_flowtech_extension() {
-  cfs_c_flowtech_extension_message
+remove_cfs_c_speed_fix() {
+  cfs_c_speed_fix_message
   local yn
   while true; do
-    remove_msg "FlowTech Extension" yn
+    remove_msg "CFS-C Speed Fix" yn
     case "${yn}" in
       Y|y)
-        echo "=== Deinstallation: Micro-Swiss FlowTech Volumetric Extension ==="
-        if [ ! -f "$BOX_CFG" ]; then
-            error_msg "Fehler: box.cfg wurde nicht gefunden!"
+        echo "=== Removal: CFS-C Universal Purge Speed Fix ==="
+        if [ ! -f "$BOX_CONTROL" ]; then
+            error_msg "Error: box_control.pyc was not found!"
             break
         fi
 
-        # Weg A: Das saubere, originale Werks-Backup existiert -> Zurückspielen und aufräumen
-        if [ -f "$BOX_CFG_ORIG" ]; then
-            cp -f "$BOX_CFG_ORIG" "$BOX_CFG"
-            chmod 644 "$BOX_CFG"
-            rm -f "$BOX_CFG_ORIG"
-            echo "[OK] Originale box.cfg aus Backup wiederhergestellt."
+        if [ -f "$PYC_ORIG" ]; then
+            cp -f "$PYC_ORIG" "$BOX_CONTROL"
+            chmod 644 "$BOX_CONTROL"
+            rm -f "$PYC_ORIG"
+            echo "[OK] Original box_control.pyc (F180) restored from backup."
             restart_klipper
-        # Weg B: Kein Backup da, aber Live ist die Änderung aktiv -> Manuelle Inplace-Reparatur auf Creality-Standard
-        elif grep -q "extrude_length:[[:space:]]*40" "$BOX_CFG"; then
-            sed -i -E 's/extrude_length:[[:space:]]*[0-9]+/extrude_length: 20/g' "$BOX_CFG"
-            sed -i -E 's/Tn_extrude_velocity:[[:space:]]*[0-9]+/Tn_extrude_velocity: 360/g' "$BOX_CFG"
-            chmod 644 "$BOX_CFG"
-            echo "[OK] box.cfg manuell im Live-System auf Werkszustand (E20 / V360) zurueckgesetzt."
+        elif grep -q -a -b -o "E-10 F120" "$BOX_CONTROL"; then
+            sed -i 's/E-10 F120/E-10 F180/g' "$BOX_CONTROL"
+            chmod 644 "$BOX_CONTROL"
+            echo "[OK] Bytecode manually reverted in live system to factory F180."
             restart_klipper
         else
-            echo "[INFO] FlowTech Volumetric Extension is not active (bereits Werkszustand)."
+            echo "[INFO] Universal Speed Fix is not active (already at factory defaults)."
         fi
         break;;
       N|n)
