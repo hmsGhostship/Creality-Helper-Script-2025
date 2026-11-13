@@ -91,6 +91,17 @@ function check_creality_services_k1_2025() {
   fi
 }
 
+function check_single_creality_service_k1_2025() {
+  local svc="$1"
+  if [ -f "$(creality_service_disabled_path "$svc")" ]; then
+    echo -e "${green}✓"
+  elif [ -f "$svc" ]; then
+    echo -e "${red}✗"
+  else
+    echo -e "${cyan}-"
+  fi
+}
+
 function check_content_k1_2025() {
   local pattern="$1"
   local file_path="$2"
@@ -193,7 +204,7 @@ function info_menu_ui_k1_2025() {
   info_line "$(check_live_status_k1_2025 "^\[input_shaper\]")" 'Restore Input Shapers'
   info_line "$(check_live_status_k1_2025 "^\[extended_gcode_params\]")" 'Extended Gcode Params'
   info_line "$(check_live_status_k1_2025 "^\[include Helper-Script/dxc_sensor.cfg\]")" 'DXC Filament Sensor'
-#  info_line "$(check_file_k1_2025 "$HS_BACKUP_FOLDER/box.cfg.orig")" 'CFS-C Purge Volume Fix (Prime Tower)'
+#  info_line "$(check_file_k1_2025 "$HS_BACKUP_FOLDER/box_control.pyc.orig")" 'CFS-C Universal Purge Speed Fix'
 #  info_line "$(check_file_k1_2025 "$HS_BACKUP_FOLDER/box.cfg.orig")" 'CFS-C Purge Volume Fix (Prime Tower)'
 #  info_line "$(check_live_status_k1_2025 "^\[include Helper-Script/cfs_lll_safety.cfg\]")" 'FLY-LLL PLUS Safetysystem'
   hr
@@ -258,7 +269,10 @@ function info_menu_ui_k1_2025() {
   subtitle '•CUSTOMIZATION:'
   info_line "$(check_file_k1_2025 "$FLUIDD_LOGO_FILE")" 'Creality Dynamic Logos for Fluidd'
   info_line "$(check_file_k1_2025 "$CLOUD_BLOCK_SERVICE_FILE")" 'Block Creality Cloud Telemetry'
-  info_line "$(check_creality_services_k1_2025)" 'Creality Stock Services Disabled'
+  info_line "$(check_single_creality_service_k1_2025 "$CREALITY_TELEMETRY_SERVICE")" 'Creality Telemetry Service Disabled'
+  info_line "$(check_single_creality_service_k1_2025 "$CREALITY_CLOUD_WEBRTC_SERVICE")" 'Creality Cloud WebRTC Service Disabled'
+  info_line "$(check_single_creality_service_k1_2025 "$CREALITY_LOCAL_WEBRTC_SERVICE")" 'Creality Local WebRTC Service Disabled'
+  info_line "$(check_single_creality_service_k1_2025 "$CREALITY_AI_SERVICE")" 'Creality AI Detection Service Disabled'
   info_line "$(check_nexusp_retired_k1_2025)" "Nexusp Backend Retired (Moonraker on $(check_moonraker_port_k1_2025))"
   hr
   inner_line
