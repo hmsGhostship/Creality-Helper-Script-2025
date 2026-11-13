@@ -21,6 +21,9 @@ function customize_menu_ui_k1_2025() {
   menu_option '8' 'Retire' 'Nexusp Backend'
   menu_option '9' 'Restore' 'Nexusp Backend'
   hr
+  menu_option '10' 'Install' 'Guppy Screen'
+  menu_option '11' 'Remove' 'Guppy Screen'
+  hr
   inner_line
   hr
   bottom_menu_option 'b' 'Back to [Main Menu]' "${yellow}"
@@ -174,6 +177,34 @@ function customize_menu_k1_2025() {
           run "restore_nexusp" "customize_menu_ui_k1_2025"
         fi
         ;;
+      10)
+        clear
+        if [ -d "$GUPPY_SCREEN_FOLDER" ]; then
+        customize_menu_ui_k1_2025
+          error_msg "Guppy Screen is already installed!"
+        elif [ ! -d "$MOONRAKER_FOLDER" ] && [ ! -d "$NGINX_FOLDER" ]; then
+        customize_menu_ui_k1_2025
+          error_msg "Moonraker and Nginx are needed, please install them first!"
+        elif ! curl -s localhost:7126/server/info 2>/dev/null | grep -Eq '"klippy_connected"[[:space:]]*:[[:space:]]*true' && ! curl -s localhost:7125/server/info 2>/dev/null | grep -Eq '"klippy_connected"[[:space:]]*:[[:space:]]*true'; then
+          customize_menu_ui_k1_2025
+          error_msg "Moonraker and Klipper do not seem to be functional. Please check this!"
+        elif [ ! -f "$KLIPPER_SHELL_FILE" ]; then
+        customize_menu_ui_k1_2025
+          error_msg "Klipper Gcode Shell Command is needed, please install it first!"
+        elif [ -d "$IMP_SHAPERS_FOLDER" ]; then
+        customize_menu_ui_k1_2025
+          error_msg "Please remove Improved Shapers Calibrations first, Guppy Screen already use it!"
+        else
+          run "install_guppyscreen" "customize_menu_ui_k1_2025"
+        fi;;
+      11)
+        clear
+        if [ ! -d "$GUPPY_SCREEN_FOLDER" ]; then
+        customize_menu_ui_k1_2025 
+        error_msg "Guppy Screen is not installed!"
+        else
+          run "remove_guppyscreen" "customize_menu_ui_k1_2025"
+        fi;;
       B|b)
         clear
         main_menu

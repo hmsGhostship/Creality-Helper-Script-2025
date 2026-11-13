@@ -316,7 +316,7 @@ function install_menu_k1_2025_cfs_c() {
         if [ -f "$M600_SUPPORT_FILE" ]; then
           error_msg "M600 Support is already installed!"
         else
-          run "install_m600_support" "install_menu_ui_k1_2025"
+          run "install_m600_support" "install_menu_ui_k1_2025_cfs_c"
         fi;;
      25)
        if [ ! -d "$MOONRAKER_FOLDER" ]; then
