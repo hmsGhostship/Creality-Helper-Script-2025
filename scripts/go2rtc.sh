@@ -69,6 +69,7 @@ function install_go2rtc(){
     case "${yn}" in
       Y|y)
         echo -e "${white}"
+        check_ram_requirement "Go2rtc" 20 || return
         echo -e "Info: Downloading go2rtc..."
         mkdir -p "$(dirname "$GO2RTC_FILE")"
         $HS_FILES/fixes/curl -L "$GO2RTC_URL" -o "$GO2RTC_FILE"

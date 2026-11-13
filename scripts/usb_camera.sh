@@ -207,6 +207,7 @@ function install_usb_camera(){
         # AUTOMATISCHE RUNTIME-SYNC: PORT RETTEN & MAKRO-FLAGS AKTIVIEREN
         # ====================================================================
         sync_timelapse_snapshot_url_k1_2025
+        sync_octoeverywhere_camera_k1_2025
         if [ -f "/usr/data/printer_data/config/Helper-Script/camera-settings.cfg" ]; then
           echo -e "Info: Activating USB flag (video2) in camera-settings.cfg..."
           sed -i 's/variable_has_video2.*/variable_has_video2: True/g' "/usr/data/printer_data/config/Helper-Script/camera-settings.cfg"
@@ -234,7 +235,8 @@ function install_builtin_camera(){
   builtin_camera_message
   echo
   echo -e " ${yellow}Warning: Built-in camera access through CrealityPrint"
-  echo -e " will stop working while this fix is installed.${white}"
+  echo -e " and Creality's local AI failure detection (solusp) will"
+  echo -e " stop working while this fix is installed.${white}"
   echo
   local yn
   while true; do
@@ -262,6 +264,7 @@ function install_builtin_camera(){
         # AUTOMATISCHE RUNTIME-SYNC: PORT RETTEN & MAKRO-FLAGS AKTIVIEREN
         # ====================================================================
         sync_timelapse_snapshot_url_k1_2025
+        sync_octoeverywhere_camera_k1_2025
         if [ -f "/usr/data/printer_data/config/Helper-Script/camera-settings.cfg" ]; then
           echo -e "Info: Activating Chassis flag (video0) in camera-settings.cfg..."
           sed -i 's/variable_has_video0.*/variable_has_video0: True/g' "/usr/data/printer_data/config/Helper-Script/camera-settings.cfg"
@@ -330,6 +333,7 @@ function remove_builtin_camera(){
         # AUTOMATISCHE RUNTIME-SYNC: PORT RETTEN & MAKRO-FLAGS DEAKTIVIEREN
         # ====================================================================
         sync_timelapse_snapshot_url_k1_2025
+        sync_octoeverywhere_camera_k1_2025
         if [ -f "/usr/data/printer_data/config/Helper-Script/camera-settings.cfg" ]; then
           echo -e "Info: Deactivating Chassis flag (video0) in camera-settings.cfg..."
           sed -i 's/variable_has_video0.*/variable_has_video0: False/g' "/usr/data/printer_data/config/Helper-Script/camera-settings.cfg"
@@ -392,6 +396,7 @@ function remove_usb_camera(){
         echo -e "Info: Removing file..."
         rm -f "$USB_CAMERA_FILE"
         rm -f "$USB_CAMERA_LEGACY_FILE"
+        sync_octoeverywhere_camera_k1_2025
         # ====================================================================
 
         # ZENTRALER FIRMWARE RESTART TRIGERÜBERGABE FÜR SYNCHRONISIERUNG:
@@ -407,4 +412,35 @@ function remove_usb_camera(){
         error_msg "Please select a correct choice!";;
     esac
   done
+}
+
+function sync_octoeverywhere_camera_k1_2025() {
+  local octo_conf="${PRINTER_DATA_FOLDER}/config/octoeverywhere.conf"
+  local octo_init="${INITD_FOLDER}/S99octoeverywhere"
+
+  if [ ! -f "$octo_conf" ]; then
+    return 0
+  fi
+
+  echo -e "Info: Syncing OctoEverywhere webcam URL with current camera topology..."
+  if [ -f "$USB_CAMERA_FILE" ] || [ -f "$USB_CAMERA_LEGACY_FILE" ]; then
+    echo -e " -> USB Camera verified. Routing OctoEverywhere to /webcam3/..."
+    sed -i 's/^auto_settings_detection = .*/auto_settings_detection = False/' "$octo_conf"
+    sed -i 's|^stream_url = .*|stream_url = /webcam3/?action=stream|' "$octo_conf"
+    sed -i 's|^snapshot_url = .*|snapshot_url = /webcam3/?action=snapshot|' "$octo_conf"
+  elif [ -f "$BUILTIN_CAMERA_FILE" ] || [ -f "$BUILTIN_CAMERA_LEGACY_FILE" ]; then
+    echo -e " -> Built-in Camera Fix verified. Routing OctoEverywhere to /webcam/..."
+    sed -i 's/^auto_settings_detection = .*/auto_settings_detection = False/' "$octo_conf"
+    sed -i 's|^stream_url = .*|stream_url = /webcam/?action=stream|' "$octo_conf"
+    sed -i 's|^snapshot_url = .*|snapshot_url = /webcam/?action=snapshot|' "$octo_conf"
+  else
+    echo -e " -> No custom camera active. Resetting OctoEverywhere to auto detection..."
+    sed -i 's/^auto_settings_detection = .*/auto_settings_detection = True/' "$octo_conf"
+    sed -i 's|^stream_url = .*|stream_url = /webcam/?action=stream|' "$octo_conf"
+    sed -i 's|^snapshot_url = .*|snapshot_url = /webcam/?action=snapshot|' "$octo_conf"
+  fi
+
+  if [ -f "$octo_init" ]; then
+    "$octo_init" restart >/dev/null 2>&1 || true
+  fi
 }

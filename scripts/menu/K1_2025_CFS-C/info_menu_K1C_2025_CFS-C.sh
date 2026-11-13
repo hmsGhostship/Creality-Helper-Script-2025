@@ -248,12 +248,12 @@ function info_menu_ui_k1_2025_cfs_c() {
   info_line "$(check_file_k1_2025 "$TIMELAPSE_FILE")" 'Moonraker Timelapse'
   hr
   subtitle '•REMOTE ACCESS:'
-  #info_line "$(check_folder_k1_2025 "$OCTOEVERYWHERE_FOLDER")" 'OctoEverywhere'
+  info_line "$(check_folder_k1_2025 "$OCTOEVERYWHERE_FOLDER")" 'OctoEverywhere'
   info_line "$(check_folder_k1_2025 "$MOONRAKER_OBICO_FOLDER")" 'Obico'
-  #info_line "$(check_folder_k1_2025 "$GUPPYFLO_FOLDER")" 'GuppyFLO'
+  info_line "$(check_folder_k1_2025 "$GUPPYFLO_FOLDER")" 'GuppyFLO'
   info_line "$(check_folder_k1_2025 "$MOBILERAKER_COMPANION_FOLDER")" 'Mobileraker Companion'
-  #info_line "$(check_folder_k1_2025 "$OCTOAPP_COMPANION_FOLDER")" 'OctoApp Companion'
-  #info_line "$(check_simplyprint_k1_2025)" 'SimplyPrint'
+  info_line "$(check_folder_k1_2025 "$OCTOAPP_COMPANION_FOLDER")" 'OctoApp Companion'
+  info_line "$(check_simplyprint_k1_2025)" 'SimplyPrint'
   hr
   subtitle '•CUSTOMIZATION:'
   info_line "$(check_file_k1_2025 "$FLUIDD_LOGO_FILE")" 'Creality Dynamic Logos for Fluidd'

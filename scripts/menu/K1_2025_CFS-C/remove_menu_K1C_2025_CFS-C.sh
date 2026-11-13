@@ -47,11 +47,11 @@ function remove_menu_ui_k1_2025_cfs_c() {
 
   hr
   subtitle '•REMOTE ACCESS:'
-# menu_option '25' 'Remove' 'OctoEverywhere'
+  menu_option '25' 'Remove' 'OctoEverywhere'
   menu_option '26' 'Remove' 'Moonraker Obico'
   menu_option '27' 'Remove' 'GuppyFLO'
   menu_option '28' 'Remove' 'Mobileraker Companion'
-# menu_option '29' 'Remove' 'OctoApp Companion'
+  menu_option '29' 'Remove' 'OctoApp Companion'
   menu_option '30' 'Remove' 'SimplyPrint'
   hr
   inner_line

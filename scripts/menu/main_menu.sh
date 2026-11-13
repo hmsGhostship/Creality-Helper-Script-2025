@@ -11,10 +11,25 @@ function get_script_version() {
 
 function version_line() {
   local content="$1"
-  local content_length="${#content}"
-  local width=$((75))
-  local padding_length=$((width - content_length - 3))
-  printf " │ %*s%s%s\n" $padding_length '' "$content" " │"
+  local avail_mb ram_color visible_left visible_right padding_length
+  avail_mb=$(get_available_ram_mb)
+  if [ "$avail_mb" -ge 45 ]; then
+    ram_color="${green}"
+  elif [ "$avail_mb" -ge 25 ]; then
+    ram_color="${yellow}"
+  else
+    ram_color="${red}"
+  fi
+
+  # Reinen sichtbaren Text ohne Farbcodes messen (Innenbreite = 62 Zeichen)
+  visible_left="Free RAM: ${avail_mb} MB"
+  visible_right=$(git -C "${HELPER_SCRIPT_FOLDER}" describe HEAD --always --tags 2>/dev/null | sed 's/-.*//')
+  padding_length=$((62 - ${#visible_left} - ${#visible_right}))
+  if [ "$padding_length" -lt 1 ]; then
+    padding_length=1
+  fi
+
+  printf " │ ${white}Free RAM: ${ram_color}${avail_mb} MB${white}%*s${cyan}%s${white} │\n" "$padding_length" '' "$visible_right"
 }
 
 function script_title() {

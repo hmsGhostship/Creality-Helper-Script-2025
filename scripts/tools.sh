@@ -554,3 +554,69 @@ function ensure_respond_module(){
     fi
   fi
 }
+
+# Liefert den aktuell verfügbaren Arbeitsspeicher in MB (inkl. freigebbarem Cache)
+function get_available_ram_mb() {
+  local avail_kb
+  avail_kb=$(awk '/^MemAvailable:/ {print $2}' /proc/meminfo 2>/dev/null)
+  if [ -z "$avail_kb" ]; then
+    avail_kb=$(free | awk '/^Mem:/ {print $7}')
+  fi
+  echo $((avail_kb / 1024))
+}
+
+# Before installation, checks whether there is enough free RAM for the service:
+# - Hard block if remaining RAM after install would drop below 15 MB (OOM crash risk)
+# - Warning (y/n) if remaining RAM after install would be between 15 MB and 24 MB
+# - Silent pass if at least 25 MB safety reserve remains
+# Usage: check_ram_requirement "module_name" <required_RAM_in_MB>
+function check_ram_requirement() {
+  local module_name="$1"
+  local required_mb="${2:-25}"
+  local hard_min_reserve_mb=15
+  local soft_reserve_mb=25
+  local avail_mb expected_after_mb
+  avail_mb=$(get_available_ram_mb)
+  expected_after_mb=$((avail_mb - required_mb))
+
+  # 1. Everything is in the clear (at least 25 MB of RAM remaining after installation)
+  if [ "$expected_after_mb" -ge "$soft_reserve_mb" ]; then
+    return 0
+  fi
+
+  echo
+  echo -e " ${yellow}Memory Check for ${cyan}${module_name}${yellow}:${white}"
+  echo -e " ${white}- Currently available RAM:       ${cyan}${avail_mb} MB${white}"
+  echo -e " ${white}- Estimated usage of module:     ${cyan}~${required_mb} MB${white}"
+  echo -e " ${white}- Expected free RAM afterwards:  ${cyan}~${expected_after_mb} MB${white}"
+  echo
+
+  # 2. Hard limit: Less than 15 MB of remaining RAM -> Risk of a crash due to the OOM killer!
+  if [ "$expected_after_mb" -lt "$hard_min_reserve_mb" ]; then
+    error_msg "Installation blocked! Remaining RAM (~${expected_after_mb} MB) would be below the safe minimum of ${hard_min_reserve_mb} MB."
+    echo -e " ${cyan}Reason: Klipper needs at least ${hard_min_reserve_mb} MB free RAM during printing and calibration.${white}"
+    echo -e " ${cyan}Solution: Remove other remote companions (e.g. Obico/Mobileraker) or disable Creality Stock Services first.${white}"
+    echo
+    return 1
+  fi
+
+  # 3. Yellow Zone: Between 15 MB and 24 MB of remaining RAM -> Warning + explicit confirmation
+  echo -e " ${yellow}Warning: Remaining RAM (~${expected_after_mb} MB) will be tight (recommended reserve: ${soft_reserve_mb} MB).${white}"
+  echo -e " ${yellow}Heavy tasks like SHAPER_CALIBRATE or large prints could become unstable.${white}"
+  echo -e " ${cyan}Tip: Disable Creality Stock Services or unused companions to free up more RAM.${white}"
+  echo
+  local ram_yn
+  while true; do
+    read -p " ${white}Do you still want to continue installing ${green}${module_name}${white}? (${yellow}y${white}/${yellow}n${white}): ${yellow}" ram_yn
+    echo -e "${white}"
+    case "${ram_yn}" in
+      Y|y) return 0;;
+      N|n)
+        error_msg "Installation of ${module_name} canceled due to low memory."
+        return 1;;
+      *)
+        error_msg "Please select a correct choice!";;
+    esac
+  done
+}
+

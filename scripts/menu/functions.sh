@@ -61,6 +61,29 @@ function menu_option() {
   printf " │   ${yellow}${menu_number}${white}) ${white}${menu_text1} ${green}${menu_text2}%-${padding}s${white}│\n" ''
 }
 
+function unavailable_menu_option() {
+  local menu_number="$1"
+  local menu_text1="$2"
+  local menu_text2="$3"
+  local reason="$4"
+
+  # Zeile 1: Ausgegrauter Menüpunkt mit automatischer Breitenberechnung
+  local max_length=62
+  local total_text_length=$(( ${#menu_text1} + ${#menu_text2} + ${#menu_number} + 4 ))
+  local padding=$((max_length - total_text_length))
+  [ "$padding" -lt 1 ] && padding=1
+  printf " │   ${darkgrey}${menu_number}) ${menu_text1} ${menu_text2}%-${padding}s${white}│\n" ''
+
+  # Zeile 2: Optionaler roter Hinweis darunter (z. B. DISABLED: ...)
+  if [ -n "$reason" ]; then
+    local reason_prefix="      └─ "
+    local reason_max=64
+    local reason_pad=$((reason_max - ${#reason_prefix} - ${#reason}))
+    [ "$reason_pad" -lt 1 ] && reason_pad=1
+    printf " │${red}%s%s${white}%-${reason_pad}s│\n" "$reason_prefix" "$reason" ''
+  fi
+}
+
 function disabled_menu_option() {
   local menu_number=$1
   local menu_text1=$2

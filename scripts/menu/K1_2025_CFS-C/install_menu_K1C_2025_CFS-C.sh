@@ -22,10 +22,9 @@ function install_menu_ui_k1_2025_cfs_c() {
   menu_option ' 7' 'Install' 'USB Camera Support'
   menu_option ' 8' 'Install' 'Built-in Camera Fix'
   if check_camera_capabilities_k1_2025; then
-  menu_option ' 9' 'Install' 'Camera Settings Control'
-    else
-    echo -e " 9) ${darkgrey}Install Camera Settings Control${white}"
-    echo -e "     ${red}└─ DISABLED: No compatible hardware found${white}"
+    menu_option ' 9' 'Install' 'Camera Settings Control'
+  else
+    unavailable_menu_option ' 9' 'Install' 'Camera Settings Control' 'DISABLED: No compatible hardware found'
   fi
   menu_option '10' 'Install' 'Moonraker Timelapse'
   hr
@@ -46,17 +45,21 @@ function install_menu_ui_k1_2025_cfs_c() {
 # menu_option '24' 'Install' 'M600 Support'
   hr
   subtitle '•REMOTE ACCESS:'
-# menu_option '25' 'Install' 'OctoEverywhere'
+    menu_option '25' 'Install' 'OctoEverywhere'
+  if [ -f "${INITD_FOLDER}/S99octoeverywhere" ]; then
+    menu_option '25a' 'Show' 'OctoEverywhere [Link Code anzeigen / erneuern]'
+  else
+    unavailable_menu_option '25a' 'Show' 'OctoEverywhere Link Code' 'DISABLED: Module must be installed first'
+  fi
   menu_option '26' 'Install' 'Moonraker Obico'
   if [ -d "$MOONRAKER_OBICO_FOLDER" ] && [ -f "$KLIPPER_CONFIG_FOLDER/moonraker-obico.cfg" ]; then
-   menu_option '26a' 'Repair' 'Moonraker Obico [Link Code neu generieren]'
+    menu_option '26a' 'Repair' 'Moonraker Obico [Link Code neu generieren]'
   else
-   echo -e " 26a) ${darkgrey}Repair Moonraker Obico${white}"
-   echo -e "      ${red}└─ DISABLED: Module must be installed first${white}"
+    unavailable_menu_option '26a' 'Repair' 'Moonraker Obico' 'DISABLED: Module must be installed first'
   fi
   menu_option '27' 'Install' 'GuppyFLO'
   menu_option '28' 'Install' 'Mobileraker Companion'
-# menu_option '29' 'Install' 'OctoApp Companion'
+  menu_option '29' 'Install' 'OctoApp Companion'
   menu_option '30' 'Install' 'SimplyPrint'
   hr
   inner_line
@@ -326,6 +329,17 @@ function install_menu_k1_2025_cfs_c() {
          run "install_octoeverywhere" "install_menu_ui_k1_2025_cfs_c"
          echo -e "\n${yellow} Press Enter to return to the menu...${white}" && read -r _
        fi;;
+     25a|25A)
+        clear
+        if [ -f "${INITD_FOLDER}/S99octoeverywhere" ]; then
+          run "show_octoeverywhere_link" "install_menu_ui_k1_2025_cfs_c"
+        else
+          install_menu_ui_k1_2025_cfs_c
+          echo
+          error_msg "OctoEverywhere is not installed yet!"
+          echo
+        fi
+        ;;
       26)
         clear
         if [ -d "$MOONRAKER_OBICO_FOLDER" ] && [ -f "$KLIPPER_CONFIG_FOLDER/moonraker-obico.cfg" ]; then
@@ -366,22 +380,7 @@ function install_menu_k1_2025_cfs_c() {
           error_msg "Entware is needed, please install it first!"
         else
           run "install_mobileraker_companion" "install_menu_ui_k1_2025_cfs_c"
-          if [ -d "$MOBILERAKER_COMPANION_FOLDER" ]; then
-            echo -e "${yellow}"
-            echo -e " ┌────────────────────────────────────────────────────────┐"
-            echo -e " │  WARNUNG: Um den freigegebenen Arbeitsspeicher (RAM)   │"
-            echo -e " │  wieder sauber aufzufüllen, startet der Drucker nun    │"
-            echo -e " │  automatisch neu.                                      │"
-            echo -e " └────────────────────────────────────────────────────────┘"
-            for i in 10 9 8 7 6 5 4 3 2 1; do
-              echo -e "    Drucker startet neu in $i Sekunden... \r\c"
-              sleep 1
-            done
-            echo -e "${white}\nInfo: Starte System neu..."
-            reboot
-          else
-            echo -e "\n${yellow} Press Enter to return to the menu...${white}" && read -r _
-          fi
+          echo -e "\n${yellow} Press Enter to return to the menu...${white}" && read -r _
         fi;;
       29)
         if [ -d "$OCTOAPP_COMPANION_FOLDER" ]; then
