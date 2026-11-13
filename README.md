@@ -42,7 +42,7 @@ This modified version by @hmsGhostship introduces full automation for K1 2025 pr
 
 * **Full Automation:** The script automatically scans your `printer.cfg` for the `mb-料盒` entry upon startup. No manual flags required.
 * **Smart UI Branching:** If the material box is active, the script seamlessly switches to the customized `K1_2025_CFS-C` menu layout.
-* **Reversible & Safe:** Includes a built-in safety switch under **[Customize Menu] -> Option 8** to instantly remove the detection and revert back to the stock `K1_2025` layout if the CFS-C is disconnected.
+* **Reversible & Safe:** Includes a built-in safety switch under **[Customize Menu] -> Option 12** to instantly remove the detection and revert back to the stock `K1_2025` layout if the CFS-C is disconnected.
 
 ### 🖥️ CFS-C Mainsail/Fluidd Panel Integration (Tools menu > options 20 - 23)
 
@@ -56,6 +56,14 @@ It completely bypasses the legacy port `9999` socket by communicating directly w
 
 > 💡 *Note: After installing or removing the addon, please perform a hard reload (**Ctrl + F5**) in your web browser to force Chrome to load the newly injected script tags.*
 
+### 🧠 C13 / X2600 RAM Guard & Remote Access Stability
+
+Specifically engineered for the tight memory budget of 2025/2026 K1C mainboards:
+
+* **3-Tier RAM Guard & Live Menu Status:** Displays live available memory in all menus and validates free RAM before installing memory-intensive services to prevent OOM crashes.
+* **Shared Python Runtime:** **OctoEverywhere (Option 25)** and **Mobileraker Companion (Option 28)** reuse Moonraker's active Python environment (`$active_python`), saving ~15–20 MB of permanent RAM.
+* **OctoEverywhere & Camera Sync:** Includes **Option 25a** to view or regenerate the pairing code at any time, plus automatic camera stream routing (`/webcam3/` for USB, `/webcam/` for built-in).
+* **Native X2600 GuppyScreen Support (`K1_2025`):** Supports both `goodix-ts` and `Hua Que` touchscreens and dynamically detects the active Moonraker port (`:7126` or `:7125`).
 
 ### 🛠️ Hardware & Calibration Optimizations
 
