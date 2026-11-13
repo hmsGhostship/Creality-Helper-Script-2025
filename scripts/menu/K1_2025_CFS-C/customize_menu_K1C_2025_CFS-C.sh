@@ -23,6 +23,12 @@ function customize_menu_ui_k1_2025_cfs_c() {
 #  hr
 #  menu_option '10' 'Install' 'Guppy Screen'
 #  menu_option '11' 'Remove' 'Guppy Screen'
+#  if [ -d "$GUPPY_SCREEN_FOLDER" ]; then
+#    menu_option '11a' 'Update' 'Guppy Screen'
+#  else
+#    unavailable_menu_option '11a' 'Update' 'Guppy Screen' 'DISABLED: Module must be installed first'
+#  fi
+
   hr
   menu_option '12' 'Remove' 'CFS-C recognition (back to K1_2025)'
   hr
@@ -263,6 +269,17 @@ function customize_menu_k1_2025_cfs_c() {
 #        else
 #          run "remove_guppyscreen" "customize_menu_ui_k1_2025_cfs_c"
 #        fi;;
+#     11a|11A)
+#       clear
+#       if [ ! -d "$GUPPY_SCREEN_FOLDER" ]; then
+#         customize_menu_ui_k1_2025
+#         echo
+#         error_msg "Guppy Screen is not installed!"
+#         echo
+#       else
+#         run "update_guppyscreen" "customize_menu_ui_k1_2025"
+#       fi
+#       ;;
       12)
         clear
         disable_cfsc_menu

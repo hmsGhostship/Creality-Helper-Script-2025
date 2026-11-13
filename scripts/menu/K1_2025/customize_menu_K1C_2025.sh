@@ -23,6 +23,11 @@ function customize_menu_ui_k1_2025() {
   hr
   menu_option '10' 'Install' 'Guppy Screen'
   menu_option '11' 'Remove' 'Guppy Screen'
+  if [ -d "$GUPPY_SCREEN_FOLDER" ]; then
+    menu_option '11a' 'Update' 'Guppy Screen'
+  else
+    unavailable_menu_option '11a' 'Update' 'Guppy Screen' 'DISABLED: Module must be installed first'
+  fi
   hr
   inner_line
   hr
@@ -205,6 +210,17 @@ function customize_menu_k1_2025() {
         else
           run "remove_guppyscreen" "customize_menu_ui_k1_2025"
         fi;;
+      11a|11A)
+        clear
+        if [ ! -d "$GUPPY_SCREEN_FOLDER" ]; then
+          customize_menu_ui_k1_2025
+          echo
+          error_msg "Guppy Screen is not installed!"
+          echo
+        else
+          run "update_guppyscreen" "customize_menu_ui_k1_2025"
+        fi
+        ;;
       B|b)
         clear
         main_menu

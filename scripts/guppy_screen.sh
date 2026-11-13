@@ -125,3 +125,62 @@ function remove_guppyscreen(){
     esac
   done
 }
+
+function update_guppyscreen(){
+  guppyscreen_message
+  local yn
+  while true; do
+    read -p " ${white}Do you want to update ${green}GuppyScreen${white} from SnorritxD repository? (${yellow}y${white}/${yellow}n${white}): ${yellow}" yn
+    echo -e "${white}"
+    case "${yn}" in
+      Y|y)
+        # 1. Aktuellen Moonraker-Port auslesen (7126 oder 7125)
+        local real_port=7126
+        if [ -f "$MOONRAKER_CFG" ]; then
+          local detected_port=$(grep -A 5 "^\[server\]" "$MOONRAKER_CFG" | grep "^port:" | awk '{print $2}' | tr -d '\r')
+          if [ -n "$detected_port" ]; then
+            real_port=$detected_port
+          fi
+        fi
+
+        # 2. Lokale sed-Änderungen zurücksetzen & neuestes Update ziehen
+        echo -e "Info: Pulling latest updates from GuppyScreen repository..."
+        git config --global http.sslVerify false
+        if [ -d "$GUPPY_SCREEN_SOURCE/.git" ]; then
+          cd "$GUPPY_SCREEN_SOURCE"
+          git reset --hard >/dev/null 2>&1 || true
+          git pull
+        else
+          rm -rf "$GUPPY_SCREEN_SOURCE"
+          git clone --depth 1 "$GUPPY_SCREEN_URL" "$GUPPY_SCREEN_SOURCE"
+        fi
+
+        # 3. C13-Patches (Hua Que Touchscreen & dynamischer Port) wieder anwenden
+        chmod +x "$GUPPY_SCREEN_SOURCE/installer/install.sh"
+        sed -i 's/\[ "$TOUCH_NAME" = "goodix-ts" \]/[ "$TOUCH_NAME" = "goodix-ts" ] || [ "$TOUCH_NAME" = "Hua Que: Hua Que" ]/' "$GUPPY_SCREEN_SOURCE/installer/install.sh"
+        if [ "$real_port" != "7125" ] && [ -f "$GUPPY_SCREEN_SOURCE/init/S57guppy_service" ]; then
+          sed -i "s/7125/$real_port/g" "$GUPPY_SCREEN_SOURCE/init/S57guppy_service"
+        fi
+
+        # 4. Idempotenten Installer ausführen (aktualisiert nur geänderte Dateien & schont guppyconfig.json)
+        echo -e "Info: Applying update..."
+        "$GUPPY_SCREEN_SOURCE/installer/install.sh"
+
+        # 5. Sicherstellen, dass der Port in guppyconfig.json erhalten bleibt
+        if [ "$real_port" != "7125" ] && [ -f "$GUPPY_SCREEN_FOLDER/guppyconfig.json" ]; then
+          if grep -q "7125" "$GUPPY_SCREEN_FOLDER/guppyconfig.json"; then
+            sed -i "s/7125/$real_port/g" "$GUPPY_SCREEN_FOLDER/guppyconfig.json"
+            "$INITD_FOLDER/S57guppy_service" restart >/dev/null 2>&1 || true
+          fi
+        fi
+
+        ok_msg "GuppyScreen update check / installation completed!"
+        return;;
+      N|n)
+        error_msg "Update canceled!"
+        return;;
+      *)
+        error_msg "Please select a correct choice!";;
+    esac
+  done
+}
