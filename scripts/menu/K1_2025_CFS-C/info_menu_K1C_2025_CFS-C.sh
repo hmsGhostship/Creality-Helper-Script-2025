@@ -272,8 +272,9 @@ function info_menu_ui_k1_2025_cfs_c() {
   info_line "$(check_single_creality_service_k1_2025 "$CREALITY_TELEMETRY_SERVICE")" 'Creality Telemetry Service Disabled'
   info_line "$(check_single_creality_service_k1_2025 "$CREALITY_CLOUD_WEBRTC_SERVICE")" 'Creality Cloud WebRTC Service Disabled'
   info_line "$(check_single_creality_service_k1_2025 "$CREALITY_LOCAL_WEBRTC_SERVICE")" 'Creality Local WebRTC Service Disabled'
-  info_line "$(check_single_creality_service_k1_2025 "$CREALITY_AI_SERVICE")" 'Creality AI Detection Service Disabled'
-  info_line "$(check_nexusp_retired_k1_2025)" "Nexusp Backend Retired (Moonraker on $(check_moonraker_port_k1_2025))"
+  info_line "$(check_single_creality_service_k1_2025 "$CREALITY_AI_SERVICE")" 'Creality AI Detection Service Disabled (Required by CFS-C)'
+  info_line "$(check_nexusp_retired_k1_2025)" 'Nexusp Backend Retired (Required by CFS-C)'
+  printf " │     ${darkgrey}└─ %-56s${white}│\n" "Moonraker active on $(check_moonraker_port_k1_2025)"
   hr
   inner_line
   hr
