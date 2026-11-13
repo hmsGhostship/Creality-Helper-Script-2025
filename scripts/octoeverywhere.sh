@@ -127,10 +127,9 @@ rotate = 0
 moonraker_api_key =
 EOF
 
-        # 6. Moonraker-Konfiguration ergänzen
+        # 6. Moonraker-Konfiguration bereinigen (kein veralteter [octoeverywhere]-Header nötig)
         if [ -f "$MOONRAKER_CFG" ]; then
-          sed -i '/\[octoeverywhere\]/,+2d' "$MOONRAKER_CFG" 2>/dev/null || true
-          echo -e "\n[octoeverywhere]" >> "$MOONRAKER_CFG"
+          sed -i '/^\[octoeverywhere\]$/d' "$MOONRAKER_CFG" 2>/dev/null || true
         fi
 
         # 7. Persistentes Startskript mit Base64-JSON-Konfiguration & Boot-Verzögerung
