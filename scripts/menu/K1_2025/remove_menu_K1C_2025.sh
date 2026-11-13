@@ -213,7 +213,7 @@ function remove_menu_k1_2025() {
       15)
         clear
         # LIVE-CHECK: If 40 is not active, the menu blocks removal
-        if ! grep -q "extrude_length:[[:space:]]*50" "$BOX_CFG" 2>/dev/null; then
+        if ! grep -q "extrude_length:[[:space:]]*40" "$BOX_CFG" 2>/dev/null; then
           remove_menu_ui_k1_2025_cfs_c
           echo
           error_msg "CFS-C Purge Volume Fix (Prime Tower) is not active!"

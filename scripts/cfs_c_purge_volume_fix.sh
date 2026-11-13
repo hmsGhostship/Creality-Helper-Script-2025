@@ -37,11 +37,11 @@ install_cfs_c_purge_volume_fix() {
             echo "[OK] Factory backup ($BOX_CFG_ORIG) created."
         fi
 
-        # 2. Modify active box.cfg to E50 and velocity 120
-        sed -i -E 's/extrude_length:[[:space:]]*[0-9]+/extrude_length: 50/g' "$BOX_CFG"
+        # 2. Modify active box.cfg to E40 and velocity 120
+        sed -i -E 's/extrude_length:[[:space:]]*[0-9]+/extrude_length: 40/g' "$BOX_CFG"
         sed -i -E 's/Tn_extrude_velocity:[[:space:]]*[0-9]+/Tn_extrude_velocity: 120/g' "$BOX_CFG"
         chmod 644 "$BOX_CFG"
-        echo "[OK] box.cfg successfully updated to E50."
+        echo "[OK] box.cfg successfully updated to E40."
         
         restart_klipper
         break;;
@@ -70,7 +70,7 @@ remove_cfs_c_purge_volume_fix() {
             restart_klipper
         else
             # 2. Fallback: If backup is missing, rewrite factory defaults manually
-            if grep -q "extrude_length:[[:space:]]*50" "$BOX_CFG"; then
+            if grep -q "extrude_length:[[:space:]]*40" "$BOX_CFG"; then
                 sed -i -E 's/extrude_length:[[:space:]]*[0-9]+/extrude_length: 20/g' "$BOX_CFG"
                 sed -i -E 's/Tn_extrude_velocity:[[:space:]]*[0-9]+/Tn_extrude_velocity: 360/g' "$BOX_CFG"
                 echo "[OK] box.cfg manually reverted to factory E20."

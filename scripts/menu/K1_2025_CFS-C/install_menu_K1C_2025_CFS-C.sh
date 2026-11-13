@@ -211,8 +211,8 @@ function install_menu_k1_2025_cfs_c() {
         fi;;
       15)
         clear
-        # LIVE-CHECK: Verify the active value of 50 directly within the menu, based on the actual box.cfg file.
-        if grep -q "extrude_length:[[:space:]]*50" "$BOX_CFG" 2>/dev/null; then
+        # LIVE-CHECK: Verify the active value of 40 directly within the menu, based on the actual box.cfg file.
+        if grep -q "extrude_length:[[:space:]]*40" "$BOX_CFG" 2>/dev/null; then
           install_menu_ui_k1_2025_cfs_c
           echo
           error_msg "CFS-C Purge Volume Fix (Prime Tower) is already active!"
