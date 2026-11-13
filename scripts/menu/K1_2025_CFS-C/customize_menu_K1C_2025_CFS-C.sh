@@ -272,12 +272,12 @@ function customize_menu_k1_2025_cfs_c() {
 #     11a|11A)
 #       clear
 #       if [ ! -d "$GUPPY_SCREEN_FOLDER" ]; then
-#         customize_menu_ui_k1_2025
+#         customize_menu_ui_k1_2025_2025_cfs_c
 #         echo
 #         error_msg "Guppy Screen is not installed!"
 #         echo
 #       else
-#         run "update_guppyscreen" "customize_menu_ui_k1_2025"
+#         run "update_guppyscreen" "customize_menu_ui_k1_2025_2025_cfs_c"
 #       fi
 #       ;;
       12)

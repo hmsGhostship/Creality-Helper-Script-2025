@@ -34,7 +34,7 @@ function remove_menu_ui_k1_2025() {
   menu_option '12' 'Remove' 'Extended Gcode Params'
   menu_option '13' 'Remove' 'DXC Filament Sensor'
 # menu_option '14' 'Remove' 'CFS-C Universal Purge Speed Fix'
-# menu_option '15' 'Remove' 'Micro-Swiss FlowTech Volumetric Extension'
+# menu_option '15' 'Remove' 'CFS-C Purge Volume Fix (Prime Tower)'
 # menu_option '16' 'Remove' 'FLY-LLL PLUS Safetysystem'
   menu_option '17' 'Remove' 'Motor Sound Support'
   menu_option '18' 'Remove' 'Useful Macros'
@@ -49,7 +49,7 @@ function remove_menu_ui_k1_2025() {
   fi
   hr
   subtitle '•REMOTE ACCESS:'
-# menu_option '25' 'Remove' 'OctoEverywhere'
+  menu_option '25' 'Remove' 'OctoEverywhere'
   menu_option '26' 'Remove' 'Moonraker Obico'
   menu_option '27' 'Remove' 'GuppyFLO'
   menu_option '28' 'Remove' 'Mobileraker Companion'
@@ -168,8 +168,7 @@ function remove_menu_k1_2025() {
           echo
         else
           run "remove_restore_input_shapers" "remove_menu_ui_k1_2025_cfs_c"
-        fi
-        ;;
+        fi;;
       12)
         clear
         if ! grep -q "^\[extended_gcode_params\]" "$PRINTER_CFG" 2>/dev/null; then
@@ -186,9 +185,9 @@ function remove_menu_k1_2025() {
         if grep -q "^\[include Helper-Script/cfs_lll_safety.cfg\]" "$PRINTER_CFG" 2>/dev/null; then
             remove_menu_ui_k1_2025
             echo
-            error_msg "REMOVE-SPERRE: DXC Filament Sensor blockiert!"
-            echo -e "  Der Pin PD7 wird aktuell aktiv vom LLL Plus verwendet."
-            echo -e "  Bitte entferne zuerst das FLY-LLL PLUS Safetysystem (Option 17)!"
+            error_msg "REMOVE LOCKED: DXC Filament Sensor is blocked!"
+            echo -e "  Pin PD7 is currently actively used by FLY-LLL PLUS."
+            echo -e "  Please remove the FLY-LLL PLUS Safety System (Option 16) first!"
             echo
         # 2. LIVE CHECK: Is the DXC sensor actually actively integrated?
         elif ! grep -q "^\[include Helper-Script/dxc_sensor.cfg\]" "$PRINTER_CFG" 2>/dev/null; then
@@ -214,13 +213,13 @@ function remove_menu_k1_2025() {
       15)
         clear
         # LIVE-CHECK: If 40 is not active, the menu blocks removal
-        if ! grep -q "extrude_length:[[:space:]]*40" "$BOX_CFG" 2>/dev/null; then
+        if ! grep -q "extrude_length:[[:space:]]*50" "$BOX_CFG" 2>/dev/null; then
           remove_menu_ui_k1_2025_cfs_c
           echo
-          error_msg "Micro-Swiss FlowTech Volumetric Extension is not active!"
+          error_msg "CFS-C Purge Volume Fix (Prime Tower) is not active!"
           echo
         else
-          run "remove_cfs_c_flowtech_extension" "remove_menu_ui_k1_2025_cfs_c"
+          run "remove_cfs_c_purge_volume_fix" "remove_menu_ui_k1_2025_cfs_c"
         fi;;
       16)
         clear
@@ -232,13 +231,13 @@ function remove_menu_k1_2025() {
             echo
         else
             title "[ REMOVE: FLY-LLL PLUS SAFETYSYSTEM ]" "${yellow}"
-            echo -e "  Entferne Konfigurationsdateien..."
+            echo -e "  Removing configuration files..."
             rm -f /usr/data/printer_data/config/Helper-Script/cfs_lll_safety.cfg
             sed -i '/cfs_lll_safety.cfg/d' /usr/data/printer_data/config/printer.cfg
-            
+
             echo
-            echo -e "  ${green}✅ FLY-LLL PLUS erfolgreich aus dem System entfernt!${white}"
-            echo -e "  Starte Klipper-Service automatisch neu..."
+            echo -e "  ${green}✅ FLY-LLL PLUS successfully removed from the system!${white}"
+            echo -e "  Restarting Klipper service automatically..."
             echo
             run "restart_klipper" "remove_menu_ui_k1_2025"
         fi;;
@@ -258,7 +257,7 @@ function remove_menu_k1_2025() {
          if [ ! -f "$GIT_BACKUP_FILE" ]; then
            error_msg "Git Backup is not installed!"
           else
-          run "remove_git_backup" "install_menu_ui_k1_2025"
+          run "remove_git_backup" "remove_menu_ui_k1_2025"
          fi;;
       20)
         clear

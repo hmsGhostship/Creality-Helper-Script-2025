@@ -70,8 +70,7 @@ Specifically engineered for the tight memory budget of 2025/2026 K1C mainboards:
 This repository is tailored and tested for advanced hardware modifications:
 
 * **Phaetus DXC Extruder Integration:** Fully compatible with custom extruder configurations and fine-tuned macro settings.
-* **MicroSwiss FlowTech Hotend Patch:** Available in the **Customize Menu**, this patch fixes crucial multi-material issues. It eliminates the 20% empty extrusion inside the Purge Tower during toolchanges and optimizes the filament feeding speed. This prevents torn lines, stabilizes the Purge Tower structure, and dramatically reduces material waste by allowing a much smaller tower size. 
-  * *⚠️ Note: This specific patch is strictly verified and tested for the combination of the MicroSwiss FlowTech Hotend and the Phaetus DXC Extruder only!*
+* **CFS-C Purge Volume Fix (Prime Tower):** Available in the **Install Menu**, this patch fixes under-extrusion and empty extrusion inside the Prime Tower during toolchanges by adjusting the purge volume (`E50`) and feeding velocity (`120 mm/min`) in `box.cfg`. This prevents torn lines, stabilizes the Prime Tower structure, and reduces material waste across both stock and aftermarket hotends.
 * **Creality Calibration Toolbox (Bed Mesh):** Optimized paths and enhanced support for precise Bed Mesh calibrations, ensuring perfect first layers with advanced probing.
 
 ### ⚡ CFS-C Speed Fix (High Back-Pressure & Grinding Prevention)

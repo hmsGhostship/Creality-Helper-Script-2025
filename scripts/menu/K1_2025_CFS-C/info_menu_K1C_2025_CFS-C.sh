@@ -193,8 +193,8 @@ function info_menu_ui_k1_2025_cfs_c() {
   info_line "$(check_live_status_k1_2025 "^\[input_shaper\]")" 'Restore Input Shapers'
   info_line "$(check_live_status_k1_2025 "^\[extended_gcode_params\]")" 'Extended Gcode Params'
   info_line "$(check_live_status_k1_2025 "^\[include Helper-Script/dxc_sensor.cfg\]")" 'DXC Filament Sensor'
-  info_line "$(check_file_k1_2025 "$HS_BACKUP_FOLDER/box_control.pyc.orig")" 'CFS-C Universal Purge Speed Fix'
-  info_line "$(check_file_k1_2025 "$HS_BACKUP_FOLDER/box.cfg.orig")" 'Micro-Swiss FlowTech Volumetric Extension'
+  info_line "$(check_file_k1_2025 "$HS_BACKUP_FOLDER/box.cfg.orig")" 'CFS-C Purge Volume Fix (Prime Tower)'
+  info_line "$(check_file_k1_2025 "$HS_BACKUP_FOLDER/box.cfg.orig")" 'CFS-C Purge Volume Fix (Prime Tower)'
   #info_line "$(check_live_status_k1_2025 "^\[include Helper-Script/cfs_lll_safety.cfg\]")" 'FLY-LLL PLUS Safetysystem'
   hr
   subtitle '•TOOLS & CALIBRATION:'

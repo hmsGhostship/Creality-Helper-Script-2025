@@ -33,7 +33,7 @@ function install_menu_ui_k1_2025_cfs_c() {
   menu_option '12' 'Install' 'Extended Gcode Params'
   menu_option '13' 'Install' 'DXC Filament Sensor'
   menu_option '14' 'Install' 'CFS-C Universal Purge Speed Fix'
-  menu_option '15' 'Install' 'Micro-Swiss FlowTech Volumetric Extension'
+  menu_option '15' 'Install' 'CFS-C Purge Volume Fix (Prime Tower)'
 # menu_option '16' 'Install' 'FLY-LLL PLUS Safetysystem (Einschalt-Sperre)'
   menu_option '17' 'Install' 'Motor Sound Support'
   menu_option '18' 'Install' 'Useful Macros'
@@ -47,13 +47,13 @@ function install_menu_ui_k1_2025_cfs_c() {
   subtitle '•REMOTE ACCESS:'
     menu_option '25' 'Install' 'OctoEverywhere'
   if [ -f "${INITD_FOLDER}/S99octoeverywhere" ]; then
-    menu_option '25a' 'Show' 'OctoEverywhere [Link Code anzeigen / erneuern]'
+    menu_option '25a' 'Show' 'OctoEverywhere [Show / renew link code]'
   else
     unavailable_menu_option '25a' 'Show' 'OctoEverywhere Link Code' 'DISABLED: Module must be installed first'
   fi
   menu_option '26' 'Install' 'Moonraker Obico'
   if [ -d "$MOONRAKER_OBICO_FOLDER" ] && [ -f "$KLIPPER_CONFIG_FOLDER/moonraker-obico.cfg" ]; then
-    menu_option '26a' 'Repair' 'Moonraker Obico [Link Code neu generieren]'
+    menu_option '26a' 'Repair' 'Moonraker Obico [Regenerate link code]'
   else
     unavailable_menu_option '26a' 'Repair' 'Moonraker Obico' 'DISABLED: Module must be installed first'
   fi
@@ -211,43 +211,43 @@ function install_menu_k1_2025_cfs_c() {
         fi;;
       15)
         clear
-        # LIVE-CHECK: Verify the active value of 40 directly within the menu, based on the actual box.cfg file.
-        if grep -q "extrude_length:[[:space:]]*40" "$BOX_CFG" 2>/dev/null; then
+        # LIVE-CHECK: Verify the active value of 50 directly within the menu, based on the actual box.cfg file.
+        if grep -q "extrude_length:[[:space:]]*50" "$BOX_CFG" 2>/dev/null; then
           install_menu_ui_k1_2025_cfs_c
           echo
-          error_msg "Micro-Swiss FlowTech Volumetric Extension is already active!"
+          error_msg "CFS-C Purge Volume Fix (Prime Tower) is already active!"
           echo
         else
-          run "install_cfs_c_flowtech_extension" "install_menu_ui_k1_2025_cfs_c"
+          run "install_cfs_c_purge_volume_fix" "install_menu_ui_k1_2025_cfs_c"
         fi;;
       16)
         clear
         if ! grep -q "^\[include Helper-Script/dxc_sensor.cfg\]" "$PRINTER_CFG" 2>/dev/null; then
-            install_menu_ui_k1_2025_cfs_c
-            echo
-            error_msg "INSTALL-SPERRE: DXC Filament Sensor ist nicht active!"
-            echo -e "  Der originale Filament-Sensor belegt aktuell noch den Pin PD7."
-            echo -e "  Bitte installiere zuerst den DXC Filament Sensor (Option 14)!"
-            echo
+          install_menu_ui_k1_2025_cfs_c
+          echo
+          error_msg "INSTALL LOCKED: DXC Filament Sensor is not active!"
+          echo -e "  The original filament sensor currently still occupies pin PD7."
+          echo -e "  Please install the DXC Filament Sensor (Option 13) first!"
+          echo
         elif grep -q "^\[include Helper-Script/cfs_lll_safety.cfg\]" "$PRINTER_CFG" 2>/dev/null; then
-            install_menu_ui_k1_2025_cfs_c
-            echo
-            error_msg "FLY-LLL PLUS Safetysystem is already active in printer.cfg!"
-            echo
+          install_menu_ui_k1_2025_cfs_c
+          echo
+          error_msg "FLY-LLL PLUS Safetysystem is already active in printer.cfg!"
+          echo
         else
-            title "[ INSTALL: FLY-LLL PLUS SAFETYSYSTEM ]" "${yellow}"
-            echo -e "  Kopiere Konfigurationsdateien..."
-            cp /usr/data/helper-script/files/cfs-lll-plus-safety/cfs_lll_safety.cfg /usr/data/printer_data/config/Helper-Script/
-            
-            if ! grep -q "cfs_lll_safety.cfg" "$PRINTER_CFG" 2>/dev/null; then
-                echo -e "\n[include Helper-Script/cfs_lll_safety.cfg]" >> "$PRINTER_CFG"
-            fi
-            
-            echo
-            echo -e "  ${green}✅ FLY-LLL PLUS erfolgreich installiert!${white}"
-            echo -e "  Starte Klipper-Service automatisch neu..."
-            echo
-            run "restart_klipper" "install_menu_ui_k1_2025_cfs_c"
+          title "[ INSTALL: FLY-LLL PLUS SAFETYSYSTEM ]" "${yellow}"
+          echo -e "  Copying configuration files..."
+          cp /usr/data/helper-script/files/cfs-lll-plus-safety/cfs_lll_safety.cfg /usr/data/printer_data/config/Helper-Script/
+
+          if ! grep -q "cfs_lll_safety.cfg" "$PRINTER_CFG" 2>/dev/null; then
+              echo -e "\n[include Helper-Script/cfs_lll_safety.cfg]" >> "$PRINTER_CFG"
+          fi
+
+          echo
+          echo -e "  ${green}✅ FLY-LLL PLUS successfully installed!${white}"
+          echo -e "  Restarting Klipper service automatically..."
+          echo
+          run "restart_klipper" "install_menu_ui_k1_2025_cfs_c"
         fi;;
       17)
         if [ -f "$MOTOR_SOUND_TARGET_FILE" ]; then
@@ -360,7 +360,7 @@ function install_menu_k1_2025_cfs_c() {
         else
           install_menu_ui_k1_2025_cfs_c
           echo
-          error_msg "RE-PAIRING SPERRE: Moonraker Obico ist aktuell nicht installiert!"
+          error_msg "RE-PAIRING LOCKED: Moonraker Obico is currently not installed!"
           echo
         fi;;
       27)

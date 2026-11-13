@@ -33,7 +33,7 @@ function install_menu_ui_k1_2025() {
   menu_option '12' 'Install' 'Extended Gcode Params'
   menu_option '13' 'Install' 'DXC Filament Sensor'
 # menu_option '14' 'Install' 'CFS-C Universal Purge Speed Fix'
-# menu_option '15' 'Install' 'Micro-Swiss FlowTech Volumetric Extension'
+# menu_option '15' 'Install' 'CFS-C Purge Volume Fix (Prime Tower)'
 # menu_option '16' 'Install' 'FLY-LLL PLUS Safetysystem (Einschalt-Sperre)'
   menu_option '17' 'Install' 'Motor Sound Support'
   menu_option '18' 'Install' 'Useful Macros'
@@ -50,7 +50,7 @@ function install_menu_ui_k1_2025() {
   subtitle '•REMOTE ACCESS:'
   menu_option '25' 'Install' 'OctoEverywhere'
   if [ -f "${INITD_FOLDER}/S99octoeverywhere" ]; then
-    menu_option '25a' 'Show' 'OctoEverywhere [Link Code anzeigen / erneuern]'
+    menu_option '25a' 'Show' 'OctoEverywhere [Show / renew link code]'
   else
     unavailable_menu_option '25a' 'Show' 'OctoEverywhere Link Code' 'DISABLED: Module must be installed first'
   fi
@@ -174,14 +174,13 @@ function install_menu_k1_2025() {
       11)
         clear
         if [ -f "$SHAPER_DEFS_FILE" ]; then
-          install_menu_ui_k1_2025_cfs_c
+          install_menu_ui_k1_2025
           echo
           error_msg "Restore Input Shapers is already installed!"
           echo
         else
-          run "install_restore_input_shapers" "install_menu_ui_k1_2025_cfs_c"
-        fi
-        ;;
+          run "install_restore_input_shapers" "install_menu_ui_k1_2025"
+        fi;;
       12)
         clear
         if grep -q "^\[extended_gcode_params\]" "$PRINTER_CFG" 2>/dev/null; then
@@ -215,13 +214,13 @@ function install_menu_k1_2025() {
       15)
         clear
         # LIVE-CHECK: Verify the active value of 40 directly within the menu, based on the actual box.cfg file.
-        if grep -q "extrude_length:[[:space:]]*40" "$BOX_CFG" 2>/dev/null; then
+        if grep -q "extrude_length:[[:space:]]*50" "$BOX_CFG" 2>/dev/null; then
           install_menu_ui_k1_2025_cfs_c
           echo
-          error_msg "Micro-Swiss FlowTech Volumetric Extension is already active!"
+          error_msg "CFS-C Purge Volume Fix (Prime Tower) is already active!"
           echo
         else
-          run "install_cfs_c_flowtech_extension" "install_menu_ui_k1_2025_cfs_c"
+          run "install_cfs_c_purge_volume_fix" "install_menu_ui_k1_2025_cfs_c"
         fi;;
       16)
         clear
@@ -229,9 +228,9 @@ function install_menu_k1_2025() {
         if ! grep -q "^\[include Helper-Script/dxc_sensor.cfg\]" "$PRINTER_CFG" 2>/dev/null; then
             install_menu_ui_k1_2025
             echo
-            error_msg "INSTALL-SPERRE: DXC Filament Sensor ist nicht aktiv!"
-            echo -e "  Der originale Filament-Sensor belegt aktuell noch den Pin PD7."
-            echo -e "  Bitte installiere zuerst den DXC Filament Sensor (Option 14)!"
+            error_msg "INSTALL LOCKED: DXC Filament Sensor is not active!"
+            echo -e "  The original filament sensor currently still occupies pin PD7."
+            echo -e "  Please install the DXC Filament Sensor (Option 13) first!"
             echo
         # DUAL INSTALLATION PROTECTION
         elif grep -q "^\[include Helper-Script/cfs_lll_safety.cfg\]" "$PRINTER_CFG" 2>/dev/null; then
@@ -242,16 +241,16 @@ function install_menu_k1_2025() {
         # NATIVE INSTALL & RESTART
         else
             title "[ INSTALL: FLY-LLL PLUS SAFETYSYSTEM ]" "${yellow}"
-            echo -e "  Kopiere Konfigurationsdateien..."
+            echo -e "  Copying configuration files..."
             cp /usr/data/helper-script/files/cfs-lll-plus-safety/cfs_lll_safety.cfg /usr/data/printer_data/config/Helper-Script/
-            
+
             if ! grep -q "cfs_lll_safety.cfg" "$PRINTER_CFG" 2>/dev/null; then
                 echo -e "\n[include Helper-Script/cfs_lll_safety.cfg]" >> "$PRINTER_CFG"
             fi
-            
+
             echo
-            echo -e "  ${green}✅ FLY-LLL PLUS erfolgreich installiert!${white}"
-            echo -e "  Starte Klipper-Service automatisch neu..."
+            echo -e "  ${green}✅ FLY-LLL PLUS successfully installed!${white}"
+            echo -e "  Restarting Klipper service automatically..."
             echo
             run "restart_klipper" "install_menu_ui_k1_2025"
         fi;;
@@ -339,14 +338,13 @@ function install_menu_k1_2025() {
       25a|25A)
         clear
         if [ -f "${INITD_FOLDER}/S99octoeverywhere" ]; then
-          run "show_octoeverywhere_link" "install_menu_ui_k1_2025_cfs_c"
+          run "show_octoeverywhere_link" "install_menu_ui_k1_2025"
         else
-          install_menu_ui_k1_2025_cfs_c
+          install_menu_ui_k1_2025
           echo
           error_msg "OctoEverywhere is not installed yet!"
           echo
-        fi
-        ;;
+        fi;;
       26)
         clear
         if [ -d "$MOONRAKER_OBICO_FOLDER" ] && [ -f "$KLIPPER_CONFIG_FOLDER/moonraker-obico.cfg" ]; then
@@ -363,11 +361,11 @@ function install_menu_k1_2025() {
       26a|26A)
         clear
         if [ -d "$MOONRAKER_OBICO_FOLDER" ] && [ -f "$KLIPPER_CONFIG_FOLDER/moonraker-obico.cfg" ]; then
-          run "repair_pairing_moonraker_obico" "install_menu_ui_k1_2025_cfs_c"
+          run "repair_pairing_moonraker_obico" "install_menu_ui_k1_2025"
         else
-          install_menu_ui_k1_2025_cfs_c
+          install_menu_ui_k1_2025
           echo
-          error_msg "RE-PAIRING SPERRE: Moonraker Obico ist aktuell nicht installiert!"
+          error_msg "RE-PAIRING LOCKED: Moonraker Obico is currently not installed!"
           echo
         fi;;
       27)
@@ -386,7 +384,7 @@ function install_menu_k1_2025() {
         elif [ ! -f "$ENTWARE_FILE" ]; then
           error_msg "Entware is needed, please install it first!"
         else
-          run "install_mobileraker_companion" "install_menu_ui_k1_2025_cfs_c"
+          run "install_mobileraker_companion" "install_menu_ui_k1_2025"
           echo -e "\n${yellow} Press Enter to return to the menu...${white}" && read -r _
         fi;;
       29)

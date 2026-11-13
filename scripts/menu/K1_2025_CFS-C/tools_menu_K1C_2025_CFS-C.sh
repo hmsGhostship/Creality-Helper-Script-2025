@@ -180,10 +180,10 @@ function tools_menu_k1_2025_cfs_c() {
         ;;
       15)
         clear
-        if grep -q "^\[include Helper-Script/calib_tool_box.cfg\]" "$PRINTE_CFG" 2>/dev/null; then
+        if grep -q "^\[include Helper-Script/calib_tool_box.cfg\]" "$PRINTER_CFG" 2>/dev/null; then
           tools_menu_ui_k1_2025_cfs_c
           echo
-          error_msg "Creality Calibration Toolbox ist bereits installiert und aktiv!"
+          error_msg "Creality Calibration Toolbox is already installed and active!"
           echo
         else
           run "install_calib_toolbox" "tools_menu_ui_k1_2025_cfs_c"
@@ -191,11 +191,11 @@ function tools_menu_k1_2025_cfs_c() {
         ;;
       16)
         clear
-        grep -q "^\[include Helper-Script/calib_tool_box.cfg\]" "$PRINTE_CFG" && calib_res=0 || calib_res=1
+        grep -q "^\[include Helper-Script/calib_tool_box.cfg\]" "$PRINTER_CFG" && calib_res=0 || calib_res=1
         if [ "${calib_res}" -ne 0 ]; then
           tools_menu_ui_k1_2025_cfs_c
           echo
-          error_msg "Creality Calibration Toolbox ist gar nicht aktiv oder bereits entfernt!"
+          error_msg "Creality Calibration Toolbox is not active or already removed!"
           echo
         else
           run "remove_calib_toolbox" "tools_menu_ui_k1_2025_cfs_c"
@@ -206,7 +206,7 @@ function tools_menu_k1_2025_cfs_c() {
         if [ -f "${MAINSAIL_FOLDER}/k1c-cfs-panel.js" ]; then
           tools_menu_ui_k1_2025_cfs_c
           echo
-          error_msg "CFS-C Mainsail Addon ist bereits installiert!"
+          error_msg "CFS-C Mainsail Addon is already installed!"
           echo
         else
           run "install_cfs_integration mainsail" "tools_menu_ui_k1_2025_cfs_c"
@@ -217,7 +217,7 @@ function tools_menu_k1_2025_cfs_c() {
         if [ ! -f "${MAINSAIL_FOLDER}/k1c-cfs-panel.js" ]; then
           tools_menu_ui_k1_2025_cfs_c
           echo
-          error_msg "CFS-C Mainsail Addon ist gar nicht installiert!"
+          error_msg "CFS-C Mainsail Addon is not installed!"
           echo
         else
           run "remove_cfs_integration mainsail" "tools_menu_ui_k1_2025_cfs_c"
@@ -228,7 +228,7 @@ function tools_menu_k1_2025_cfs_c() {
         if [ -f "${FLUIDD_FOLDER}/k1c-cfs-panel.js" ]; then
           tools_menu_ui_k1_2025_cfs_c
           echo
-          error_msg "CFS-C Fluidd Addon ist bereits installiert!"
+          error_msg "CFS-C Fluidd Addon is already installed!"
           echo
         else
           run "install_cfs_integration fluidd" "tools_menu_ui_k1_2025_cfs_c"
@@ -239,7 +239,7 @@ function tools_menu_k1_2025_cfs_c() {
         if [ ! -f "${FLUIDD_FOLDER}/k1c-cfs-panel.js" ]; then
           tools_menu_ui_k1_2025_cfs_c
           echo
-          error_msg "CFS-C Fluidd Addon ist gar nicht installiert!"
+          error_msg "CFS-C Fluidd Addon is not installed!"
           echo
         else
           run "remove_cfs_integration fluidd" "tools_menu_ui_k1_2025_cfs_c"
