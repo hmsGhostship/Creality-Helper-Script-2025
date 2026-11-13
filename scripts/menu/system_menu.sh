@@ -83,13 +83,12 @@ function system_menu_ui() {
   system_line "     System" "$(uname -s) (Kernel $(uname -r))" "${green}"
   system_line "   Firmware" "$(check_fw_version)"
   system_line "   Hostname" "$(uname -n)"
-  # Clean English CFS-C Status with visual pop
+  # CFS-C Status with visual pop
   if [ "$model" = "K1_2025_CFS-C" ]; then
-    system_line " CFS-C Menu" "${cyan}Active${green}"
+    system_line " CFS-C Menu" "Active" "${cyan}"
   else
-    system_line " CFS-C Menu" "Inactive"
+    system_line " CFS-C Menu" "Inactive" "${darkgrey}"
   fi
-  system_line "MAC Address" "$mac_address"
   system_line "  Device SN" "$device_sn"
   system_line " IP Address" "$(check_connection)"
   system_line "MAC Address" "$mac_address"

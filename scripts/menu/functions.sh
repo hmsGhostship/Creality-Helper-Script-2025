@@ -116,12 +116,13 @@ function info_line() {
 function system_line() {
   local title="$1"
   local value="$2"
+  local value_color="${3:-\e[97m}"
   local max_length=63
   local title_length=${#title}
   local separator=": "
   local value_length=${#value}
   local value_padding=$((max_length - title_length - ${#separator} - value_length))
-  printf " │ ${green}%s${white}%s${white}\e[97m%s%-*s%s${white}│\n" "$title" "$separator" "$value" $value_padding ''
+  printf " │ ${green}%s${white}%s${value_color}%s%-*s${white}│\n" "$title" "$separator" "$value" $value_padding ''
 }
 
 function install_msg() {

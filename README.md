@@ -120,7 +120,7 @@ G1 Z1 F600
 
 #### 4. Flushing Volumes & Multiplier
 * To drastically save material while maintaining clean color transitions, open the **Flushing Volumes** configuration in Orca Slicer.
-* Tip: Set the **Flush multiplier** to a minimal value of **`0.5`-`0,8`** and recalculate, to prevents color bleeding on critical switches (e.g., Black to White) without wasting filament on giant purge towers.
+* Tip: Set the **Flush multiplier** to a minimal value of **`0.4`-`0,8`** and recalculate, to prevents color bleeding on critical switches (e.g., Black to White) without wasting filament on giant purge towers.
 
 #### 5. Layer change G-Code (Required for time-lapse recordings)
 To ensure the hardware-optimized snapshot engine triggers seamlessly at every layer change, insert the following macro into the **Layer change G-code** field. If there are existing entries, place this command on a new line directly after them:
