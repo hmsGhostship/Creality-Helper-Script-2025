@@ -49,6 +49,7 @@ function main_menu_ui() {
   title "• HELPER SCRIPT FOR CREALITY $(script_title) •" "${blue}"
   title "Copyright © Cyril Guislain (Guilouz)" "${white}"
   title "K1 2025 Support by @C0DEBrained" "${white}"
+  title "K1 2025 CF-C Support by @hmsGhostship" "${white}"
   inner_line
   title "/!\\ ONLY USE THIS SCRIPT WITH LATEST FIRMWARE VERSION /!\\" "${darkred}"
   inner_line
