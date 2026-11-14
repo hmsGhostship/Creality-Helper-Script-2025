@@ -77,6 +77,7 @@ function tools_menu_k1_2025() {
       3)
         clear
         disabled_feature
+        continue
         ;;
       4)
         clear
@@ -171,10 +172,12 @@ function tools_menu_k1_2025() {
       13)
         clear
         disabled_feature
+        continue
         ;;
       14)
         clear
         disabled_feature
+        continue
         ;;
       15)
         clear

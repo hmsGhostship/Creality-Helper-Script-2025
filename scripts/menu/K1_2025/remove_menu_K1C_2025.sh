@@ -45,7 +45,7 @@ function remove_menu_ui_k1_2025() {
 # menu_option '21' 'Remove' 'Fans Control Macros'
 # menu_option '22' 'Remove' 'Nozzle Cleaning Fan Control'
 # menu_option '23' 'Remove' 'Improved Shapers Calibrations'
-#  menu_option '24' 'Remove' 'M600 Support'
+# menu_option '24' 'Remove' 'M600 Support'
   fi
   hr
   subtitle '•REMOTE ACCESS:'
@@ -202,6 +202,8 @@ function remove_menu_k1_2025() {
         ;;
       14)
         clear
+        disabled_feature
+        continue
         if ! grep -q -a -b -o "E-10 F120" "${KLIPPER_EXTRAS_FOLDER}/box_control.pyc" 2>/dev/null; then
           remove_menu_ui_k1_2025_cfs_c
           echo
@@ -212,6 +214,8 @@ function remove_menu_k1_2025() {
         fi;;
       15)
         clear
+        disabled_feature
+        continue
         # LIVE-CHECK: If 40 is not active, the menu blocks removal
         if ! grep -q "extrude_length:[[:space:]]*40" "$BOX_CFG" 2>/dev/null; then
           remove_menu_ui_k1_2025_cfs_c
@@ -223,6 +227,8 @@ function remove_menu_k1_2025() {
         fi;;
       16)
         clear
+        disabled_feature
+        continue
         # CHECK: Is the LLL Plus actually live and active?
         if ! grep -q "^\[include Helper-Script/cfs_lll_safety.cfg\]" "$PRINTER_CFG" 2>/dev/null; then
             remove_menu_ui_k1_2025
@@ -261,6 +267,8 @@ function remove_menu_k1_2025() {
          fi;;
       20)
         clear
+        disabled_feature
+        continue
         if [ ! -d "$KAMP_FOLDER" ]; then
           remove_menu_ui_k1_2025
           echo
@@ -270,12 +278,18 @@ function remove_menu_k1_2025() {
           run "remove_kamp" "remove_menu_ui_k1_2025"
         fi;;
       21)
+        clear
+        disabled_feature
+        continue
         if [ ! -f "$FAN_CONTROLS_FILE" ]; then
           error_msg "Fans Control Macros are not installed!"
         else
           run "remove_fans_control_macros" "remove_menu_ui_k1_2025"
         fi;;
       22)
+        clear
+        disabled_feature
+        continue
         if [ ! -d "$NOZZLE_CLEANING_FOLDER" ]; then
           error_msg "Nozzle Cleaning Fan Control is not installed!"
         else
@@ -283,6 +297,8 @@ function remove_menu_k1_2025() {
         fi;;
       23)
         clear
+        disabled_feature
+        continue
         if [ ! -d "$IMP_SHAPERS_FOLDER" ]; then
           remove_menu_ui_k1_2025
           echo
@@ -292,6 +308,9 @@ function remove_menu_k1_2025() {
           run "remove_improved_shapers" "remove_menu_ui_k1_2025"
         fi;;
       24)
+        clear
+        disabled_feature
+        continue
         if [ ! -f "$M600_SUPPORT_FILE" ]; then
           error_msg "M600 Support is not installed!"
         else

@@ -223,6 +223,8 @@ function remove_menu_k1_2025_cfs_c() {
         fi;;
       16)
         clear
+        disabled_feature
+        continue
         # CHECK: Is the LLL Plus actually live and active?
         if ! grep -q "^\[include Helper-Script/cfs_lll_safety.cfg\]" "$PRINTER_CFG" 2>/dev/null; then
             remove_menu_ui_k1_2025_cfs_c
@@ -261,6 +263,8 @@ function remove_menu_k1_2025_cfs_c() {
         fi;;
       20)
         clear
+        disabled_feature
+        continue
         if [ ! -d "$KAMP_FOLDER" ]; then
           remove_menu_ui_k1_2025_cfs_c
           echo
@@ -270,12 +274,18 @@ function remove_menu_k1_2025_cfs_c() {
           run "remove_kamp" "remove_menu_ui_k1_2025_cfs_c"
         fi;;
       21)
+        clear
+        disabled_feature
+        continue
         if [ ! -f "$FAN_CONTROLS_FILE" ]; then
           error_msg "Fans Control Macros are not installed!"
         else
           run "remove_fans_control_macros" "remove_menu_ui_k1_2025_cfs_c"
         fi;;
       22)
+        clear
+        disabled_feature
+        continue
         if [ ! -d "$NOZZLE_CLEANING_FOLDER" ]; then
           error_msg "Nozzle Cleaning Fan Control is not installed!"
         else
@@ -283,6 +293,8 @@ function remove_menu_k1_2025_cfs_c() {
         fi;;
       23)
         clear
+        disabled_feature
+        continue
         if [ ! -d "$IMP_SHAPERS_FOLDER" ]; then
           remove_menu_ui_k1_2025_cfs_c
           echo
@@ -292,6 +304,9 @@ function remove_menu_k1_2025_cfs_c() {
           run "remove_improved_shapers" "remove_menu_ui_k1_2025_cfs_c"
         fi;;
       24)
+        clear
+        disabled_feature
+        continue
         if [ ! -f "$M600_SUPPORT_FILE" ]; then
           error_msg "M600 Support is not installed!"
         else

@@ -205,6 +205,8 @@ function customize_menu_k1_2025_cfs_c() {
         ;;
       8)
         clear
+        disabled_feature
+        continue
         if grep -q "mb-料盒" /usr/data/printer_data/config/printer.cfg 2>/dev/null; then
           disabled_feature
         elif nexusp_absent; then
@@ -237,49 +239,56 @@ function customize_menu_k1_2025_cfs_c() {
           run "restore_nexusp" "customize_menu_ui_k1_2025_cfs_c"
         fi
         ;;
-      10|11)
+      10|11|11a|11A)
         clear
         disabled_feature
+        continue
         ;;
-#      10)
-#        clear
-#        if [ -d "$GUPPY_SCREEN_FOLDER" ]; then
-#        customize_menu_ui_k1_2025_cfs_c
-#          error_msg "Guppy Screen is already installed!"
-#        elif [ ! -d "$MOONRAKER_FOLDER" ] && [ ! -d "$NGINX_FOLDER" ]; then
-#        customize_menu_ui_k1_2025_cfs_c
-#          error_msg "Moonraker and Nginx are needed, please install them first!"
-#        elif ! curl -s localhost:7126/server/info 2>/dev/null | grep -Eq '"klippy_connected"[[:space:]]*:[[:space:]]*true'; then
-#          customize_menu_ui_k1_2025_cfs_c
-#          error_msg "Moonraker and Klipper do not seem to be functional. Please check this!"
-#        elif [ ! -f "$KLIPPER_SHELL_FILE" ]; then
-#        customize_menu_ui_k1_2025_cfs_c
-#          error_msg "Klipper Gcode Shell Command is needed, please install it first!"
-#        elif [ -d "$IMP_SHAPERS_FOLDER" ]; then
-#        customize_menu_ui_k1_2025_cfs_c
-#          error_msg "Please remove Improved Shapers Calibrations first, Guppy Screen already use it!"
-#        else
-#          run "install_guppyscreen" "customize_menu_ui_k1_2025_cfs_c"
-#        fi;;
-#      11)
-#        clear
-#        if [ ! -d "$GUPPY_SCREEN_FOLDER" ]; then
-#        customize_menu_ui_k1_2025_cfs_c        
-#        error_msg "Guppy Screen is not installed!"
-#        else
-#          run "remove_guppyscreen" "customize_menu_ui_k1_2025_cfs_c"
-#        fi;;
-#     11a|11A)
-#       clear
-#       if [ ! -d "$GUPPY_SCREEN_FOLDER" ]; then
-#         customize_menu_ui_k1_2025_2025_cfs_c
-#         echo
-#         error_msg "Guppy Screen is not installed!"
-#         echo
-#       else
-#         run "update_guppyscreen" "customize_menu_ui_k1_2025_2025_cfs_c"
-#       fi
-#       ;;
+      10)
+        clear
+        disabled_feature
+        continue
+        if [ -d "$GUPPY_SCREEN_FOLDER" ]; then
+        customize_menu_ui_k1_2025_cfs_c
+          error_msg "Guppy Screen is already installed!"
+        elif [ ! -d "$MOONRAKER_FOLDER" ] && [ ! -d "$NGINX_FOLDER" ]; then
+        customize_menu_ui_k1_2025_cfs_c
+          error_msg "Moonraker and Nginx are needed, please install them first!"
+        elif ! curl -s localhost:7126/server/info 2>/dev/null | grep -Eq '"klippy_connected"[[:space:]]*:[[:space:]]*true'; then
+          customize_menu_ui_k1_2025_cfs_c
+          error_msg "Moonraker and Klipper do not seem to be functional. Please check this!"
+        elif [ ! -f "$KLIPPER_SHELL_FILE" ]; then
+        customize_menu_ui_k1_2025_cfs_c
+          error_msg "Klipper Gcode Shell Command is needed, please install it first!"
+        elif [ -d "$IMP_SHAPERS_FOLDER" ]; then
+        customize_menu_ui_k1_2025_cfs_c
+          error_msg "Please remove Improved Shapers Calibrations first, Guppy Screen already use it!"
+        else
+          run "install_guppyscreen" "customize_menu_ui_k1_2025_cfs_c"
+        fi;;
+      11)
+        clear
+        disabled_feature
+        continue
+        if [ ! -d "$GUPPY_SCREEN_FOLDER" ]; then
+        customize_menu_ui_k1_2025_cfs_c        
+        error_msg "Guppy Screen is not installed!"
+        else
+          run "remove_guppyscreen" "customize_menu_ui_k1_2025_cfs_c"
+        fi;;
+     11a|11A)
+       clear
+       disabled_feature
+        continue
+       if [ ! -d "$GUPPY_SCREEN_FOLDER" ]; then
+         customize_menu_ui_k1_2025_2025_cfs_c
+         echo
+         error_msg "Guppy Screen is not installed!"
+         echo
+       else
+         run "update_guppyscreen" "customize_menu_ui_k1_2025_2025_cfs_c"
+       fi
+       ;;
       12)
         clear
         disable_cfsc_menu

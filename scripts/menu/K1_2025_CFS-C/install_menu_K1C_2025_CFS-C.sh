@@ -151,7 +151,9 @@ function install_menu_k1_2025_cfs_c() {
           run "install_builtin_camera" "install_menu_ui_k1_2025_cfs_c"
         fi;;
       9)
-        if [ -f "$CAMERA_SETTINGS_FILE" ]; then
+        if ! check_camera_capabilities_k1_2025; then
+          error_msg "No compatible camera hardware found!"
+        elif [ -f "$CAMERA_SETTINGS_FILE" ]; then
           error_msg "Camera Settings Control is already installed!"
         elif [ ! -f "$KLIPPER_SHELL_FILE" ]; then
           error_msg "Klipper Gcode Shell Command is needed, please install it first!"
@@ -222,6 +224,8 @@ function install_menu_k1_2025_cfs_c() {
         fi;;
       16)
         clear
+        disabled_feature
+        continue
         if ! grep -q "^\[include Helper-Script/dxc_sensor.cfg\]" "$PRINTER_CFG" 2>/dev/null; then
           install_menu_ui_k1_2025_cfs_c
           echo
@@ -275,6 +279,8 @@ function install_menu_k1_2025_cfs_c() {
         fi;;
       20)
         clear
+        disabled_feature
+        continue
         if [ -d "$KAMP_FOLDER" ]; then
           install_menu_ui_k1_2025_cfs_c
           echo
@@ -284,19 +290,27 @@ function install_menu_k1_2025_cfs_c() {
           run "install_kamp" "install_menu_ui_k1_2025_cfs_c"
         fi;;
       21)
+        clear
+        disabled_feature
+        continue
         if [ -f "$FAN_CONTROLS_FILE" ]; then
           error_msg "Fans Control Macros are already installed!"
         else
           run "install_fans_control_macros" "install_menu_ui_k1_2025_cfs_c"
         fi;;
       22)
-        if [ -d "$NOZZLE_CLEANING_FOLDER" ]; then
-          error_msg "Nozzle Cleaning Fan Control is already installed!"
-        else
-          run "install_nozzle_cleaning_fan_control" "install_menu_ui_k1_2025_cfs_c"
-        fi;;
+       clear
+       disabled_feature
+        continue
+       if [ -d "$NOZZLE_CLEANING_FOLDER" ]; then
+         error_msg "Nozzle Cleaning Fan Control is already installed!"
+       else
+         run "install_nozzle_cleaning_fan_control" "install_menu_ui_k1_2025_cfs_c"
+       fi;;
       23)
         clear
+        disabled_feature
+        continue
         # C13-Check: Nutzt deine globale Variable aus der paths.sh
         if [ -d "$IMP_SHAPERS_FOLDER" ]; then
           install_menu_ui_k1_2025_cfs_c
@@ -313,6 +327,9 @@ function install_menu_k1_2025_cfs_c() {
           run "install_improved_shapers" "install_menu_ui_k1_2025_cfs_c"
         fi;;
       24)
+        clear
+        disabled_feature
+        continue
         if [ -f "$M600_SUPPORT_FILE" ]; then
           error_msg "M600 Support is already installed!"
         else
