@@ -8,18 +8,18 @@ function customize_menu_ui_k1_2025() {
   title '[ CUSTOMIZE MENU ]' "${yellow}"
   inner_line
   hr
-  menu_option '1' 'Install' 'Creality Dynamic Logos for Fluidd'
+  menu_option '1' 'Install' 'Block Creality Cloud Telemetry'
+  menu_option '2' 'Remove' 'Block Creality Cloud Telemetry'
+  menu_option '3' 'Disable' 'Creality Stock Services'
+  menu_option '4' 'Restore' 'Creality Stock Services'
   hr
-  menu_option '2' 'Install' 'Block Creality Cloud Telemetry'
-  menu_option '3' 'Remove' 'Block Creality Cloud Telemetry'
-  menu_option '4' 'Disable' 'Creality Stock Services'
-  menu_option '5' 'Restore' 'Creality Stock Services'
+  menu_option '5' 'Retire' 'Nexusp Backend'
+  menu_option '6' 'Restore' 'Nexusp Backend'
   hr
-  menu_option '6' 'Disable' 'Creality mDNS Advertising'
-  menu_option '7' 'Restore' 'Creality mDNS Advertising'
+  menu_option '7' 'Disable' 'Creality mDNS Advertising'
+  menu_option '8' 'Restore' 'Creality mDNS Advertising'
   hr
-  menu_option '8' 'Retire' 'Nexusp Backend'
-  menu_option '9' 'Restore' 'Nexusp Backend'
+  menu_option '9' 'Install' 'Creality Dynamic Logos for Fluidd'
   hr
   menu_option '10' 'Install' 'Guppy Screen'
   menu_option '11' 'Remove' 'Guppy Screen'
@@ -48,22 +48,6 @@ function customize_menu_k1_2025() {
     case "${customize_menu_opt}" in
       1)
         clear
-        if [ -f "$FLUIDD_LOGO_FILE" ]; then
-          customize_menu_ui_k1_2025
-          echo
-          error_msg "Creality Dynamic Logos for Fluidd are already installed!"
-          echo
-        elif [ ! -d "$FLUIDD_FOLDER" ]; then
-          customize_menu_ui_k1_2025
-          echo
-          error_msg "Fluidd is needed, please install it first!"
-          echo
-        else
-          run "install_creality_dynamic_logos" "customize_menu_ui_k1_2025"
-        fi
-        ;;
-      2)
-        clear
         if [ -f "$CLOUD_BLOCK_SERVICE_FILE" ]; then
           customize_menu_ui_k1_2025
           echo
@@ -73,7 +57,7 @@ function customize_menu_k1_2025() {
           run "install_block_creality_cloud" "customize_menu_ui_k1_2025"
         fi
         ;;
-      3)
+      2)
         clear
         if [ ! -f "$CLOUD_BLOCK_SERVICE_FILE" ]; then
           customize_menu_ui_k1_2025
@@ -84,7 +68,7 @@ function customize_menu_k1_2025() {
           run "remove_block_creality_cloud" "customize_menu_ui_k1_2025"
         fi
         ;;
-      4)
+      3)
         clear
         if creality_services_absent; then
           customize_menu_ui_k1_2025
@@ -100,7 +84,7 @@ function customize_menu_k1_2025() {
           run "disable_creality_services" "customize_menu_ui_k1_2025"
         fi
         ;;
-      5)
+      4)
         clear
         if creality_services_absent; then
           customize_menu_ui_k1_2025
@@ -116,7 +100,39 @@ function customize_menu_k1_2025() {
           run "restore_creality_services" "customize_menu_ui_k1_2025"
         fi
         ;;
+      5)
+        clear
+        if nexusp_absent; then
+          customize_menu_ui_k1_2025
+          echo
+          error_msg "No nexusp service was found on this firmware!"
+          echo
+        elif nexusp_retired && ! nexusp_resurrected; then
+          customize_menu_ui_k1_2025
+          echo
+          error_msg "Nexusp Backend is already retired!"
+          echo
+        else
+          run "retire_nexusp" "customize_menu_ui_k1_2025"
+        fi
+        ;;
       6)
+        clear
+        if nexusp_absent; then
+          customize_menu_ui_k1_2025
+          echo
+          error_msg "No nexusp service was found on this firmware!"
+          echo
+        elif ! nexusp_retired; then
+          customize_menu_ui_k1_2025
+          echo
+          error_msg "Nexusp Backend is not retired!"
+          echo
+        else
+          run "restore_nexusp" "customize_menu_ui_k1_2025"
+        fi
+        ;;
+      7)
         clear
         if creality_mdns_absent; then
           customize_menu_ui_k1_2025
@@ -132,7 +148,7 @@ function customize_menu_k1_2025() {
           run "disable_creality_mdns" "customize_menu_ui_k1_2025"
         fi
         ;;
-      7)
+      8)
         clear
         if creality_mdns_absent; then
           customize_menu_ui_k1_2025
@@ -148,38 +164,20 @@ function customize_menu_k1_2025() {
           run "restore_creality_mdns" "customize_menu_ui_k1_2025"
         fi
         ;;
-      8)
-        clear
-        if grep -q "mb-料盒" /usr/data/printer_data/config/printer.cfg 2>/dev/null; then
-          disabled_feature
-        elif nexusp_absent; then
-          customize_menu_ui_k1_2025
-          echo
-          error_msg "No nexusp service was found on this firmware!"
-          echo
-        elif nexusp_retired && ! nexusp_resurrected; then
-          customize_menu_ui_k1_2025
-          echo
-          error_msg "Nexusp Backend is already retired!"
-          echo
-        else
-          run "retire_nexusp" "customize_menu_ui_k1_2025"
-        fi
-        ;;
       9)
         clear
-        if nexusp_absent; then
+        if [ -f "$FLUIDD_LOGO_FILE" ]; then
           customize_menu_ui_k1_2025
           echo
-          error_msg "No nexusp service was found on this firmware!"
+          error_msg "Creality Dynamic Logos for Fluidd are already installed!"
           echo
-        elif ! nexusp_retired; then
+        elif [ ! -d "$FLUIDD_FOLDER" ]; then
           customize_menu_ui_k1_2025
           echo
-          error_msg "Nexusp Backend is not retired!"
+          error_msg "Fluidd is needed, please install it first!"
           echo
         else
-          run "restore_nexusp" "customize_menu_ui_k1_2025"
+          run "install_creality_dynamic_logos" "customize_menu_ui_k1_2025"
         fi
         ;;
       10)
