@@ -91,7 +91,7 @@ function install_fluidd(){
         echo -e "Info: Removing temporary files..."
         rm -f "$FLUIDD_FOLDER"/fluidd.zip
         
-        # -> ORIGINAL MOONRAKER WORKING CONFIGURATION (Keine Experimente mehr!)
+        # -> ORIGINAL MOONRAKER WORKING CONFIGURATION
         if grep -q "#\[update_manager fluidd\]" "$MOONRAKER_CFG" ; then
           echo -e "Info: Enabling Fluidd configurations for Update Manager..."
           sed -i -e 's/^\s*#[[:space:]]*\[update_manager fluidd\]/[update_manager fluidd]/' -e '/^\[update_manager fluidd\]/,/^\s*$/ s/^\(\s*\)#/\1/' "$MOONRAKER_CFG"
@@ -99,10 +99,15 @@ function install_fluidd(){
           echo -e "Info: Fluidd configurations are already enabled for Update Manager..."        
         fi
         
-        # -> HIER IST DER ECHTE GRUND: Der ausfallsichere Pause/Resume Macro-Fix unter das Datum
+        # -> Fail-safe Pause/Resume macro fix below the date
         install_fluidd_macros_safely
+
+        # -> Automatically restore Calibration Toolbox status bar if active
+        if [ -f "$HS_CONFIG_FOLDER/calib_tool_box.cfg" ] && type install_fluidd_status_bar >/dev/null 2>&1; then
+          install_fluidd_status_bar
+        fi
         
-        # -> DIE KORREKTE STARTSEQUENZ: Klipper zwingend zuerst!
+        # -> THE CORRECT STARTUP SEQUENCE: Klipper must come first!
         restart_all_services_correctly
         
         ok_msg "Fluidd has been installed successfully!"
@@ -128,7 +133,7 @@ function remove_fluidd(){
         echo -e "Info: Removing files..."
         rm -rf "$FLUIDD_FOLDER"
         
-        # -> DER INTELLIGENTE INTERFACE-SCHUTZ:
+        # -> INTELLIGENT INTERFACE PROTECTION:
         if [ ! -d "$MAINSAIL_FOLDER" ]; then
           echo -e "Info: Mainsail not found. Removing interface_macros..."
           if [ -f "$PRINTER_CFG" ]; then
@@ -139,7 +144,7 @@ function remove_fluidd(){
           echo -e "Info: Mainsail is still installed. Keeping interface_macros active!"
         fi
 
-        # -> ORIGINALES, SICHERES AUSKOMMENTIEREN (Kein Löschen, schützt deine Kamera!)
+        # -> SAFE COMMENTING OUT IN MOONRAKER.CONF:
         if grep -q "\[update_manager fluidd\]" "$MOONRAKER_CFG" ; then
           echo -e "Info: Disabling Fluidd configurations for Update Manager..."
           sed -i '/^\[update_manager fluidd\]/,/^\s*$/ s/^\(\s*\)\([^#]\)/#\1\2/' "$MOONRAKER_CFG"
