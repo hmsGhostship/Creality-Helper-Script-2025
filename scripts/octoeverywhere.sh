@@ -135,20 +135,16 @@ EOF
         # 7. Persistentes Startskript mit Base64-JSON-Konfiguration & Boot-Verzögerung
         echo -e "Info: Writing persistent startup script..."
         local OCTO_INIT_SCRIPT="${INITD_FOLDER}/S99octoeverywhere"
+        local B64_ARGS
+        B64_ARGS=$("$active_python" -c "import json, base64; cfg={'ServiceName':'octoeverywhere','VirtualEnvPath':'$active_venv','RepoRootFolder':'$OCTOEVERYWHERE_FOLDER','LocalFileStoragePath':'$OCTO_STORE_DIR','ConfigFolder':'${PRINTER_DATA_FOLDER}/config','LogFolder':'${PRINTER_DATA_FOLDER}/logs','MoonrakerConfigFile':'$MOONRAKER_CFG'}; print(base64.urlsafe_b64encode(json.dumps(cfg).encode('utf-8')).decode('utf-8'))")
+
         cat << EOF > "$OCTO_INIT_SCRIPT"
 #!/bin/sh
 
 case "\$1" in
   start)
     echo "Starting OctoEverywhere Daemon..."
-    (
-      if [ "\$2" != "now" ]; then
-        sleep 20
-      fi
-      cd $OCTOEVERYWHERE_FOLDER || exit 1
-      B64_ARGS=\$($active_python -c 'import json, base64; cfg={"ServiceName":"octoeverywhere","VirtualEnvPath":"$active_venv","RepoRootFolder":"$OCTOEVERYWHERE_FOLDER","LocalFileStoragePath":"$OCTO_STORE_DIR","ConfigFolder":"${PRINTER_DATA_FOLDER}/config","LogFolder":"${PRINTER_DATA_FOLDER}/logs","MoonrakerConfigFile":"$MOONRAKER_CFG"}; print(base64.urlsafe_b64encode(json.dumps(cfg).encode("utf-8")).decode("utf-8"))')
-      PYTHONPATH=$OCTOEVERYWHERE_FOLDER $active_python -m moonraker_octoeverywhere "\$B64_ARGS" > ${PRINTER_DATA_FOLDER}/logs/octoeverywhere.log 2>&1
-    ) &
+    nohup /bin/sh -c '[ "\$1" != "now" ] && sleep 20; cd $OCTOEVERYWHERE_FOLDER && PYTHONPATH=$OCTOEVERYWHERE_FOLDER exec $active_python -m moonraker_octoeverywhere "$B64_ARGS" > ${PRINTER_DATA_FOLDER}/logs/octoeverywhere.log 2>&1' _ "\$2" </dev/null >/dev/null 2>&1 &
     ;;
   stop)
     echo "Stopping OctoEverywhere..."
@@ -169,8 +165,6 @@ case "\$1" in
 esac
 EOF
         chmod +x "$OCTO_INIT_SCRIPT"
-        
-        ok_msg "OctoEverywhere has been integrated successfully!"
         
         # 8. Automatic system reboot to clear RAM
         for i in 10 9 8 7 6 5 4 3 2 1; do
@@ -195,13 +189,10 @@ function remove_octoeverywhere(){
     remove_msg "OctoEverywhere" yn
     case "${yn}" in
       Y|y)
-        echo -e "${white}"
-        echo -e "Info: Removing OctoEverywhere components..."
-        if [ -f "${INITD_FOLDER}/S99octoeverywhere" ]; then
-          "${INITD_FOLDER}/S99octoeverywhere" stop >/dev/null 2>&1 || true
-          rm -f "${INITD_FOLDER}/S99octoeverywhere"
-        fi
-
+      if [ -f "${INITD_FOLDER}/S99octoeverywhere" ]; then
+       "${INITD_FOLDER}/S99octoeverywhere" stop >/dev/null 2>&1 || true
+       rm -f "${INITD_FOLDER}/S99octoeverywhere"
+      fi
         rm -rf "$OCTOEVERYWHERE_FOLDER"
         rm -rf "/usr/data/octoeverywhere-env"
         rm -rf "${PRINTER_DATA_FOLDER}/octoeverywhere-store"
@@ -243,7 +234,7 @@ function show_octoeverywhere_link(){
 
   echo -e " ${white}Checking OctoEverywhere connection status...${white}"
 
-  # Falls der Dienst noch nicht läuft oder der Code abgelaufen ist, optional neu starten
+  # Start daemon if not running yet
   if ! ps w | grep "moonraker_octoeverywhere" | grep -v grep >/dev/null 2>&1; then
     echo -e " ${yellow}Daemon is not running. Starting OctoEverywhere now...${white}"
     "$init_script" start now >/dev/null 2>&1
@@ -260,12 +251,12 @@ function show_octoeverywhere_link(){
     echo -e " ${green}┌────────────────────────────────────────────────────────┐${white}"
     echo -e " ${green}│  OCTOEVERYWHERE PAIRING CODE                           │${white}"
     echo -e " ${green}│                                                        │${white}"
-    echo -e " ${green}│  1. Open:  ${cyan}https://octoeverywhere.com/code${green}             │${white}"
-     printf " ${green}│  2. Code:  ${yellow}%-44s${green}│${white}\n" "$code"
+    echo -e " ${green}│  1. Open:  ${cyan}https://octoeverywhere.com{green}             │${white}"
+    printf " ${green}│  2. Code:  ${yellow}%-44s${green}│${white}\n" "$code"
     echo -e " ${green}└────────────────────────────────────────────────────────┘${white}"
     echo
     local regen_yn
-    read -p " ${white}Code expired? Restart daemon to generate a fresh code? (${yellow}y${white}/${yellow}n${white}): ${yellow}" regen_yn
+    read -p " ${white}Code expired? Restart daemon for a fresh code? (${yellow}y${white}/${yellow}n${white}): ${yellow}" regen_yn
     echo -e "${white}"
     case "${regen_yn}" in
       Y|y)
@@ -278,14 +269,15 @@ function show_octoeverywhere_link(){
         ;;
     esac
   else
-    echo -e " ${yellow}No pairing code found in log yet. Restarting daemon to generate one...${white}"
+    echo -e " ${yellow}No pairing code found yet. Restarting daemon...${white}"
     "$init_script" restart >/dev/null 2>&1
     sleep 4
     code=$(grep "Code:" "$log_file" 2>/dev/null | tail -n 1 | awk '{print $NF}' | tr -d '\r')
     if [ -n "$code" ]; then
-      echo -e " ${green}New Pairing Code: ${yellow}${code}${white} (Enter at ${cyan}://octoeverywhere.com{white})"
+      echo -e " ${green}New Pairing Code: ${yellow}${code}${white}"
+      echo -e " ${white}Enter at: ${cyan}https://octoeverywhere.com{white}"
     else
-      error_msg "Could not read code yet. Please wait 10 seconds and run 25a again."
+      error_msg "Could not read code yet. Wait 10s and run 25a again."
     fi
     echo
   fi
