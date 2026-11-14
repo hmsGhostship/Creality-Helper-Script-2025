@@ -24,18 +24,6 @@ function allow_updating_klipper_files_message(){
   bottom_line
 }
 
-function printing_gcode_from_folder_message(){
-  top_line
-  title 'Fix printing Gcode files from folder' "${yellow}"
-  inner_line
-  hr
-  echo -e " │ ${cyan}From Fluidd or Mainsail it's possible to classify your Gcode ${white}│"
-  echo -e " │ ${cyan}files in folders but by default it's not possible to start   ${white}│"
-  echo -e " │ ${cyan}a print from a folder. This fix allows that.                 ${white}│"
-  hr
-  bottom_line
-}
-
 function enable_camera_settings_message(){
   top_line
   title 'Enable camera settings in Moonraker' "${yellow}"
@@ -65,38 +53,6 @@ function add_chassis_light_control_message(){
   hr
   echo -e " │ ${cyan}This adds K1 2025 chassis light control to printer.cfg.      ${white}│"
   echo -e " │ ${cyan}The LED is connected to PA8.                                 ${white}│"
-  hr
-  bottom_line
-}
-
-function restore_previous_firmware_message(){
-  top_line
-  title 'Restore a previous firmware' "${yellow}"
-  inner_line
-  hr
-  echo -e " │ ${cyan}To restore a previous firmware, follow these steps and       ${white}│"
-  echo -e " │ ${cyan}validate your choice:                                        ${white}│"
-  echo -e " │                                                              │"
-  echo -e " │ ${cyan}1. ${white}Copy the firmware (.img) you want to update to the root   ${white}│"
-  echo -e " │    of a USB drive.                                           ${white}│"
-  echo -e " │ ${cyan}2. ${white}Make sure there is only this file on the USB drive.       ${white}│"
-  echo -e " │ ${cyan}3. ${white}Insert the USB drive into the printer.                    ${white}│"
-  hr
-  bottom_line
-}
-
-function reset_factory_settings_message(){
-  top_line
-  title 'Reset factory settings' "${yellow}"
-  inner_line
-  hr
-  echo -e " │ ${cyan}This the best way to reset the printer to its factory        ${white}│"
-  echo -e " │ ${cyan}settings.                                                    ${white}│"
-  echo -e " │ ${cyan}Note that the Factory Reset function in the screen menu      ${white}│"
-  echo -e " │ ${cyan}settings only performs a partial reset.                      ${white}│"
-  hr
-  echo -e " │ ${cyan}Note: After factory reset all features already been          ${white}│"
-  echo -e " │ ${cyan}installed with Creality Helper Script must be reinstalled.   ${white}│"
   hr
   bottom_line
 }
@@ -173,39 +129,6 @@ function allow_updating_klipper_files(){
         return;;
       N|n)
         error_msg "Authorization canceled!"
-        return;;
-      *)
-        error_msg "Please select a correct choice!";;
-    esac
-  done
-}
-
-function printing_gcode_from_folder(){
-  printing_gcode_from_folder_message
-  local yn
-  while true; do
-    read -p "${white} Do you want to apply fix for ${green}printing Gcode files from folder ${white}? (${yellow}y${white}/${yellow}n${white}): ${yellow}" yn
-    case "${yn}" in
-      Y|y)
-        echo -e "${white}"
-        echo -e "Info: Deleting files..."
-        if [ -f "$KLIPPER_KLIPPY_FOLDER"/gcode.py ]; then
-          rm -f "$KLIPPER_KLIPPY_FOLDER"/gcode.py
-          rm -f "$KLIPPER_KLIPPY_FOLDER"/gcode.pyc
-        fi
-        echo -e "Info: Linking files..."
-        if [ "$model" = "K1" ]; then
-          ln -sf "$KLIPPER_GCODE_URL" "$KLIPPER_KLIPPY_FOLDER"/gcode.py
-        fi
-        if [ "$model" = "3V3" ]; then
-          ln -sf "$KLIPPER_GCODE_3V3_URL" "$KLIPPER_KLIPPY_FOLDER"/gcode.py
-        fi
-        echo -e "Info: Restarting Klipper service..."
-        restart_klipper
-        ok_msg "Fix has been applied successfully!"
-        return;;
-      N|n)
-        error_msg "Installation canceled!"
         return;;
       *)
         error_msg "Please select a correct choice!";;
@@ -485,52 +408,6 @@ function clear_logs(){
         return;;
       N|n)
         error_msg "Clearing logs files canceled!"
-        return;;
-      *)
-        error_msg "Please select a correct choice!";;
-    esac
-  done
-}
-
-function restore_previous_firmware(){
-  restore_previous_firmware_message
-  local yn
-  while true; do
-    read -p "${white} Do you want to restore a previous firmware ? (${yellow}y${white}/${yellow}n${white}): ${yellow}" yn
-    case "${yn}" in
-      Y|y)
-        if ls /tmp/udisk/sda1/*.img 1> /dev/null 2>&1; then
-          echo -e "${white}"
-          echo "Info: Restoring firmware..."
-          rm -rf /overlay/upper/*
-          /etc/ota_bin/local_ota_update.sh /tmp/udisk/sda1/*.img
-          ok_msg "Firmware has been restored! Please reboot your printer."
-          exit 0
-        else
-          error_msg "No .img file found on the USB drive. Restoration canceled!"
-        fi
-        return;;
-      N|n)
-        error_msg "Restoration canceled!"
-        return;;
-      *)
-        error_msg "Please select a correct choice!";;
-    esac
-  done
-}
-
-function reset_factory_settings(){
-  reset_factory_settings_message
-  local yn
-  while true; do
-    read -p "${white} Are you sure you want to ${green}reset factory settings ${white}? (${yellow}y${white}/${yellow}n${white}): ${yellow}" yn
-    case "${yn}" in
-      Y|y)
-        echo -e "${white}"
-        "$INITD_FOLDER"/S58factoryreset reset
-        ;;
-      N|n)
-        error_msg "Reset canceled!"
         return;;
       *)
         error_msg "Please select a correct choice!";;

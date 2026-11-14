@@ -10,32 +10,27 @@ function tools_menu_ui_k1_2025_cfs_c() {
   hr
   menu_option ' 1' 'Prevent updating' 'Klipper configuration files'
   menu_option ' 2' 'Allow updating' 'Klipper configuration files'
-#  disabled_menu_option ' 3' 'Fix' 'printing Gcode files from folder'
   hr
-  menu_option ' 4' 'Enable' 'camera settings in Moonraker'
-  menu_option ' 5' 'Disable' 'camera settings in Moonraker'
-  menu_option ' 6' 'Add' 'chassis light control'
+  menu_option ' 3' 'Enable' 'camera settings in Moonraker'
+  menu_option ' 4' 'Disable' 'camera settings in Moonraker'
+  menu_option ' 5' 'Add' 'chassis light control'
   hr
-  menu_option ' 7' 'Restart' 'Nginx service'
-  menu_option ' 8' 'Restart' 'Moonraker service'
-  menu_option ' 9' 'Restart' 'Klipper service'
+  menu_option ' 6' 'Restart' 'Nginx service'
+  menu_option ' 7' 'Restart' 'Moonraker service'
+  menu_option ' 8' 'Restart' 'Klipper service'
   hr
-  menu_option '10' 'Update' 'Entware packages'
+  menu_option '9' 'Update' 'Entware packages'
   hr
-  menu_option '11' 'Clear' 'cache'
-  menu_option '12' 'Clear' 'logs files'
+  menu_option '10' 'Clear' 'cache'
+  menu_option '11' 'Clear' 'logs files'
   hr
-#  disabled_menu_option '13' 'Restore' 'a previous firmware'
-#  hr
-#  disabled_menu_option '14' 'Reset' 'factory settings'
-#  hr
   subtitle '•CFS-C Tools:'
-  menu_option '15' 'Enable' 'Creality Calibration Toolbox (BED MESH)'
-  menu_option '16' 'Disable' 'Creality Calibration Toolbox (BED MESH)'
+  menu_option '12' 'Enable' 'Creality Calibration Toolbox (BED MESH)'
+  menu_option '13' 'Disable' 'Creality Calibration Toolbox (BED MESH)'
   hr
   subtitle '•CFS-C Mainsail/Fluidd integration:'
-  menu_option '20' 'Install' 'CFS-C Web Addon (Mainsail / Fluidd)'
-  menu_option '21' 'Remove' 'CFS-C Web Addon (Mainsail / Fluidd)'
+  menu_option '14' 'Install' 'CFS-C Web Addon (Mainsail / Fluidd)'
+  menu_option '15' 'Remove' 'CFS-C Web Addon (Mainsail / Fluidd)'
   inner_line
   hr
   bottom_menu_option 'b' 'Back to [Main Menu]' "${yellow}"
@@ -76,11 +71,6 @@ function tools_menu_k1_2025_cfs_c() {
         ;;
       3)
         clear
-        disabled_feature
-        continue
-        ;;
-      4)
-        clear
         if [ ! -f "$BUILTIN_CAMERA_FILE" ] && [ ! -f "$BUILTIN_CAMERA_LEGACY_FILE" ] && [ ! -f "$USB_CAMERA_FILE" ] && [ ! -f "$USB_CAMERA_LEGACY_FILE" ]; then
           tools_menu_ui_k1_2025_cfs_c
           echo
@@ -95,7 +85,7 @@ function tools_menu_k1_2025_cfs_c() {
           run "enable_camera_settings" "tools_menu_ui_k1_2025_cfs_c"
         fi
         ;;
-      5)
+      4)
         clear
         if ! grep -q "^\[webcam chassis\]\|^\[webcam usb\]" "$MOONRAKER_CFG"; then
           tools_menu_ui_k1_2025_cfs_c
@@ -106,7 +96,7 @@ function tools_menu_k1_2025_cfs_c() {
           run "disable_camera_settings" "tools_menu_ui_k1_2025_cfs_c"
         fi
         ;;
-      6)
+      5)
         clear
         if grep -q "^\[output_pin LED\]" "$PRINTER_CFG"; then
           tools_menu_ui_k1_2025_cfs_c
@@ -117,7 +107,7 @@ function tools_menu_k1_2025_cfs_c() {
           run "add_chassis_light_control" "tools_menu_ui_k1_2025_cfs_c"
         fi
         ;;
-      7)
+      6)
         clear
         if [ ! -d "$NGINX_FOLDER" ]; then
           tools_menu_ui_k1_2025_cfs_c
@@ -128,7 +118,7 @@ function tools_menu_k1_2025_cfs_c() {
           run "restart_nginx_action" "tools_menu_ui_k1_2025_cfs_c"
         fi
         ;;
-      8)
+      7)
         clear
         if [ ! -d "$MOONRAKER_FOLDER" ]; then
           tools_menu_ui_k1_2025_cfs_c
@@ -139,7 +129,7 @@ function tools_menu_k1_2025_cfs_c() {
           run "restart_moonraker_action" "tools_menu_ui_k1_2025_cfs_c"
         fi
         ;;
-      9)
+      8)
         clear
         if [ ! -f "$INITD_FOLDER"/CS55klipper_service ] && [ ! -f "$INITD_FOLDER"/S55klipper_service ]; then
           tools_menu_ui_k1_2025_cfs_c
@@ -150,7 +140,7 @@ function tools_menu_k1_2025_cfs_c() {
           run "restart_klipper_action" "tools_menu_ui_k1_2025_cfs_c"
         fi
         ;;
-      10)
+      9)
         clear
         if [ ! -f "$ENTWARE_FILE" ]; then
           tools_menu_ui_k1_2025_cfs_c
@@ -161,25 +151,15 @@ function tools_menu_k1_2025_cfs_c() {
           run "update_entware_packages" "tools_menu_ui_k1_2025_cfs_c"
         fi
         ;;
-      11)
+      10)
         clear
         run "clear_cache" "tools_menu_ui_k1_2025_cfs_c"
         ;;
-      12)
+      11)
         clear
         run "clear_logs" "tools_menu_ui_k1_2025_cfs_c"
         ;;
-      13)
-        clear
-        disabled_feature
-        continue
-        ;;
-      14)
-        clear
-        disabled_feature
-        continue
-        ;;
-      15)
+      12)
         clear
         if grep -q "^\[include Helper-Script/calib_tool_box.cfg\]" "$PRINTER_CFG" 2>/dev/null; then
           tools_menu_ui_k1_2025_cfs_c
@@ -190,7 +170,7 @@ function tools_menu_k1_2025_cfs_c() {
           run "install_calib_toolbox" "tools_menu_ui_k1_2025_cfs_c"
         fi
         ;;
-      16)
+      13)
         clear
         grep -q "^\[include Helper-Script/calib_tool_box.cfg\]" "$PRINTER_CFG" && calib_res=0 || calib_res=1
         if [ "${calib_res}" -ne 0 ]; then
@@ -202,7 +182,7 @@ function tools_menu_k1_2025_cfs_c() {
           run "remove_calib_toolbox" "tools_menu_ui_k1_2025_cfs_c"
         fi
         ;;
-      20)
+      14)
         clear
         if [ -f "${MAINSAIL_FOLDER}/k1c-cfs-panel.js" ] || [ -f "${FLUIDD_FOLDER}/k1c-cfs-panel.js" ]; then
           tools_menu_ui_k1_2025_cfs_c
@@ -213,7 +193,7 @@ function tools_menu_k1_2025_cfs_c() {
           run "install_cfs_integration" "tools_menu_ui_k1_2025_cfs_c"
         fi
         ;;
-      21)
+      15)
         clear
         if [ ! -f "${MAINSAIL_FOLDER}/k1c-cfs-panel.js" ] && [ ! -f "${FLUIDD_FOLDER}/k1c-cfs-panel.js" ]; then
           tools_menu_ui_k1_2025_cfs_c
