@@ -70,8 +70,10 @@ Specifically engineered for the tight memory budget of 2025/2026 K1C mainboards:
 This repository is tailored and tested for advanced hardware modifications:
 
 * **Phaetus DXC Extruder Integration:** Fully compatible with custom extruder configurations and fine-tuned macro settings.
-* **CFS-C Purge Volume Fix (Prime Tower):** Available in the **Install Menu**, this patch fixes under-extrusion and empty extrusion inside the Prime Tower during toolchanges by adjusting the purge volume (`E50`) and feeding velocity (`120 mm/min`) in `box.cfg`. This prevents torn lines, stabilizes the Prime Tower structure, and reduces material waste across both stock and aftermarket hotends.
-* **Creality Calibration Toolbox (Bed Mesh):** Optimized paths and enhanced support for precise Bed Mesh calibrations, ensuring perfect first layers with advanced probing.
+* **CFS-C Purge Volume Fix (Prime Tower):** Available in the **Install Menu**, this patch fixes under-extrusion and empty extrusion inside the Prime Tower during toolchanges by adjusting the purge volume (`E40`) and feeding velocity (`120 mm/min`) in `box.cfg`. This prevents torn lines, stabilizes the Prime Tower structure, and reduces material waste across both stock and aftermarket hotends.
+* **Creality Calibration Toolbox (Bed Mesh & Native Adaptive Mesh):** Integrates Creality's original **Adaptive Bed Mesh** directly into the Calibration Toolbox. You can easily switch between **Original (Full Mesh)**, **Adaptive Bed Mesh**, or **Disabled** directly from the interface, ensuring fast, localized probing and precise first layers.
+
+> ⚠️ **Important Service Dependency Note:** Creality's core backend services (`nexusp` and `solusp`) are strictly required for both the **CFS-C Multi-Material System** and the **Creality Calibration Toolbox (Adaptive Bed Mesh)**. Do **not** disable these services or retire the `nexusp` backend when using either feature.
 
 ### ⚡ CFS-C Speed Fix (High Back-Pressure & Grinding Prevention)
 
