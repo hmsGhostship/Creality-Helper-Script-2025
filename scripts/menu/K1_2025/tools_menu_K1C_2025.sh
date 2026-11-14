@@ -32,12 +32,10 @@ function tools_menu_ui_k1_2025() {
 #  subtitle '•CFS-C Tools:'
 #  menu_option '15' 'Enable' 'Creality Calibration Toolbox (BED MESH)'
 #  menu_option '16' 'Disable' 'Creality Calibration Toolbox (BED MESH)'
-  hr
+#  hr
 #  subtitle '•CFS-C Mainsail/Fluidd integration:'
-#  menu_option '20' 'Install' 'CFS-C Mainsail Addon'
-#  menu_option '21' 'Remove' 'CFS-C Mainsail Addon'
-#  menu_option '22' 'Install' 'CFS-C Fluidd Addon'
-#  menu_option '23' 'Remove' 'CFS-C Fluidd Addon'
+#  menu_option '20' 'Install' 'CFS-C Web Addon (Mainsail / Fluidd)'
+#  menu_option '21' 'Remove' 'CFS-C Web Addon (Mainsail / Fluidd)'
   inner_line
   hr
   bottom_menu_option 'b' 'Back to [Main Menu]' "${yellow}"
@@ -203,49 +201,26 @@ function tools_menu_k1_2025() {
         ;;
       20)
         clear
-        if [ -f "${MAINSAIL_FOLDER}/k1c-cfs-panel.js" ]; then
-          tools_menu_ui_k1_2025
+        if [ -f "${MAINSAIL_FOLDER}/k1c-cfs-panel.js" ] || [ -f "${FLUIDD_FOLDER}/k1c-cfs-panel.js" ]; then
+          tools_menu_ui_k1_2025_cfs_c
           echo
-          error_msg "CFS-C Mainsail Addon is already installed!"
+          error_msg "CFS-C Web Addon is already installed!"
           echo
         else
-          run "install_cfs_integration mainsail" "tools_menu_ui_k1_2025"
+          run "install_cfs_integration" "tools_menu_ui_k1_2025_cfs_c"
         fi
         ;;
       21)
         clear
-        if [ ! -f "${MAINSAIL_FOLDER}/k1c-cfs-panel.js" ]; then
-          tools_menu_ui_k1_2025
+        if [ ! -f "${MAINSAIL_FOLDER}/k1c-cfs-panel.js" ] && [ ! -f "${FLUIDD_FOLDER}/k1c-cfs-panel.js" ]; then
+          tools_menu_ui_k1_2025_cfs_c
           echo
-          error_msg "CFS-C Mainsail Addon is not installed!"
-          echo
-        else
-          run "remove_cfs_integration mainsail" "tools_menu_ui_k1_2025"
-        fi
-        ;;
-      22)
-        clear
-        if [ -f "${FLUIDD_FOLDER}/k1c-cfs-panel.js" ]; then
-          tools_menu_ui_k1_2025
-          echo
-          error_msg "CFS-C Fluidd Addon is already installed!"
+          error_msg "CFS-C Web Addon is not installed!"
           echo
         else
-          run "install_cfs_integration fluidd" "tools_menu_ui_k1_2025"
+          run "remove_cfs_integration" "tools_menu_ui_k1_2025_cfs_c"
         fi
         ;;
-      23)
-        clear
-        if [ ! -f "${FLUIDD_FOLDER}/k1c-cfs-panel.js" ]; then
-          tools_menu_ui_k1_2025
-          echo
-          error_msg "CFS-C Fluidd Addon is not installed!"
-          echo
-        else
-          run "remove_cfs_integration fluidd" "tools_menu_ui_k1_2025"
-        fi
-        ;;
-
       B|b)
         clear
         main_menu
