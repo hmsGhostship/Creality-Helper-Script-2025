@@ -84,36 +84,78 @@ install_cfs_integration() {
 
 remove_cfs_integration() {
   cfs_message
-  local yn
-  while true; do
-    remove_msg "CFS-C Web Addon (Mainsail / Fluidd)" yn
-    case "${yn}" in
-      Y|y)
-        echo "=== Starting removal of CFS-C Web Addon ==="
 
-        local dir
-        for dir in "$MAINSAIL_FOLDER" "$FLUIDD_FOLDER"; do
-          if [ -f "${dir}/index.html" ]; then
-            sed -i '/<!-- K1C_CFS_INJECT_START -->/,/<!-- K1C_CFS_INJECT_END -->/d' "${dir}/index.html"
-          fi
-          rm -f "${dir}/k1c-cfs-panel.js"
-        done
+  local has_mainsail=0
+  local has_fluidd=0
+  [ -f "${MAINSAIL_FOLDER}/k1c-cfs-panel.js" ] || [ -f "${HS_CONFIG_FOLDER}/.cfs_addon_mainsail" ] && has_mainsail=1
+  [ -f "${FLUIDD_FOLDER}/k1c-cfs-panel.js" ] || [ -f "${HS_CONFIG_FOLDER}/.cfs_addon_fluidd" ] && has_fluidd=1
 
-        rm -f "$TARGET_JSON"
-        rm -f "${KLIPPY_EXTRAS}/cfs_material_db.py"
-        rm -f "${HS_CONFIG_FOLDER}/.cfs_addon_mainsail" "${HS_CONFIG_FOLDER}/.cfs_addon_fluidd"
+  if [ "$has_mainsail" -eq 0 ] && [ "$has_fluidd" -eq 0 ]; then
+    error_msg "CFS-C Web Addon is not installed in Mainsail or Fluidd!"
+    return 1
+  fi
 
-        ok_msg "CFS-C Web Addon removed successfully!"
-        echo "Info: Restarting Klipper service..."
-        restart_klipper
-        return;;
-      N|n)
-        error_msg "Deletion canceled!"
-        return;;
-      *)
-        error_msg "Please select a correct choice!";;
-    esac
-  done
+  local choice=""
+  if [ "$has_mainsail" -eq 1 ] && [ "$has_fluidd" -eq 1 ]; then
+    echo -e " ${white}The CFS-C Web Addon is installed in both interfaces:${white}"
+    echo -e "   ${yellow}1)${white} Remove from ${cyan}ALL${white} (Mainsail & Fluidd)"
+    echo -e "   ${yellow}2)${white} Remove from ${cyan}Mainsail${white} only"
+    echo -e "   ${yellow}3)${white} Remove from ${cyan}Fluidd${white} only"
+    echo -e "   ${yellow}c)${white} Cancel"
+    echo
+    while true; do
+      read -p " ${white}Select an option (${yellow}1${white}/${yellow}2${white}/${yellow}3${white}/${yellow}c${white}): ${yellow}" choice
+      echo -e "${white}"
+      case "$choice" in
+        1|2|3) break;;
+        C|c) error_msg "Deletion canceled!"; return;;
+        *) error_msg "Please select a correct choice!";;
+      esac
+    done
+  else
+    local yn
+    while true; do
+      remove_msg "CFS-C Web Addon" yn
+      case "${yn}" in
+        Y|y) choice="1"; break;;
+        N|n) error_msg "Deletion canceled!"; return;;
+        *) error_msg "Please select a correct choice!";;
+      esac
+    done
+  fi
+
+  echo "=== Starting removal of CFS-C Web Addon ==="
+
+  if [ "$choice" = "1" ] || [ "$choice" = "2" ]; then
+    if [ -f "${MAINSAIL_FOLDER}/index.html" ]; then
+      sed -i '/<!-- K1C_CFS_INJECT_START -->/,/<!-- K1C_CFS_INJECT_END -->/d' "${MAINSAIL_FOLDER}/index.html"
+    fi
+    rm -f "${MAINSAIL_FOLDER}/k1c-cfs-panel.js"
+    rm -f "${HS_CONFIG_FOLDER}/.cfs_addon_mainsail"
+    echo -e "Info: Removed CFS-C Addon from Mainsail."
+  fi
+
+  if [ "$choice" = "1" ] || [ "$choice" = "3" ]; then
+    if [ -f "${FLUIDD_FOLDER}/index.html" ]; then
+      sed -i '/<!-- K1C_CFS_INJECT_START -->/,/<!-- K1C_CFS_INJECT_END -->/d' "${FLUIDD_FOLDER}/index.html"
+    fi
+    rm -f "${FLUIDD_FOLDER}/k1c-cfs-panel.js"
+    rm -f "${HS_CONFIG_FOLDER}/.cfs_addon_fluidd"
+    echo -e "Info: Removed CFS-C Addon from Fluidd."
+  fi
+
+  # Remove shared Klipper backend files only if NO frontend still uses the addon
+  if [ ! -f "${HS_CONFIG_FOLDER}/.cfs_addon_mainsail" ] && [ ! -f "${HS_CONFIG_FOLDER}/.cfs_addon_fluidd" ]; then
+    rm -f "$TARGET_JSON"
+    rm -f "${KLIPPY_EXTRAS}/cfs_material_db.py"
+    echo -e "Info: Removed shared Klipper CFS-C backend files."
+  else
+    echo -e "Info: Keeping shared Klipper backend active for the remaining web interface."
+  fi
+
+  ok_msg "CFS-C Web Addon removal completed!"
+  echo "Info: Restarting Klipper service..."
+  restart_klipper
 }
 
 reapply_cfs_frontend_patch() {
