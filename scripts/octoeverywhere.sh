@@ -251,7 +251,7 @@ function show_octoeverywhere_link(){
     echo -e " ${green}┌────────────────────────────────────────────────────────┐${white}"
     echo -e " ${green}│  OCTOEVERYWHERE PAIRING CODE                           │${white}"
     echo -e " ${green}│                                                        │${white}"
-    echo -e " ${green}│  1. Open:  ${cyan}https://octoeverywhere.com{green}             │${white}"
+    echo -e " ${green}│  1. Open:  ${cyan}https://octoeverywhere.com${green}                  │${white}"
     printf " ${green}│  2. Code:  ${yellow}%-44s${green}│${white}\n" "$code"
     echo -e " ${green}└────────────────────────────────────────────────────────┘${white}"
     echo

@@ -59,7 +59,10 @@ gcode:
     RESUME_BASE
 EOF
         chmod 644 "$macro_dest"
-
+        # -> Automatically restore CFS-C Frontend Addon if active
+        if type reapply_cfs_frontend_patch >/dev/null 2>&1; then
+         reapply_cfs_frontend_patch "mainsail"
+        fi
         if [ -f "$PRINTER_CFG" ]; then
           sed -i '/interface_macros\.cfg/d' "$PRINTER_CFG"
           if grep -q "# CreateDate:" "$PRINTER_CFG"; then

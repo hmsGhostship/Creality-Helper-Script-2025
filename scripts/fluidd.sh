@@ -107,6 +107,11 @@ function install_fluidd(){
           install_fluidd_status_bar
         fi
         
+        # -> Automatically restore CFS-C Frontend Addon if active
+        if type reapply_cfs_frontend_patch >/dev/null 2>&1; then
+          reapply_cfs_frontend_patch "fluidd"
+        fi
+        
         # -> THE CORRECT STARTUP SEQUENCE: Klipper must come first!
         restart_all_services_correctly
         

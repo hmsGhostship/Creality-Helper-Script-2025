@@ -302,7 +302,6 @@ function remove_menu_k1_2025() {
           error_msg "OctoEverywhere is not installed!"
         else
           run "remove_octoeverywhere" "remove_menu_ui_k1_2025"
-          echo -e "\n${yellow} Press Enter to return to the menu...${white}" && read -r _
         fi;;
       26)
         if [ ! -d "$MOONRAKER_OBICO_FOLDER" ]; then
