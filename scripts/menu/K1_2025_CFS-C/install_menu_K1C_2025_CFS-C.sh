@@ -18,9 +18,19 @@ function install_menu_ui_k1_2025_cfs_c() {
   menu_option ' 5' 'Install' 'Klipper Gcode Shell Command'
   hr
   subtitle '•CAMERA:'
+  if [ -f "$BUILTIN_CAMERA_FILE" ] || [ -f "$BUILTIN_CAMERA_LEGACY_FILE" ]; then
+    unavailable_menu_option ' 6' 'Install' 'Go2rtc' 'DISABLED: Remove Built-in Camera Fix first'
+  elif [ -f "$CREALITY_CLOUD_WEBRTC_SERVICE" ] || [ -f "$CREALITY_LOCAL_WEBRTC_SERVICE" ]; then
+    unavailable_menu_option ' 6' 'Install' 'Go2rtc' 'DISABLED: Disable Creality WebRTC services first'
+  else
   menu_option ' 6' 'Install' 'Go2rtc'
+  fi
   menu_option ' 7' 'Install' 'USB Camera Support'
-  menu_option ' 8' 'Install' 'Built-in Camera Fix'
+  if [ -f "$GO2RTC_FILE" ] || [ -f "$GO2RTC_SERVICE_FILE" ]; then
+    unavailable_menu_option ' 8' 'Install' 'Built-in Camera Fix' 'DISABLED: Remove Go2rtc first'
+  else
+    menu_option ' 8' 'Install' 'Built-in Camera Fix'
+  fi
   if check_camera_capabilities_k1_2025; then
     menu_option ' 9' 'Install' 'Camera Settings Control'
   else
@@ -125,6 +135,10 @@ function install_menu_k1_2025_cfs_c() {
       6)
         if [ -f "$GO2RTC_FILE" ]; then
           error_msg "Go2rtc is already installed!"
+        elif [ -f "$BUILTIN_CAMERA_FILE" ] || [ -f "$BUILTIN_CAMERA_LEGACY_FILE" ]; then
+          error_msg "Built-in Camera Fix is active! Please remove it first."
+        elif [ -f "$CREALITY_CLOUD_WEBRTC_SERVICE" ] || [ -f "$CREALITY_LOCAL_WEBRTC_SERVICE" ]; then
+          error_msg "Creality WebRTC services are still active! Please disable Creality Stock Services first."
         else
           run "install_go2rtc" "install_menu_ui_k1_2025_cfs_c"
         fi;;
@@ -143,6 +157,8 @@ function install_menu_k1_2025_cfs_c() {
       8)
         if [ -f "$BUILTIN_CAMERA_FILE" ]; then
           error_msg "Built-in Camera Fix is already installed!"
+        elif [ -f "$GO2RTC_FILE" ] || [ -f "$GO2RTC_SERVICE_FILE" ]; then
+          error_msg "Go2rtc is active! Please remove Go2rtc first."
         elif [ ! -f "$ENTWARE_FILE" ]; then
           error_msg "Entware is needed, please install it first!"
         elif [ ! -d "$MOONRAKER_FOLDER" ] || [ ! -d "$NGINX_FOLDER" ]; then
