@@ -40,20 +40,19 @@ function remove_menu_ui_k1_2025_cfs_c() {
   menu_option '17' 'Remove' 'Motor Sound Support'
   menu_option '18' 'Remove' 'Useful Macros'
   menu_option '19' 'Remove' 'Git Backup'
-# menu_option '20' 'Remove' 'Klipper Adaptive Meshing & Purging'
-# menu_option '21' 'Remove' 'Fans Control Macros'
-# menu_option '22' 'Remove' 'Nozzle Cleaning Fan Control'
-# menu_option '23' 'Remove' 'Improved Shapers Calibrations'
-# menu_option '24' 'Remove' 'M600 Support'
+# menu_option '20' 'Remove' 'Fans Control Macros'
+# menu_option '21' 'Remove' 'Nozzle Cleaning Fan Control'
+# menu_option '22' 'Remove' 'Improved Shapers Calibrations'
+# menu_option '23' 'Remove' 'M600 Support'
 
   hr
   subtitle '•REMOTE ACCESS:'
-  menu_option '25' 'Remove' 'OctoEverywhere'
-  menu_option '26' 'Remove' 'Moonraker Obico'
-  menu_option '27' 'Remove' 'GuppyFLO'
-  menu_option '28' 'Remove' 'Mobileraker Companion'
-  menu_option '29' 'Remove' 'OctoApp Companion'
-  menu_option '30' 'Remove' 'SimplyPrint'
+  menu_option '24' 'Remove' 'OctoEverywhere'
+  menu_option '25' 'Remove' 'Moonraker Obico'
+  menu_option '26' 'Remove' 'GuppyFLO'
+  menu_option '27' 'Remove' 'Mobileraker Companion'
+  menu_option '28' 'Remove' 'OctoApp Companion'
+  menu_option '29' 'Remove' 'SimplyPrint'
   hr
   inner_line
   hr
@@ -252,22 +251,12 @@ function remove_menu_k1_2025_cfs_c() {
         clear
         disabled_feature
         continue
-        if [ ! -d "$KAMP_FOLDER" ]; then
-          error_msg "Klipper Adaptive Meshing & Purging is not installed!"
-          echo
-        else
-          run "remove_kamp" "remove_menu_ui_k1_2025_cfs_c"
-        fi;;
-      21)
-        clear
-        disabled_feature
-        continue
         if [ ! -f "$FAN_CONTROLS_FILE" ]; then
           error_msg "Fans Control Macros are not installed!"
         else
           run "remove_fans_control_macros" "remove_menu_ui_k1_2025_cfs_c"
         fi;;
-      22)
+      21)
         clear
         disabled_feature
         continue
@@ -276,7 +265,7 @@ function remove_menu_k1_2025_cfs_c() {
         else
           run "remove_nozzle_cleaning_fan_control" "remove_menu_ui_k1_2025_cfs_c"
         fi;;
-      23)
+      22)
         clear
         disabled_feature
         continue
@@ -286,7 +275,7 @@ function remove_menu_k1_2025_cfs_c() {
         else
           run "remove_improved_shapers" "remove_menu_ui_k1_2025_cfs_c"
         fi;;
-      24)
+      23)
         clear
         disabled_feature
         continue
@@ -295,37 +284,37 @@ function remove_menu_k1_2025_cfs_c() {
         else
           run "remove_m600_support" "remove_menu_ui_k1_2025_cfs_c"
         fi;;
-      25)
+      24)
         if [ ! -d "$OCTOEVERYWHERE_FOLDER" ]; then
           error_msg "OctoEverywhere is not installed!"
         else
           run "remove_octoeverywhere" "remove_menu_ui_k1_2025_cfs_c"
         fi;;
-       26)
+      25)
          if [ ! -d "$MOONRAKER_OBICO_FOLDER" ]; then
            error_msg "Moonraker Obico is not installed!"
          else
            run "remove_moonraker_obico" "remove_menu_ui_k1_2025_cfs_c"
          fi;;
-      27)
+      26)
         if [ ! -d "$GUPPYFLO_FOLDER" ]; then
           error_msg "GuppyFLO is not installed!"
         else
           run "remove_guppyflo" "remove_menu_ui_k1_2025_cfs_c"
         fi;;
-      28)
+      27)
         if [ ! -d "$MOBILERAKER_COMPANION_FOLDER" ]; then
           error_msg "Mobileraker Companion is not installed!"
         else
          run "remove_mobileraker_companion" "remove_menu_ui_k1_2025_cfs_c"
         fi;;
-      29)
+      28)
         if [ ! -d "$OCTOAPP_COMPANION_FOLDER" ]; then
           error_msg "OctoApp Companion is not installed!"
         else
           run "remove_octoapp_companion" "remove_menu_ui_k1_2025_cfs_c"
         fi;;
-      30)
+      29)
         if ! grep -q "\[simplyprint\]" "$MOONRAKER_CFG"; then
           error_msg "SimplyPrint is not installed!"
         else
