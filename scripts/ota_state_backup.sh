@@ -94,7 +94,7 @@ function restore_ota_state(){
   echo -e " ${cyan}Disabled stock services in snapshot:${white} ${DISABLED_SERVICES:-none}"
   echo
 
-  local yn
+  local yn restore_mode
   while true; do
     restore_msg "Helper-Script State" yn
     case "${yn}" in
@@ -106,9 +106,74 @@ function restore_ota_state(){
           fi
         fi
 
+        echo -e " How should Klipper/Moonraker configs be restored?"
+        echo -e "  ${yellow}1)${white} Safe Merge (Recommended): Keep new FW printer.cfg/box.cfg, restore Helper-Script files & includes"
+        echo -e "  ${yellow}2)${white} Full Restore: Overwrite all config files with your saved snapshot"
+        echo
+        while true; do
+          read -p " ${white}Select restore mode (${yellow}1${white}/${yellow}2${white}): ${yellow}" restore_mode
+          echo -e "${white}"
+          case "${restore_mode}" in
+            1|2) break;;
+            *) error_msg "Please select a correct choice! (1 or 2)";;
+          esac
+        done
+
+        # Immer zuerst die neuen Firmware-Configs sichern, bevor etwas angefasst wird
+        if [ -d "$PRINTER_DATA_FOLDER/config" ]; then
+          echo -e "Info: Backing up current firmware configs to ${OTA_BACKUP_DIR}/fw_new_config_before_restore.tar.gz..."
+          tar -czf "$OTA_BACKUP_DIR/fw_new_config_before_restore.tar.gz" -C /usr/data printer_data/config
+        fi
+
         if [ -f "$OTA_BACKUP_DIR/ota_configs.tar.gz" ]; then
-          echo -e "Info: Restoring Klipper/Moonraker configs & database..."
-          tar -xzf "$OTA_BACKUP_DIR/ota_configs.tar.gz" -C /usr/data
+          if [ "$restore_mode" = "2" ]; then
+            echo -e "Info: Performing full restore of Klipper/Moonraker configs & database..."
+            tar -xzf "$OTA_BACKUP_DIR/ota_configs.tar.gz" -C /usr/data
+          else
+            echo -e "Info: Performing Safe Merge (preserving new FW printer.cfg & box.cfg)..."
+            mkdir -p "$OTA_BACKUP_DIR/cfg_tmp"
+            tar -xzf "$OTA_BACKUP_DIR/ota_configs.tar.gz" -C "$OTA_BACKUP_DIR/cfg_tmp"
+
+            # Moonraker-Datenbank & Go2rtc wiederherstellen
+            [ -d "$OTA_BACKUP_DIR/cfg_tmp/printer_data/database" ] && cp -af "$OTA_BACKUP_DIR/cfg_tmp/printer_data/database/." "$PRINTER_DATA_FOLDER/database/"
+            if [ -d "$OTA_BACKUP_DIR/cfg_tmp/go2rtc" ]; then
+              mkdir -p /usr/data/go2rtc
+              cp -af "$OTA_BACKUP_DIR/cfg_tmp/go2rtc/." /usr/data/go2rtc/
+            fi
+
+            # Helper-Script-Ordner & eigene Konfigurationsdateien übernehmen (ohne printer.cfg / box.cfg zu überschreiben)
+            local src_cfg="$OTA_BACKUP_DIR/cfg_tmp/printer_data/config"
+            local dst_cfg="$PRINTER_DATA_FOLDER/config"
+            if [ -d "$src_cfg/Helper-Script" ]; then
+              mkdir -p "$dst_cfg/Helper-Script"
+              cp -af "$src_cfg/Helper-Script/." "$dst_cfg/Helper-Script/"
+            fi
+            local f bname
+            for f in "$src_cfg"/*; do
+              [ -f "$f" ] || continue
+              bname="$(basename "$f")"
+              case "$bname" in
+                printer.cfg|box.cfg|factory_printer.cfg|gcode_macro.cfg|sensorless.cfg)
+                  continue;;
+                *)
+                  cp -pf "$f" "$dst_cfg/$bname";;
+              esac
+            done
+
+            # Fehlende [include Helper-Script/...] & [output_pin LED] in die neue printer.cfg einfügen
+            if [ -f "$src_cfg/printer.cfg" ] && [ -f "$dst_cfg/printer.cfg" ]; then
+              echo -e "Info: Merging Helper-Script includes into new firmware printer.cfg..."
+              grep '^\[include Helper-Script/' "$src_cfg/printer.cfg" | while IFS= read -r inc_line; do
+                if ! grep -Fq "$inc_line" "$dst_cfg/printer.cfg"; then
+                  sed -i "1i\\${inc_line}" "$dst_cfg/printer.cfg"
+                fi
+              done
+              if grep -q '^\[output_pin LED\]' "$src_cfg/printer.cfg" && ! grep -q '^\[output_pin LED\]' "$dst_cfg/printer.cfg"; then
+                sed -n '/^\[output_pin LED\]/,/^$/p' "$src_cfg/printer.cfg" >> "$dst_cfg/printer.cfg"
+              fi
+            fi
+            rm -rf "$OTA_BACKUP_DIR/cfg_tmp"
+          fi
         fi
 
         if [ -f "$OTA_BACKUP_DIR/ota_initd.tar.gz" ] && [ -d "$INITD_FOLDER" ]; then
@@ -118,11 +183,11 @@ function restore_ota_state(){
           local s
           for s in "$OTA_BACKUP_DIR/initd_tmp"/S* "$OTA_BACKUP_DIR/initd_tmp"/CS*; do
             [ -f "$s" ] || continue
-            local bname
-            bname="$(basename "$s")"
-            if [ ! -f "$INITD_FOLDER/$bname" ]; then
-              cp -p "$s" "$INITD_FOLDER/$bname"
-              chmod +x "$INITD_FOLDER/$bname" 2>/dev/null || true
+            local sbname
+            sbname="$(basename "$s")"
+            if [ ! -f "$INITD_FOLDER/$sbname" ]; then
+              cp -p "$s" "$INITD_FOLDER/$sbname"
+              chmod +x "$INITD_FOLDER/$sbname" 2>/dev/null || true
             fi
           done
           rm -rf "$OTA_BACKUP_DIR/initd_tmp"
@@ -143,12 +208,6 @@ function restore_ota_state(){
 
         if [ -n "$GO2RTC_MODE" ] && type configure_go2rtc_k1_2025 >/dev/null 2>&1; then
           configure_go2rtc_k1_2025 "$GO2RTC_MODE"
-        fi
-
-        if [ "$HAS_CFS_MAINSAIL" = "1" ] || [ "$HAS_CFS_FLUIDD" = "1" ]; then
-          if type install_cfs_integration >/dev/null 2>&1; then
-            echo -e "Info: Note - re-run Option 14 in Tools Menu if Mainsail/Fluidd web files were updated."
-          fi
         fi
 
         type sync_timelapse_snapshot_url_k1_2025 >/dev/null 2>&1 && sync_timelapse_snapshot_url_k1_2025
