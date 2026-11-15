@@ -65,6 +65,15 @@ Specifically engineered for the tight memory budget of 2025/2026 K1C mainboards:
 * **OctoEverywhere & Camera Sync:** Includes **Option 25a** to view or regenerate the pairing code at any time, plus automatic camera stream routing (`/webcam3/` for USB, `/webcam/` for built-in).
 * **Native X2600 GuppyScreen Support (`K1_2025`):** Supports both `goodix-ts` and `Hua Que` touchscreens and dynamically detects the active Moonraker port (`:7126` or `:7125`).
 
+### 📷 Flexible Camera Architecture (Built-in, USB, Go2rtc & Creality Print)
+
+The K1 2025 camera subsystem supports multiple simultaneous workflows while protecting `/dev/video0` and `/dev/video2` from hardware conflicts:
+
+* **Recommended Low-RAM Dual-Camera Setup (~3 MB per stream):** Install **Built-in Camera Fix** (`/webcam/`, `/dev/video0`) and **USB Camera Support** (`/webcam3/`, `/dev/video2`) via `mjpg-streamer`. This leaves ~49 MB of free RAM so **Mainsail/Fluidd**, **Moonraker Timelapse**, and **OctoEverywhere** run simultaneously without OOM risk.
+* **Keep Creality Print Camera + Mainsail USB Camera:** Leave Creality's local WebRTC daemon (`thirteenthp`) enabled for **Creality Print** on `/dev/video0` and run **USB Camera Support** (or **Go2rtc** in USB mode) on `/dev/video2` for Mainsail/Fluidd and OctoEverywhere.
+* **Selectable Go2rtc Streaming (`Option 6`):** Choose at install time whether **Go2rtc** binds to the **Built-in Chassis Camera** (`/dev/video0`) or a **USB Camera** (`/dev/video2`). Includes a **35 MB RAM check** (`Go2rtc + ffmpeg`) and mutual conflict guards across all install/remove menus.
+* **Granular Stock Service Restoration:** **Restore Creality Stock Services** lets you restore `alchemistp` (telemetry), `onyxp` (Creality Cloud WebRTC), and `thirteenthp` (local Creality Print WebRTC) individually, and offers a one-click reboot prompt to re-initialize the `/dev/video0` driver cleanly.
+
 ### 🛠️ Hardware & Calibration Optimizations
 
 This repository is tailored and tested for advanced hardware modifications:
