@@ -1,8 +1,10 @@
+function remove_menu_ui_k1_2025() {
+  CURRENT_MENU_UI="remove_menu_ui_k1_2025"
 #!/bin/sh
 
 set -e
 
-function remove_menu_ui_k1_2025() {
+
   top_line
   title "• CREALITY $(script_title) •" "${blue}"
   title '[ REMOVE MENU ]' "${yellow}"
@@ -162,8 +164,6 @@ function remove_menu_k1_2025() {
       11)
         clear
         if [ ! -f "$SHAPER_DEFS_FILE" ]; then
-          remove_menu_ui_k1_2025_cfs_c
-          echo
           error_msg "Restore Input Shapers is not installed!"
           echo
         else
@@ -172,8 +172,6 @@ function remove_menu_k1_2025() {
       12)
         clear
         if ! grep -q "^\[extended_gcode_params\]" "$PRINTER_CFG" 2>/dev/null; then
-          remove_menu_ui_k1_2025
-          echo
           error_msg "Extended Gcode Params is not active in printer.cfg!"
           echo
         else
@@ -183,16 +181,12 @@ function remove_menu_k1_2025() {
         clear
         # 1. ANTI-UNLOCK: If LLL Plus is active in live mode, we immediately block any attempt to remove it!
         if grep -q "^\[include Helper-Script/cfs_lll_safety.cfg\]" "$PRINTER_CFG" 2>/dev/null; then
-            remove_menu_ui_k1_2025
-            echo
             error_msg "REMOVE LOCKED: DXC Filament Sensor is blocked!"
             echo -e "  Pin PD7 is currently actively used by FLY-LLL PLUS."
             echo -e "  Please remove the FLY-LLL PLUS Safety System (Option 16) first!"
             echo
         # 2. LIVE CHECK: Is the DXC sensor actually actively integrated?
         elif ! grep -q "^\[include Helper-Script/dxc_sensor.cfg\]" "$PRINTER_CFG" 2>/dev/null; then
-            remove_menu_ui_k1_2025
-            echo
             error_msg "DXC Filament Sensor is not active in printer.cfg!"
             echo
         else
@@ -205,8 +199,6 @@ function remove_menu_k1_2025() {
         disabled_feature
         continue
         if ! grep -q -a -b -o "E-10 F120" "${KLIPPER_EXTRAS_FOLDER}/box_control.pyc" 2>/dev/null; then
-          remove_menu_ui_k1_2025_cfs_c
-          echo
           error_msg "CFS-C Universal Purge Speed Fix is not active in bytecode!"
           echo
         else
@@ -218,8 +210,6 @@ function remove_menu_k1_2025() {
         continue
         # LIVE-CHECK: If 40 is not active, the menu blocks removal
         if ! grep -q "extrude_length:[[:space:]]*40" "$BOX_CFG" 2>/dev/null; then
-          remove_menu_ui_k1_2025_cfs_c
-          echo
           error_msg "CFS-C Purge Volume Fix (Prime Tower) is not active!"
           echo
         else
@@ -231,8 +221,6 @@ function remove_menu_k1_2025() {
         continue
         # CHECK: Is the LLL Plus actually live and active?
         if ! grep -q "^\[include Helper-Script/cfs_lll_safety.cfg\]" "$PRINTER_CFG" 2>/dev/null; then
-            remove_menu_ui_k1_2025
-            echo
             error_msg "FLY-LLL PLUS Safetysystem is not active in printer.cfg!"
             echo
         else
@@ -270,8 +258,6 @@ function remove_menu_k1_2025() {
         disabled_feature
         continue
         if [ ! -d "$KAMP_FOLDER" ]; then
-          remove_menu_ui_k1_2025
-          echo
           error_msg "Klipper Adaptive Meshing & Purging is not installed!"
           echo
         else
@@ -300,8 +286,6 @@ function remove_menu_k1_2025() {
         disabled_feature
         continue
         if [ ! -d "$IMP_SHAPERS_FOLDER" ]; then
-          remove_menu_ui_k1_2025
-          echo
           error_msg "Improved Shapers Calibrations (C13 Edition) are not active!"
           echo
         else

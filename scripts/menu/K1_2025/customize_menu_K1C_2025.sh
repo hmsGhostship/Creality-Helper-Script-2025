@@ -1,8 +1,10 @@
+function customize_menu_ui_k1_2025() {
+  CURRENT_MENU_UI="customize_menu_ui_k1_2025"
 #!/bin/sh
 
 set -e
 
-function customize_menu_ui_k1_2025() {
+
   top_line
   title "• CREALITY $(script_title) •" "${blue}"
   title '[ CUSTOMIZE MENU ]' "${yellow}"
@@ -49,8 +51,6 @@ function customize_menu_k1_2025() {
       1)
         clear
         if [ -f "$CLOUD_BLOCK_SERVICE_FILE" ]; then
-          customize_menu_ui_k1_2025
-          echo
           error_msg "Block Creality Cloud Telemetry is already installed!"
           echo
         else
@@ -60,8 +60,6 @@ function customize_menu_k1_2025() {
       2)
         clear
         if [ ! -f "$CLOUD_BLOCK_SERVICE_FILE" ]; then
-          customize_menu_ui_k1_2025
-          echo
           error_msg "Block Creality Cloud Telemetry is not installed!"
           echo
         else
@@ -71,13 +69,9 @@ function customize_menu_k1_2025() {
       3)
         clear
         if creality_services_absent; then
-          customize_menu_ui_k1_2025
-          echo
           error_msg "No Creality stock services were found on this firmware!"
           echo
         elif ! creality_services_pending; then
-          customize_menu_ui_k1_2025
-          echo
           error_msg "Creality Stock Services are already disabled!"
           echo
         else
@@ -87,13 +81,9 @@ function customize_menu_k1_2025() {
       4)
         clear
         if creality_services_absent; then
-          customize_menu_ui_k1_2025
-          echo
           error_msg "No Creality stock services were found on this firmware!"
           echo
         elif ! creality_services_disabled_present; then
-          customize_menu_ui_k1_2025
-          echo
           error_msg "Creality Stock Services are not disabled!"
           echo
         else
@@ -103,13 +93,9 @@ function customize_menu_k1_2025() {
       5)
         clear
         if nexusp_absent; then
-          customize_menu_ui_k1_2025
-          echo
           error_msg "No nexusp service was found on this firmware!"
           echo
         elif nexusp_retired && ! nexusp_resurrected; then
-          customize_menu_ui_k1_2025
-          echo
           error_msg "Nexusp Backend is already retired!"
           echo
         else
@@ -119,13 +105,9 @@ function customize_menu_k1_2025() {
       6)
         clear
         if nexusp_absent; then
-          customize_menu_ui_k1_2025
-          echo
           error_msg "No nexusp service was found on this firmware!"
           echo
         elif ! nexusp_retired; then
-          customize_menu_ui_k1_2025
-          echo
           error_msg "Nexusp Backend is not retired!"
           echo
         else
@@ -135,13 +117,9 @@ function customize_menu_k1_2025() {
       7)
         clear
         if creality_mdns_absent; then
-          customize_menu_ui_k1_2025
-          echo
           error_msg "Creality mDNS service was not found on this firmware!"
           echo
         elif creality_mdns_disabled; then
-          customize_menu_ui_k1_2025
-          echo
           error_msg "Creality mDNS Advertising is already disabled!"
           echo
         else
@@ -151,13 +129,9 @@ function customize_menu_k1_2025() {
       8)
         clear
         if creality_mdns_absent; then
-          customize_menu_ui_k1_2025
-          echo
           error_msg "Creality mDNS service was not found on this firmware!"
           echo
         elif ! creality_mdns_disabled; then
-          customize_menu_ui_k1_2025
-          echo
           error_msg "Creality mDNS Advertising is not disabled!"
           echo
         else
@@ -167,13 +141,9 @@ function customize_menu_k1_2025() {
       9)
         clear
         if [ -f "$FLUIDD_LOGO_FILE" ]; then
-          customize_menu_ui_k1_2025
-          echo
           error_msg "Creality Dynamic Logos for Fluidd are already installed!"
           echo
         elif [ ! -d "$FLUIDD_FOLDER" ]; then
-          customize_menu_ui_k1_2025
-          echo
           error_msg "Fluidd is needed, please install it first!"
           echo
         else
@@ -211,8 +181,6 @@ function customize_menu_k1_2025() {
       11a|11A)
         clear
         if [ ! -d "$GUPPY_SCREEN_FOLDER" ]; then
-          customize_menu_ui_k1_2025
-          echo
           error_msg "Guppy Screen is not installed!"
           echo
         else

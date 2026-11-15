@@ -1,3 +1,5 @@
+function system_menu_ui() {
+  CURRENT_MENU_UI="system_menu_ui"
 #!/bin/sh
 
 set -e
@@ -56,7 +58,7 @@ function format_uptime() {
   echo "$output"
 }
 
-function system_menu_ui() {
+
   memavail=`cat /proc/meminfo | grep MemAvailable | awk '{print $2}'`
   [ -z "$memavail" ] && memavail=`cat /proc/meminfo | grep MemFree | awk '{print $2}'`
   memtotal=`cat /proc/meminfo | grep MemTotal | awk '{print $2}'`

@@ -1,8 +1,10 @@
+function install_menu_ui_k1_2025_cfs_c() {
+  CURRENT_MENU_UI="install_menu_ui_k1_2025_cfs_c"
 #!/bin/sh
 
 set -e
 
-function install_menu_ui_k1_2025_cfs_c() {
+
   top_line
   title "• CREALITY $(script_title) •" "${blue}"
   title '[ INSTALL MENU ]' "${yellow}"
@@ -185,8 +187,6 @@ function install_menu_k1_2025_cfs_c() {
       11)
         clear
         if [ -f "$SHAPER_DEFS_FILE" ]; then
-          install_menu_ui_k1_2025_cfs_c
-          echo
           error_msg "Restore Input Shapers is already installed!"
           echo
         else
@@ -196,8 +196,6 @@ function install_menu_k1_2025_cfs_c() {
       12)
         clear
         if grep -q "^\[extended_gcode_params\]" "$PRINTER_CFG" 2>/dev/null; then
-          install_menu_ui_k1_2025_cfs_c
-          echo
           error_msg "Extended Gcode Params is already active in printer.cfg!"
           echo
         else
@@ -206,8 +204,6 @@ function install_menu_k1_2025_cfs_c() {
       13)
         clear
         if grep -q "^\[include Helper-Script/dxc_sensor.cfg\]" "$PRINTER_CFG" 2>/dev/null; then
-          install_menu_ui_k1_2025_cfs_c
-          echo
           error_msg "DXC Filament Sensor is already active in printer.cfg!"
           echo
         else
@@ -216,8 +212,6 @@ function install_menu_k1_2025_cfs_c() {
       14)
         clear
         if grep -q -a -b -o "E-10 F120" "${KLIPPER_EXTRAS_FOLDER}/box_control.pyc" 2>/dev/null; then
-          install_menu_ui_k1_2025_cfs_c
-          echo
           error_msg "CFS-C Universal Purge Speed Fix is already active in bytecode!"
           echo
         else
@@ -227,8 +221,6 @@ function install_menu_k1_2025_cfs_c() {
         clear
         # LIVE-CHECK: Verify the active value of 40 directly within the menu, based on the actual box.cfg file.
         if grep -q "extrude_length:[[:space:]]*40" "$BOX_CFG" 2>/dev/null; then
-          install_menu_ui_k1_2025_cfs_c
-          echo
           error_msg "CFS-C Purge Volume Fix (Prime Tower) is already active!"
           echo
         else
@@ -239,15 +231,11 @@ function install_menu_k1_2025_cfs_c() {
         disabled_feature
         continue
         if ! grep -q "^\[include Helper-Script/dxc_sensor.cfg\]" "$PRINTER_CFG" 2>/dev/null; then
-          install_menu_ui_k1_2025_cfs_c
-          echo
           error_msg "INSTALL LOCKED: DXC Filament Sensor is not active!"
           echo -e "  The original filament sensor currently still occupies pin PD7."
           echo -e "  Please install the DXC Filament Sensor (Option 13) first!"
           echo
         elif grep -q "^\[include Helper-Script/cfs_lll_safety.cfg\]" "$PRINTER_CFG" 2>/dev/null; then
-          install_menu_ui_k1_2025_cfs_c
-          echo
           error_msg "FLY-LLL PLUS Safetysystem is already active in printer.cfg!"
           echo
         else
@@ -294,8 +282,6 @@ function install_menu_k1_2025_cfs_c() {
         disabled_feature
         continue
         if [ -d "$KAMP_FOLDER" ]; then
-          install_menu_ui_k1_2025_cfs_c
-          echo
           error_msg "Klipper Adaptive Meshing & Purging is already installed!"
           echo
         else
@@ -325,13 +311,9 @@ function install_menu_k1_2025_cfs_c() {
         continue
         # C13-Check: Nutzt deine globale Variable aus der paths.sh
         if [ -d "$IMP_SHAPERS_FOLDER" ]; then
-          install_menu_ui_k1_2025_cfs_c
-          echo
           error_msg "Improved Shapers Calibrations (C13 Edition) are already installed!"
           echo
         elif [ -d "$GUPPY_SCREEN_FOLDER" ]; then
-          install_menu_ui_k1_2025_cfs_c
-          echo
           error_msg "Guppy Screen already has these features!"
           echo
         else
@@ -363,8 +345,6 @@ function install_menu_k1_2025_cfs_c() {
         if [ -f "${INITD_FOLDER}/S99octoeverywhere" ]; then
           run "show_octoeverywhere_link" "install_menu_ui_k1_2025_cfs_c"
         else
-          install_menu_ui_k1_2025_cfs_c
-          echo
           error_msg "OctoEverywhere is not installed yet!"
           echo
         fi
@@ -387,8 +367,6 @@ function install_menu_k1_2025_cfs_c() {
         if [ -d "$MOONRAKER_OBICO_FOLDER" ] && [ -f "$KLIPPER_CONFIG_FOLDER/moonraker-obico.cfg" ]; then
           run "repair_pairing_moonraker_obico" "install_menu_ui_k1_2025_cfs_c"
         else
-          install_menu_ui_k1_2025_cfs_c
-          echo
           error_msg "RE-PAIRING LOCKED: Moonraker Obico is currently not installed!"
           echo
         fi;;

@@ -151,6 +151,7 @@ function restart_msg() {
 
 IN_RUN=0
 LAST_RUN_MSG=""
+CURRENT_MENU_UI=""
 
 function ok_msg() {
   local msg="${white}${green} ✓ ${1}${white}"
@@ -164,14 +165,23 @@ function ok_msg() {
 
 function error_msg() {
   local msg="${white}${darkred} ✗ ${1}${white}"
-  echo
-  echo -e "$msg"
-  echo
   if [ "$IN_RUN" = "1" ]; then
+    echo
+    echo -e "$msg"
+    echo
     LAST_RUN_MSG="$msg"
+  elif [ -n "$CURRENT_MENU_UI" ]; then
+    clear
+    "$CURRENT_MENU_UI"
+    echo
+    echo -e "$msg"
+    echo
+  else
+    echo
+    echo -e "$msg"
+    echo
   fi
 }
-
 function run() {
   clear
   IN_RUN=1

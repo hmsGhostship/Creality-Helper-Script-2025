@@ -1,8 +1,10 @@
+function tools_menu_ui_k1_2025() {
+  CURRENT_MENU_UI="tools_menu_ui_k1_2025"
 #!/bin/sh
 
 set -e
 
-function tools_menu_ui_k1_2025() {
+
   top_line
   title "• CREALITY $(script_title) •" "${blue}"
   title '[ TOOLS MENU ]' "${yellow}"
@@ -54,8 +56,6 @@ function tools_menu_k1_2025() {
       1)
         clear
         if [ -f "$INITD_FOLDER"/disabled.S55klipper_service ] || [ -f "$INITD_FOLDER"/disabled.CS55klipper_service ]; then
-          tools_menu_ui_k1_2025
-          echo
           error_msg "Updating Klipper configuration files is already prevented!"
           echo
         else
@@ -65,8 +65,6 @@ function tools_menu_k1_2025() {
       2)
         clear
         if [ ! -f "$INITD_FOLDER"/disabled.S55klipper_service ] && [ ! -f "$INITD_FOLDER"/disabled.CS55klipper_service ]; then
-          tools_menu_ui_k1_2025
-          echo
           error_msg "Updating Klipper configuration files is already allowed!"
           echo
         else
@@ -76,13 +74,9 @@ function tools_menu_k1_2025() {
       3)
         clear
         if [ ! -f "$BUILTIN_CAMERA_FILE" ] && [ ! -f "$BUILTIN_CAMERA_LEGACY_FILE" ] && [ ! -f "$USB_CAMERA_FILE" ] && [ ! -f "$USB_CAMERA_LEGACY_FILE" ] && [ ! -f "$GO2RTC_FILE" ]; then
-          tools_menu_ui_k1_2025
-          echo
           error_msg "Built-in Camera Fix, Go2rtc or USB Camera Support is needed, please install one first!"
           echo
         elif grep -q "^\[webcam chassis\]\|^\[webcam usb\]" "$MOONRAKER_CFG"; then
-          tools_menu_ui_k1_2025
-          echo
           error_msg "Camera settings are already enabled in Moonraker!"
           echo
         else
@@ -92,8 +86,6 @@ function tools_menu_k1_2025() {
       4)
         clear
         if ! grep -q "^\[webcam chassis\]\|^\[webcam usb\]" "$MOONRAKER_CFG"; then
-          tools_menu_ui_k1_2025
-          echo
           error_msg "Camera settings are already disabled in Moonraker!"
           echo
         else
@@ -103,8 +95,6 @@ function tools_menu_k1_2025() {
       5)
         clear
         if grep -q "^\[output_pin LED\]" "$PRINTER_CFG"; then
-          tools_menu_ui_k1_2025
-          echo
           error_msg "Chassis light control is already present in printer.cfg!"
           echo
         else
@@ -114,8 +104,6 @@ function tools_menu_k1_2025() {
       6)
         clear
         if [ ! -d "$NGINX_FOLDER" ]; then
-          tools_menu_ui_k1_2025
-          echo
           error_msg "Nginx is not installed!"
           echo
         else
@@ -125,8 +113,6 @@ function tools_menu_k1_2025() {
       7)
         clear
         if [ ! -d "$MOONRAKER_FOLDER" ]; then
-          tools_menu_ui_k1_2025
-          echo
           error_msg "Moonraker is not installed!"
           echo
         else
@@ -136,8 +122,6 @@ function tools_menu_k1_2025() {
       8)
         clear
         if [ ! -f "$INITD_FOLDER"/CS55klipper_service ] && [ ! -f "$INITD_FOLDER"/S55klipper_service ]; then
-          tools_menu_ui_k1_2025
-          echo
           error_msg "Klipper service is not present!"
           echo
         else
@@ -147,8 +131,6 @@ function tools_menu_k1_2025() {
       9)
         clear
         if [ ! -f "$ENTWARE_FILE" ]; then
-          tools_menu_ui_k1_2025
-          echo
           error_msg "Entware is not installed!"
           echo
         else
@@ -166,8 +148,6 @@ function tools_menu_k1_2025() {
       12)
         clear
         if grep -q "^\[include Helper-Script/calib_tool_box.cfg\]" "$PRINTER_CFG" 2>/dev/null; then
-          tools_menu_ui_k1_2025
-          echo
           error_msg "Creality Calibration Toolbox is already installed and active!"
           echo
         else
@@ -178,8 +158,6 @@ function tools_menu_k1_2025() {
         clear
         grep -q "^\[include Helper-Script/calib_tool_box.cfg\]" "$PRINTER_CFG" 2>/dev/null && calib_res=0 || calib_res=1
         if [ "${calib_res}" -ne 0 ]; then
-          tools_menu_ui_k1_2025
-          echo
           error_msg "Creality Calibration Toolbox is not active or already removed!"
           echo
         else
@@ -189,8 +167,6 @@ function tools_menu_k1_2025() {
       14)
         clear
         if [ -f "${MAINSAIL_FOLDER}/k1c-cfs-panel.js" ] || [ -f "${FLUIDD_FOLDER}/k1c-cfs-panel.js" ]; then
-          tools_menu_ui_k1_2025
-          echo
           error_msg "CFS-C Web Addon is already installed!"
           echo
         else
@@ -200,8 +176,6 @@ function tools_menu_k1_2025() {
       15)
         clear
         if [ ! -f "${MAINSAIL_FOLDER}/k1c-cfs-panel.js" ] && [ ! -f "${FLUIDD_FOLDER}/k1c-cfs-panel.js" ]; then
-          tools_menu_ui_k1_2025
-          echo
           error_msg "CFS-C Web Addon is not installed!"
           echo
         else
@@ -211,8 +185,6 @@ function tools_menu_k1_2025() {
       16)
         clear
         if [ -f "$RECCON_BIN_FILE" ] && [ -f "$RECCON_SERVICE_FILE" ]; then
-          tools_menu_ui_k1_2025
-          echo
           error_msg "Recovery Console (reccon) is already installed!"
           echo
         else
@@ -222,8 +194,6 @@ function tools_menu_k1_2025() {
       17)
         clear
         if [ ! -f "$RECCON_BIN_FILE" ] && [ ! -f "$RECCON_SERVICE_FILE" ]; then
-          tools_menu_ui_k1_2025
-          echo
           error_msg "Recovery Console (reccon) is not installed!"
           echo
         else
