@@ -376,7 +376,7 @@ function disable_creality_services_cfs_c(){
 function restore_creality_services(){
   local mode="${1:-standard}"
   restore_creality_services_message
-  local yn ans restore_tele restore_webrtc restore_solusp
+  local yn ans restore_tele restore_cloud_webrtc restore_local_webrtc restore_solusp
   while true; do
     restore_msg "Creality Stock Services" yn
     case "${yn}" in
@@ -386,31 +386,26 @@ function restore_creality_services(){
           return
         fi
 
-        # Special case: Built-in Camera Fix is still installed and WebRTC is disabled
+        # 1. Built-in Camera Fix auf /dev/video0 prüfen
         if creality_builtin_camera_fix_installed; then
           if [ -f "$(creality_service_disabled_path "$CREALITY_CLOUD_WEBRTC_SERVICE")" ] || [ -f "$(creality_service_disabled_path "$CREALITY_LOCAL_WEBRTC_SERVICE")" ]; then
             echo -e " ${yellow}Warning: the Built-in Camera Fix is currently installed!${white}"
-            echo -e " ${yellow}WebRTC camera services (onyxp / thirteenthp) cannot be restored${white}"
-            echo -e " ${yellow}while the Built-in Camera Fix is active (hardware conflict on /dev/video0).${white}"
+            echo -e " ${yellow}WebRTC camera services (onyxp / thirteenthp) cannot be restored while it is active.${white}"
             echo
-            read -p " ${white}Do you want to remove the ${green}Built-in Camera Fix ${white}first to restore stock camera? (${yellow}y${white}/${yellow}n${white}): ${yellow}" ans
+            read -p " ${white}Remove ${green}Built-in Camera Fix ${white}first to allow restoring stock camera? (${yellow}y${white}/${yellow}n${white}): ${yellow}" ans
             echo -e "${white}"
             case "${ans}" in
               Y|y)
-                remove_builtin_camera
-                if [ -f "$(creality_service_disabled_path "$CREALITY_TELEMETRY_SERVICE")" ]; then
-                  echo
-                  echo -e " ${cyan}Info: alchemistp sends usage statistics and logs to Creality.${white}"
-                  echo -e " ${cyan}(Not needed for local printing, Mainsail/Fluidd, or CFS-C.)${white}"
-                  echo
-                  read -p " ${white}Also restore ${green}Creality telemetry agent (alchemistp)${white}? (${yellow}y${white}/${yellow}n${white}): ${yellow}" ans
-                  echo -e "${white}"
-                  case "${ans}" in
-                    Y|y)
-                      creality_restore_one_service "$CREALITY_TELEMETRY_SERVICE" "Creality telemetry agent (alchemistp)";;
-                  esac
-                fi
-                return;;
+                echo -e "Info: Stopping and removing Built-in Camera Fix..."
+                set +e
+                [ -f "$BUILTIN_CAMERA_FILE" ] && "$BUILTIN_CAMERA_FILE" stop
+                [ -f "$BUILTIN_CAMERA_LEGACY_FILE" ] && "$BUILTIN_CAMERA_LEGACY_FILE" stop
+                set -e
+                rm -f "$BUILTIN_CAMERA_FILE" "$BUILTIN_CAMERA_LEGACY_FILE"
+                [ -f "$MOONRAKER_CFG" ] && sed -i '/^\[webcam chassis\]/,/^$/d' "$MOONRAKER_CFG"
+                type sync_timelapse_snapshot_url_k1_2025 >/dev/null 2>&1 && sync_timelapse_snapshot_url_k1_2025
+                type sync_octoeverywhere_camera_k1_2025 >/dev/null 2>&1 && sync_octoeverywhere_camera_k1_2025
+                ;;
               *)
                 echo -e "Info: Keeping Built-in Camera Fix active. Skipping WebRTC services..."
                 echo;;
@@ -418,76 +413,98 @@ function restore_creality_services(){
           fi
         fi
 
-        restore_tele="no"
-        restore_webrtc="no"
-        restore_solusp="no"
-
-        # 1. Check telemetry, if disabled
-        if [ -f "$(creality_service_disabled_path "$CREALITY_TELEMETRY_SERVICE")" ]; then
-          echo -e " ${cyan}Info: alchemistp collects and uploads usage logs and diagnostics${white}"
-          echo -e " ${cyan}to Creality servers. Not required for printing or CFS-C.${white}"
-          echo
-          read -p " ${white}Restore ${green}Creality telemetry agent (alchemistp)${white}? (${yellow}y${white}/${yellow}n${white}): ${yellow}" ans
-          echo -e "${white}"
-          case "${ans}" in
-            Y|y) restore_tele="yes";;
-          esac
-        fi
-
-        # 2. Only offer WebRTC camera services if the Camera Fix is ​​NOT installed
-        if ! creality_builtin_camera_fix_installed; then
+        # 2. Go2rtc im chassis-Modus auf /dev/video0 prüfen
+        if [ "$(get_go2rtc_mode_k1_2025 2>/dev/null)" = "chassis" ]; then
           if [ -f "$(creality_service_disabled_path "$CREALITY_CLOUD_WEBRTC_SERVICE")" ] || [ -f "$(creality_service_disabled_path "$CREALITY_LOCAL_WEBRTC_SERVICE")" ]; then
-            echo -e " ${cyan}Info: onyxp and thirteenthp provide the encrypted video stream${white}"
-            echo -e " ${cyan}for Creality Print and the Creality Cloud app (uses extra RAM).${white}"
+            echo -e " ${yellow}Warning: Go2rtc is currently using the built-in chassis camera!${white}"
+            echo -e " ${yellow}WebRTC camera services (onyxp / thirteenthp) cannot be restored while Go2rtc uses /dev/video0.${white}"
             echo
-            read -p " ${white}Restore ${green}WebRTC camera services (onyxp / thirteenthp)${white}? (${yellow}y${white}/${yellow}n${white}): ${yellow}" ans
+            read -p " ${white}Remove ${green}Go2rtc ${white}first to allow restoring stock camera? (${yellow}y${white}/${yellow}n${white}): ${yellow}" ans
             echo -e "${white}"
             case "${ans}" in
-              Y|y) restore_webrtc="yes";;
+              Y|y)
+                echo -e "Info: Stopping and removing Go2rtc..."
+                stop_go2rtc
+                rm -f "$GO2RTC_SERVICE_FILE" "$GO2RTC_CONFIG_FILE" "$GO2RTC_FILE"
+                [ -f "$MOONRAKER_CFG" ] && sed -i '/^\[webcam chassis\]/,/^$/d' "$MOONRAKER_CFG"
+                type sync_timelapse_snapshot_url_k1_2025 >/dev/null 2>&1 && sync_timelapse_snapshot_url_k1_2025
+                type sync_octoeverywhere_camera_k1_2025 >/dev/null 2>&1 && sync_octoeverywhere_camera_k1_2025
+                ;;
+              *)
+                echo -e "Info: Keeping Go2rtc active. Skipping WebRTC services..."
+                echo;;
             esac
           fi
         fi
 
-        # 3. Check solusp; if disabled, enable it
+        restore_tele="no"
+        restore_cloud_webrtc="no"
+        restore_local_webrtc="no"
+        restore_solusp="no"
+
+        # Einzelabfrage 1: Telemetry (alchemistp)
+        if [ -f "$(creality_service_disabled_path "$CREALITY_TELEMETRY_SERVICE")" ]; then
+          echo -e " ${cyan}Info: alchemistp collects and uploads usage logs to Creality servers.${white}"
+          read -p " ${white}Restore ${green}Creality telemetry agent (alchemistp)${white}? (${yellow}y${white}/${yellow}n${white}): ${yellow}" ans
+          echo -e "${white}"
+          case "${ans}" in Y|y) restore_tele="yes";; esac
+        fi
+
+        # Einzelabfrage 2 & 3: Cloud WebRTC (onyxp) & Local WebRTC (thirteenthp) getrennt!
+        if ! creality_builtin_camera_fix_installed && [ "$(get_go2rtc_mode_k1_2025 2>/dev/null)" != "chassis" ]; then
+          if [ -f "$(creality_service_disabled_path "$CREALITY_CLOUD_WEBRTC_SERVICE")" ]; then
+            echo -e " ${cyan}Info: onyxp provides remote camera access for the Creality Cloud app.${white}"
+            read -p " ${white}Restore ${green}Creality cloud WebRTC signalling (onyxp)${white}? (${yellow}y${white}/${yellow}n${white}): ${yellow}" ans
+            echo -e "${white}"
+            case "${ans}" in Y|y) restore_cloud_webrtc="yes";; esac
+          fi
+          if [ -f "$(creality_service_disabled_path "$CREALITY_LOCAL_WEBRTC_SERVICE")" ]; then
+            echo -e " ${cyan}Info: thirteenthp provides the local video stream for Creality Print.${white}"
+            read -p " ${white}Restore ${green}Creality local WebRTC media server (thirteenthp)${white}? (${yellow}y${white}/${yellow}n${white}): ${yellow}" ans
+            echo -e "${white}"
+            case "${ans}" in Y|y) restore_local_webrtc="yes";; esac
+          fi
+        fi
+
+        # Einzelabfrage 4: AI / hardware service (solusp)
         if [ -f "$(creality_service_disabled_path "$CREALITY_AI_SERVICE")" ]; then
           if [ "$mode" = "cfs" ]; then
             restore_solusp="yes"
-          elif ! creality_builtin_camera_fix_installed; then
-            echo -e " ${cyan}Info: solusp handles Creality AI failure detection and stock${white}"
-            echo -e " ${cyan}screen hardware routines (e.g. Input Shaper calibration).${white}"
-            echo
+          elif ! creality_builtin_camera_fix_installed && [ "$(get_go2rtc_mode_k1_2025 2>/dev/null)" != "chassis" ]; then
+            echo -e " ${cyan}Info: solusp handles Creality AI failure detection and screen routines.${white}"
             read -p " ${white}Restore ${green}Creality AI / hardware service (solusp)${white}? (${yellow}y${white}/${yellow}n${white}): ${yellow}" ans
             echo -e "${white}"
-            case "${ans}" in
-              Y|y) restore_solusp="yes";;
-            esac
-          else
-            echo -e "Info: Leaving solusp disabled while Built-in Camera Fix is active..."
+            case "${ans}" in Y|y) restore_solusp="yes";; esac
           fi
         fi
 
         CREALITY_SERVICES_CHANGED=0
         CREALITY_SERVICES_FAILED=0
 
-        if [ "$restore_tele" = "yes" ]; then
-          creality_restore_one_service "$CREALITY_TELEMETRY_SERVICE" "Creality telemetry agent (alchemistp)"
-        fi
-        if [ "$restore_webrtc" = "yes" ]; then
-          creality_restore_one_service "$CREALITY_CLOUD_WEBRTC_SERVICE" "Creality cloud WebRTC signalling (onyxp)"
-          creality_restore_one_service "$CREALITY_LOCAL_WEBRTC_SERVICE" "Creality local WebRTC media server (thirteenthp)"
-        fi
-        if [ "$restore_solusp" = "yes" ]; then
-          creality_restore_one_service "$CREALITY_AI_SERVICE" "Creality AI failure detection (solusp)"
-        fi
+        [ "$restore_tele" = "yes" ] && creality_restore_one_service "$CREALITY_TELEMETRY_SERVICE" "Creality telemetry agent (alchemistp)"
+        [ "$restore_cloud_webrtc" = "yes" ] && creality_restore_one_service "$CREALITY_CLOUD_WEBRTC_SERVICE" "Creality cloud WebRTC signalling (onyxp)"
+        [ "$restore_local_webrtc" = "yes" ] && creality_restore_one_service "$CREALITY_LOCAL_WEBRTC_SERVICE" "Creality local WebRTC media server (thirteenthp)"
+        [ "$restore_solusp" = "yes" ] && creality_restore_one_service "$CREALITY_AI_SERVICE" "Creality AI failure detection (solusp)"
 
         if [ "$CREALITY_SERVICES_CHANGED" -eq 0 ]; then
           error_msg "No Creality stock services were restored!"
-          echo
           return
         fi
         ok_msg "$CREALITY_SERVICES_CHANGED Creality stock service(s) have been restored successfully!"
-        if [ "$CREALITY_SERVICES_FAILED" -gt 0 ]; then
-          echo -e "   ${yellow}$CREALITY_SERVICES_FAILED service(s) were skipped - see the messages above.${white}"
+        if [ "$restore_cloud_webrtc" = "yes" ] || [ "$restore_local_webrtc" = "yes" ]; then
+          echo
+          echo -e " ${yellow}Note: The camera driver (/dev/video0) often needs a reboot to re-initialize${white}"
+          echo -e " ${yellow}for Creality Print / WebRTC after switching from mjpg-streamer or Go2rtc.${white}"
+          local rb_yn
+          read -p " ${white}Do you want to reboot the printer now? (${yellow}y${white}/${yellow}n${white}): ${yellow}" rb_yn
+          echo -e "${white}"
+          case "${rb_yn}" in
+            Y|y)
+              echo -e "Info: Rebooting printer..."
+              sync
+              reboot
+              exit 0;;
+          esac
         fi
         return;;
       N|n)

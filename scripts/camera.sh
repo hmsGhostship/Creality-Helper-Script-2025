@@ -400,6 +400,19 @@ function remove_builtin_camera(){
         trigger_klipper_firmware_restart
 
         ok_msg "Built-in Camera Fix has been removed successfully!"
+        echo
+        echo -e " ${yellow}Note: The camera driver (/dev/video0) often needs a reboot to re-initialize${white}"
+        echo -e " ${yellow}for Creality Print after removing the Built-in Camera Fix.${white}"
+        local rb_yn
+        read -p " ${white}Do you want to reboot the printer now? (${yellow}y${white}/${yellow}n${white}): ${yellow}" rb_yn
+        echo -e "${white}"
+        case "${rb_yn}" in
+          Y|y)
+            echo -e "Info: Rebooting printer..."
+            sync
+            reboot
+            exit 0;;
+        esac
         return;;
       N|n)
         error_msg "Deletion canceled!"
@@ -511,4 +524,3 @@ function sync_octoeverywhere_camera_k1_2025() {
     "$octo_init" restart >/dev/null 2>&1 || true
   fi
 }
-
