@@ -874,6 +874,14 @@ function retire_nexusp(){
           return
         fi
 
+        local VARS_FILE="${PRINTER_DATA_FOLDER}/config/variables.cfg"
+        [ ! -f "$VARS_FILE" ] && echo "[Variables]" > "$VARS_FILE"
+        grep -q "^\[Variables\]" "$VARS_FILE" || sed -i "1i [Variables]" "$VARS_FILE"
+        if grep -q "^nexusp_active[[:space:]]*=" "$VARS_FILE"; then
+          sed -i "s/^nexusp_active[[:space:]]*=.*/nexusp_active = 0/" "$VARS_FILE"
+        else
+          echo "nexusp_active = 0" >> "$VARS_FILE"
+        fi
         ok_msg "Nexusp Backend has been retired successfully!"
         echo -e "   ${cyan}Moonraker now answers on 7125 for the touchscreen and for you.${white}"
         echo -e "   ${cyan}The touchscreen reconnects on its own; give it a few seconds.${white}"
@@ -1009,6 +1017,14 @@ function restore_nexusp(){
           echo -e " ${cyan}or reboot the printer to let nexusp start from init.${white}"
           echo
           return
+        fi
+        local VARS_FILE="${PRINTER_DATA_FOLDER}/config/variables.cfg"
+        [ ! -f "$VARS_FILE" ] && echo "[Variables]" > "$VARS_FILE"
+        grep -q "^\[Variables\]" "$VARS_FILE" || sed -i "1i [Variables]" "$VARS_FILE"
+        if grep -q "^nexusp_active[[:space:]]*=" "$VARS_FILE"; then
+          sed -i "s/^nexusp_active[[:space:]]*=.*/nexusp_active = 1/" "$VARS_FILE"
+        else
+          echo "nexusp_active = 1" >> "$VARS_FILE"
         fi
         ok_msg "Nexusp Backend has been restored successfully!"
         echo -e "   ${cyan}The touchscreen is back on nexusp, and Moonraker on 7126.${white}"
