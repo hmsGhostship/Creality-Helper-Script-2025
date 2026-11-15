@@ -145,13 +145,16 @@ function enable_camera_settings(){
       Y|y)
         echo -e "${white}"
         if [ "$model" = "K1_2025" ] || [ "$model" = "K1_2025_CFS-C" ]; then
+          local g_mode
+          g_mode="$(get_go2rtc_mode_k1_2025)"
           if [ -f "$BUILTIN_CAMERA_FILE" ] || [ -f "$BUILTIN_CAMERA_LEGACY_FILE" ]; then
             configure_builtin_camera_k1_2025
-          elif [ -f "$GO2RTC_FILE" ] || [ -f "$GO2RTC_SERVICE_FILE" ]; then
-         configure_go2rtc_k1_2025
           fi
           if [ -f "$USB_CAMERA_FILE" ] || [ -f "$USB_CAMERA_LEGACY_FILE" ]; then
             configure_usb_camera_k1_2025
+          fi
+          if [ -n "$g_mode" ]; then
+            configure_go2rtc_k1_2025 "$g_mode"
           fi
         elif grep -q "#\[webcam Camera\]" "$MOONRAKER_CFG" ; then
           echo -e "Info: Enabling camera settings in moonraker.conf file..."

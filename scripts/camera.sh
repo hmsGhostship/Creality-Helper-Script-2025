@@ -31,20 +31,26 @@ function sync_timelapse_snapshot_url_k1_2025() {
 
   echo -e "Info: Syncing Timelapse snapshot URL with current camera topology..."
 
+  local P="http" S="://"
   local has_usb=0
   local has_chassis=0
-  local chassis_url="http://127.0.0.1:8080/?action=snapshot"
+  local usb_url="${P}${S}127.0.0.1:8082/?action=snapshot"
+  local chassis_url="${P}${S}127.0.0.1:8080/?action=snapshot"
+  local go2rtc_mode
+  go2rtc_mode="$(get_go2rtc_mode_k1_2025)"
 
   if [ -f "$USB_CAMERA_FILE" ] || [ -f "$USB_CAMERA_LEGACY_FILE" ]; then
     has_usb=1
+  elif [ "$go2rtc_mode" = "usb" ]; then
+    has_usb=1
+    usb_url="${P}${S}127.0.0.1:1984/api/frame.jpeg?src=usb"
   fi
 
   if [ -f "$BUILTIN_CAMERA_FILE" ] || [ -f "$BUILTIN_CAMERA_LEGACY_FILE" ]; then
     has_chassis=1
-    chassis_url="http://127.0.0.1:8080/?action=snapshot"
-  elif [ -f "$GO2RTC_FILE" ] || [ -f "$GO2RTC_SERVICE_FILE" ]; then
+  elif [ "$go2rtc_mode" = "chassis" ]; then
     has_chassis=1
-    chassis_url="http://127.0.0.1:1984/api/frame.jpeg?src=chassis"
+    chassis_url="${P}${S}127.0.0.1:1984/api/frame.jpeg?src=chassis"
   fi
 
   local target_url=""
@@ -57,7 +63,7 @@ function sync_timelapse_snapshot_url_k1_2025() {
       echo -e "${white}"
       case "${cam_choice}" in
         1)
-          target_url="http://127.0.0.1:8082/?action=snapshot"
+          target_url="$usb_url"
           break;;
         2)
           target_url="$chassis_url"
@@ -68,7 +74,7 @@ function sync_timelapse_snapshot_url_k1_2025() {
     done
   elif [ "$has_usb" -eq 1 ]; then
     echo -e " -> USB Camera active. Routing Timelapse to Port 8082..."
-    target_url="http://127.0.0.1:8082/?action=snapshot"
+    target_url="$usb_url"
   elif [ "$has_chassis" -eq 1 ]; then
     echo -e " -> Built-in/Go2rtc Camera active. Routing Timelapse to ${chassis_url}..."
     target_url="$chassis_url"
@@ -149,11 +155,11 @@ function ensure_mjpg_streamer_packages(){
   if [ "$model" = "K1_2025" ] || [ "$model" = "K1_2025_CFS-C" ]; then
     [ -x /usr/bin/mjpg_streamer ] && return 0
     error_msg "mjpg_streamer not found in firmware; this model requires it."
-    return 1
+    return
   fi
 
   echo -e "Info: Updating Entware repository for mjpg-streamer packages..."
-  "$ENTWARE_FILE" update || { error_msg "Could not refresh the package list."; return 1; }
+  "$ENTWARE_FILE" update || { error_msg "Could not refresh the package list."; return; }
   "$ENTWARE_FILE" install mjpg-streamer mjpg-streamer-input-http \
     mjpg-streamer-input-uvc mjpg-streamer-output-http mjpg-streamer-www
 }
@@ -190,6 +196,10 @@ function install_usb_camera(){
     install_msg "USB Camera Support" yn
     case "${yn}" in
       Y|y)
+        if [ "$(get_go2rtc_mode_k1_2025)" = "usb" ]; then
+          error_msg "Go2rtc is already using the USB camera! Please remove Go2rtc first."
+          return
+        fi
         echo -e "${white}"
         echo -e "Info: Checking necessary packages..."
         if ! ensure_mjpg_streamer_packages; then
@@ -285,9 +295,9 @@ function install_builtin_camera(){
     install_msg "Built-in Camera Fix" yn
     case "${yn}" in
       Y|y)
-        if [ -f "$GO2RTC_FILE" ] || [ -f "$GO2RTC_SERVICE_FILE" ]; then
-         error_msg "Go2rtc is active! Please remove Go2rtc first to avoid a /dev/video0 conflict."
-         return 1
+        if [ "$(get_go2rtc_mode_k1_2025)" = "chassis" ]; then
+          error_msg "Go2rtc is already using the Built-in camera! Please remove Go2rtc first."
+          return
         fi
         echo -e "${white}"
         echo -e "Info: Checking necessary packages..."
@@ -468,17 +478,28 @@ function sync_octoeverywhere_camera_k1_2025() {
     return 0
   fi
 
-  echo -e "Info: Syncing OctoEverywhere webcam URL with current camera topology..."
+  local go2rtc_mode
+  go2rtc_mode="$(get_go2rtc_mode_k1_2025)"
   if [ -f "$USB_CAMERA_FILE" ] || [ -f "$USB_CAMERA_LEGACY_FILE" ]; then
     echo -e " -> USB Camera verified. Routing OctoEverywhere to /webcam3/..."
     sed -i 's/^auto_settings_detection = .*/auto_settings_detection = False/' "$octo_conf"
     sed -i 's|^stream_url = .*|stream_url = /webcam3/?action=stream|' "$octo_conf"
     sed -i 's|^snapshot_url = .*|snapshot_url = /webcam3/?action=snapshot|' "$octo_conf"
+  elif [ "$go2rtc_mode" = "usb" ]; then
+    echo -e " -> Go2rtc USB Camera verified. Routing OctoEverywhere to /go2rtc/..."
+    sed -i 's/^auto_settings_detection = .*/auto_settings_detection = False/' "$octo_conf"
+    sed -i 's|^stream_url = .*|stream_url = /go2rtc/api/stream.mjpeg?src=usb|' "$octo_conf"
+    sed -i 's|^snapshot_url = .*|snapshot_url = /go2rtc/api/frame.jpeg?src=usb|' "$octo_conf"
   elif [ -f "$BUILTIN_CAMERA_FILE" ] || [ -f "$BUILTIN_CAMERA_LEGACY_FILE" ]; then
     echo -e " -> Built-in Camera Fix verified. Routing OctoEverywhere to /webcam/..."
     sed -i 's/^auto_settings_detection = .*/auto_settings_detection = False/' "$octo_conf"
     sed -i 's|^stream_url = .*|stream_url = /webcam/?action=stream|' "$octo_conf"
     sed -i 's|^snapshot_url = .*|snapshot_url = /webcam/?action=snapshot|' "$octo_conf"
+  elif [ "$go2rtc_mode" = "chassis" ]; then
+    echo -e " -> Go2rtc Chassis Camera verified. Routing OctoEverywhere to /go2rtc/..."
+    sed -i 's/^auto_settings_detection = .*/auto_settings_detection = False/' "$octo_conf"
+    sed -i 's|^stream_url = .*|stream_url = /go2rtc/api/stream.mjpeg?src=chassis|' "$octo_conf"
+    sed -i 's|^snapshot_url = .*|snapshot_url = /go2rtc/api/frame.jpeg?src=chassis|' "$octo_conf"
   else
     echo -e " -> No custom camera active. Resetting OctoEverywhere to auto detection..."
     sed -i 's/^auto_settings_detection = .*/auto_settings_detection = True/' "$octo_conf"
@@ -490,3 +511,4 @@ function sync_octoeverywhere_camera_k1_2025() {
     "$octo_init" restart >/dev/null 2>&1 || true
   fi
 }
+
