@@ -39,6 +39,7 @@ function tools_menu_ui_k1_2025() {
   hr
   subtitle '•System Diagnostics:'
   menu_option '18' 'Show' 'Top RAM & Storage Consumers'
+  menu_option '19' 'Set' 'OctoEverywhere Log Level (WARNING/INFO/ERROR)'
   inner_line
   hr
   bottom_menu_option 'b' 'Back to [Main Menu]' "${yellow}"
@@ -204,6 +205,9 @@ function tools_menu_k1_2025() {
         ;;
       18)
         run "show_memory_consumers" "tools_menu_ui_k1_2025"
+        ;;
+      19)
+        run "configure_octoeverywhere_log_level" "tools_menu_ui_k1_2025"
         ;;
       B|b)
         clear

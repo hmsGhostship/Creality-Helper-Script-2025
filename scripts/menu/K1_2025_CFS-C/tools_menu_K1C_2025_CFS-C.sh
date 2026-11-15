@@ -36,6 +36,10 @@ function tools_menu_ui_k1_2025_cfs_c() {
   subtitle '•System Recovery:'
   menu_option '16' 'Install' 'Recovery Console (reccon)'
   menu_option '17' 'Remove' 'Recovery Console (reccon)'
+  hr
+  subtitle '•System Diagnostics:'
+  menu_option '18' 'Show' 'Top RAM & Storage Consumers'
+  menu_option '19' 'Set' 'OctoEverywhere Log Level (WARNING/INFO/ERROR)'
   inner_line
   hr
   bottom_menu_option 'b' 'Back to [Main Menu]' "${yellow}"
@@ -198,6 +202,12 @@ function tools_menu_k1_2025_cfs_c() {
         else
           run "remove_reccon" "tools_menu_ui_k1_2025_cfs_c"
         fi
+        ;;
+      18)
+        run "show_memory_consumers" "tools_menu_ui_k1_2025_cfs_c"
+        ;;
+      19)
+        run "configure_octoeverywhere_log_level" "tools_menu_ui_k1_2025_cfs_c"
         ;;
       B|b)
         clear

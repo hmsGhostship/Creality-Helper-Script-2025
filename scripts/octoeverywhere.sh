@@ -99,11 +99,28 @@ function install_octoeverywhere(){
           cam_snap="/webcam/?action=snapshot"
         fi
 
+        local octo_log_level="WARNING"
+        local octo_log_size="1"
+        echo
+        echo -e " ${cyan}Select OctoEverywhere log level:${white}"
+        echo -e "  ${yellow}1)${white} WARNING (Recommended for K1 2025 - saves RAM & eMMC flash)"
+        echo -e "  ${yellow}2)${white} INFO    (Verbose logging - useful for initial pairing/debugging)"
+        echo -e "  ${yellow}3)${white} ERROR   (Minimal logging - errors only)"
+        echo
+        local log_choice
+        read -p " ${white}Choose log level (${yellow}1${white}/${yellow}2${white}/${yellow}3${white}, default ${yellow}1${white}): ${yellow}" log_choice
+        echo -e "${white}"
+        case "${log_choice}" in
+          2) octo_log_level="INFO"; octo_log_size="3" ;;
+          3) octo_log_level="ERROR"; octo_log_size="1" ;;
+          *) octo_log_level="WARNING"; octo_log_size="1" ;;
+        esac
+
         echo -e "Info: Writing octoeverywhere.conf (Frontend Port: $web_port)..."
         cat << EOF > "$OCTO_CONF"
 [logging]
-log_level = INFO
-max_file_size_mb = 3
+log_level = ${octo_log_level}
+max_file_size_mb = ${octo_log_size}
 max_file_count = 1
 
 [server]
@@ -281,4 +298,62 @@ function show_octoeverywhere_link(){
     fi
     echo
   fi
+}
+
+function configure_octoeverywhere_log_level(){
+  octoeverywhere_message
+  local octo_conf="${PRINTER_DATA_FOLDER}/config/octoeverywhere.conf"
+  local init_script="${INITD_FOLDER}/S99octoeverywhere"
+
+  if [ ! -f "$octo_conf" ] && [ ! -f "$init_script" ]; then
+    error_msg "OctoEverywhere is not installed!"
+    return
+  fi
+
+  local cur_level="unknown"
+  if [ -f "$octo_conf" ]; then
+    cur_level=$(awk -F'=' '/^log_level[[:space:]]*=/ {gsub(/[[:space:]]/, "", $2); print $2}' "$octo_conf" 2>/dev/null)
+  fi
+
+  echo -e " ${cyan}Current OctoEverywhere log level:${white} ${yellow}${cur_level:-INFO}${white}"
+  echo -e " ${cyan}(Your OctoEverywhere Printer ID and account link remain untouched.)${white}"
+  echo
+  echo -e "  ${yellow}1)${white} WARNING (Recommended - saves RAM & reduces eMMC writes)"
+  echo -e "  ${yellow}2)${white} INFO    (Verbose logging - for troubleshooting / pairing link)"
+  echo -e "  ${yellow}3)${white} ERROR   (Minimal logging - critical errors only)"
+  echo -e "  ${yellow}b)${white} Cancel"
+  echo
+
+  local choice new_level new_size
+  while true; do
+    read -p " ${white}Select desired log level (${yellow}1${white}/${yellow}2${white}/${yellow}3${white}/${yellow}b${white}): ${yellow}" choice
+    echo -e "${white}"
+    case "${choice}" in
+      1) new_level="WARNING"; new_size="1"; break ;;
+      2) new_level="INFO"; new_size="3"; break ;;
+      3) new_level="ERROR"; new_size="1"; break ;;
+      B|b) error_msg "Log level change canceled!"; return ;;
+      *) error_msg "Please select a correct choice! (1, 2, 3 or b)" ;;
+    esac
+  done
+
+  if [ -f "$octo_conf" ]; then
+    if grep -q '^log_level[[:space:]]*=' "$octo_conf"; then
+      sed -i "s/^log_level[[:space:]]*=.*/log_level = ${new_level}/" "$octo_conf"
+    else
+      sed -i "/^\[logging\]/a log_level = ${new_level}" "$octo_conf"
+    fi
+    if grep -q '^max_file_size_mb[[:space:]]*=' "$octo_conf"; then
+      sed -i "s/^max_file_size_mb[[:space:]]*=.*/max_file_size_mb = ${new_size}/" "$octo_conf"
+    fi
+  fi
+
+  if [ -f "$init_script" ]; then
+    echo -e "Info: Restarting OctoEverywhere service..."
+    set +e
+    "$init_script" restart >/dev/null 2>&1
+    set -e
+  fi
+
+  ok_msg "OctoEverywhere log level set to ${yellow}${new_level}${green} (max ${new_size} MB)!"
 }
