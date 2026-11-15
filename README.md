@@ -145,11 +145,20 @@ TIMELAPSE_TAKE_FRAME
 ---
 *Disclaimer: This software is provided "as is" without warranty of any kind. Use it at your own risk.*
 
+### 🔄 OTA-Safe Helper-Script State Backup & Restore (`Backup & Restore Menu`)
+
+To survive Creality OTA firmware updates without manually reconfiguring services:
+
+* **Option 5 – Backup Helper-Script State (OTA Safe):** Saves a compact snapshot (~70 KB) of your Klipper/Moonraker configs, Moonraker database, custom `init.d` scripts, active camera mode, and disabled Creality stock services to `/usr/data/helper-script-ota-backup/`.
+* **Option 6 – Restore Helper-Script State (After FW Update):** Automatically backs up the new firmware's default configs first, then lets you choose between **Safe Merge Mode** (preserves Creality's updated `printer.cfg` / `box.cfg` while re-injecting your `Helper-Script/` files and `[include]` lines) or **Full Restore**, re-applies your disabled stock services, and offers a one-click reboot.
+
 <br>
 <hr style="height: 4px; background-color: #7f8c8d; border: none; border-radius: 2px;">
 <br>
 
-Additional support for K1 2025 by @C0DEbrained.
+Additional support for standard `K1_2025` (non-CFS) by @C0DEbrained.
+
+> 💡 **Scope & Testing Note for Non-CFS `K1_2025` Users:** This fork automatically detects whether a CFS-C unit is present and supports both **`K1_2025_CFS-C`** and standard **`K1_2025`** (non-CFS) printers. All shared improvements (RAM Guard, camera topology, Go2rtc modes, and OTA Backup/Restore) are mirrored into the standard `K1_2025` menus as well. Because active development happens on a CFS-C-equipped K1C 2025, the non-CFS `K1_2025` branch and `@C0DEbrained`'s `Retire Nexusp Backend` feature below cannot be live-tested on physical non-CFS hardware here — community feedback from standard K1C 2025 users is always welcome. **(Do not use `Retire Nexusp Backend` on `K1_2025_CFS-C` printers.)**
 
 ## Retire Nexusp Backend (K1C 2025)
 
