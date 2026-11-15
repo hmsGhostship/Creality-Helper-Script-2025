@@ -131,6 +131,7 @@ function remove_go2rtc(){
         rm -f "$GO2RTC_SERVICE_FILE" "$GO2RTC_CONFIG_FILE" "$GO2RTC_FILE"
         if [ -f "$MOONRAKER_CFG" ] && grep -A 8 '^\[webcam chassis\]' "$MOONRAKER_CFG" | grep -q '/go2rtc/'; then
           echo -e "Info: Removing Go2rtc chassis webcam from moonraker.conf..."
+          type sync_timelapse_snapshot_url_k1_2025 >/dev/null 2>&1 && sync_timelapse_snapshot_url_k1_2025
           sed -i '/^\[webcam chassis\]/,/^$/d' "$MOONRAKER_CFG"
           stop_moonraker
           start_moonraker
