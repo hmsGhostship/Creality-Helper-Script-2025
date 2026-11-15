@@ -95,6 +95,14 @@ The **CFS-C Speed Fix** micro-tunes and deliberately slows down the initial feed
 * **Increased Success Rate:** Maximizes multi-material reliability on complex, long-term prints by eliminating feed-line mechanical stress.
 * **Hardware Protection:** Specifically optimized to maintain perfect structural harmony between the custom feeder lines and the hotend.
 
+### 📐 Universal Creality Calibration Toolbox (Nexusp + Native Klipper + Slicer Control)
+
+The **Creality Calibration Toolbox** (`Tools Menu`) automatically detects whether Creality's `nexusp` backend is running (`nexusp=1` on stock & `K1_2025_CFS-C` setups, or `nexusp=0` after `Retire Nexusp Backend`) and routes bed leveling accordingly:
+
+* **Web UI Macro Button (`A_BED_MESH_CALIB`):** Cycles directly in Mainsail/Fluidd between **`🟥 OFF`**, **`🟩 ORIGINAL`** (full bed mesh), and **`🟦 ADAPTIVE`** (adaptive bed mesh) and persists the state across reboots.
+* **Optional Slicer Start G-Code Control:** You can optionally control the bed mesh mode per print profile directly from your slicer (e.g., OrcaSlicer) by passing `MESH=OFF`, `MESH=FULL`, or `MESH=ADAPTIVE` to `START_PRINT` (e.g., `START_PRINT ... MESH=ADAPTIVE`), or by calling `SET_CALIB_MODE MODE=OFF|FULL|ADAPTIVE`.
+* **Important Note for `nexusp` / `K1_2025_CFS-C` Setups:** When `nexusp` is active (`nexusp=1`), Creality's engine evaluates `SDCARD_PRINT_FILE` before `START_PRINT` runs. Therefore, passing `MESH=ADAPTIVE` or `MESH=FULL` via `START_PRINT` in your slicer start G-code will only take effect if the **`A_BED_MESH_CALIB`** button in the Web UI is set to **`🟥 OFF`** (if the button is set to `ORIGINAL` or `ADAPTIVE`, the Web UI button takes precedence).
+
 
 ### ⚙️ Orca Slicer Configuration & Tips (v2.5.0_dev & Phaetus DXC)
 
