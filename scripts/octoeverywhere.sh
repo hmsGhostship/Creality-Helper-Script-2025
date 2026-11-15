@@ -31,7 +31,7 @@ function install_octoeverywhere(){
         echo -e "${white}"
 
         # 0. RAM-Wächter prüfen (35 MB Dauerbedarf + 15 MB Reserve)
-        check_ram_requirement "OctoEverywhere" 35 || return
+        if ! check_ram_requirement "OctoEverywhere" 35; then return; fi
 
         # 1. Dynamische Moonraker-Python-Umgebung ermitteln
         echo -e "Info: Detecting Moonraker Python Environment..."

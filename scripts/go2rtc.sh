@@ -117,7 +117,7 @@ function install_go2rtc(){
           esac
         done
 
-        check_ram_requirement "Go2rtc" 35 || return
+        if ! check_ram_requirement "Go2rtc" 35; then return; fi
         if [ ! -x /opt/bin/ffmpeg ]; then
           if [ -x "$ENTWARE_FILE" ]; then
             echo -e "Info: Installing ffmpeg via Entware..."

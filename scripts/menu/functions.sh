@@ -149,26 +149,48 @@ function restart_msg() {
   read -p "${white} Are you sure you want to restart ${green}${1} ${white}? (${yellow}y${white}/${yellow}n${white}): ${yellow}" $2
 }
 
+IN_RUN=0
+LAST_RUN_MSG=""
+
 function ok_msg() {
+  local msg="${white}${green} ✓ ${1}${white}"
   echo
-  echo -e "${white}${green} ✓ ${1}${white}"
+  echo -e "$msg"
   echo
+  if [ "$IN_RUN" = "1" ]; then
+    LAST_RUN_MSG="$msg"
+  fi
 }
 
 function error_msg() {
+  local msg="${white}${darkred} ✗ ${1}${white}"
   echo
-  echo -e "${white}${darkred} ✗ ${1}${white}"
+  echo -e "$msg"
   echo
+  if [ "$IN_RUN" = "1" ]; then
+    LAST_RUN_MSG="$msg"
+  fi
 }
 
 function run() {
   clear
+  IN_RUN=1
+  LAST_RUN_MSG=""
   # $1 - Action performed
   $1
+  IN_RUN=0
   # $2 - Menu launched after action is completed
-  $2
+  if [ -n "$LAST_RUN_MSG" ]; then
+    clear
+    $2
+    echo
+    echo -e "$LAST_RUN_MSG"
+    echo
+    LAST_RUN_MSG=""
+  else
+    $2
+  fi
 }
-
 function check_ipaddress() {
   eth0_ip=$(ip -4 addr show eth0 2>/dev/null | grep -o -E '(inet\s)([0-9]+\.){3}[0-9]+' | cut -d ' ' -f 2 | head -n 1)
   wlan0_ip=$(ip -4 addr show wlan0 | grep -o -E '(inet\s)([0-9]+\.){3}[0-9]+' | cut -d ' ' -f 2 | head -n 1)

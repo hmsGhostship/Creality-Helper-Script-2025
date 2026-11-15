@@ -28,7 +28,7 @@ function install_mobileraker_companion(){
     case "${yn}" in
       Y|y)
         echo -e "${white}"
-        check_ram_requirement "Mobileraker Companion" 22 || return
+        if ! check_ram_requirement "Mobileraker Companion" 22; then return; fi
 
         # 1. Dynamische Moonraker-Python-Umgebung ermitteln (wie bei Obico & OctoEverywhere)
         echo -e "Info: Detecting Moonraker Python Environment..."

@@ -21,7 +21,7 @@ function install_moonraker_obico(){
     case "${yn}" in
       Y|y)
         echo -e "${white}"
-        check_ram_requirement "Moonraker Obico" 25 || return
+        if ! check_ram_requirement "Moonraker Obico" 25; then return; fi
         
         # 1. DYNAMIC PATH DETERMINATION
         echo -e "Info: Detecting Moonraker Python Environment..."
