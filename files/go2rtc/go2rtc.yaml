@@ -3,4 +3,4 @@ api:
   origin: "*"
 
 streams:
-  chassis: "exec:ffmpeg -f h264 -i unix:/tmp/h264_uds_chassis -c:v copy -f rtsp {output}"
+  chassis: "exec:/opt/bin/ffmpeg -f v4l2 -input_format mjpeg -video_size 1280x720 -framerate 15 -i /dev/video0 -c:v copy -f rtsp {output}"

@@ -25,10 +25,10 @@ function configure_go2rtc_k1_2025(){
 [webcam chassis]
 enabled: True
 location: printer
-service: ipstream
+service: mjpegstreamer
 target_fps: 15
 target_fps_idle: 5
-stream_url: /go2rtc/api/stream.mp4?src=chassis
+stream_url: /go2rtc/api/stream.mjpeg?src=chassis
 snapshot_url: /go2rtc/api/frame.jpeg?src=chassis
 flip_horizontal: False
 flip_vertical: False
@@ -46,7 +46,7 @@ EOF
         echo -e "Info: Adding Nginx proxy for go2rtc in $nginx_conf..."
         sed -i '/location ~ \^\/(printer|api|access|machine|server)\/ {/i\
         location /go2rtc/ {\
-            proxy_pass http://127.0.0;\
+            proxy_pass http://127.0.0.1:1984/;\
             proxy_http_version 1.1;\
             proxy_set_header Host $http_host;\
             proxy_set_header X-Real-IP $remote_addr;\
@@ -74,6 +74,15 @@ function install_go2rtc(){
         fi
         echo -e "${white}"
         check_ram_requirement "Go2rtc" 20 || return
+        if [ ! -x /opt/bin/ffmpeg ]; then
+          if [ -x "$ENTWARE_FILE" ]; then
+            echo -e "Info: Installing ffmpeg via Entware..."
+            "$ENTWARE_FILE" update && "$ENTWARE_FILE" install ffmpeg
+          else
+            error_msg "Entware and ffmpeg are needed for Go2rtc, please install Entware first!"
+            return 1
+          fi
+        fi
         echo -e "Info: Downloading go2rtc..."
         mkdir -p "$(dirname "$GO2RTC_FILE")"
         $HS_FILES/fixes/curl -L "$GO2RTC_URL" -o "$GO2RTC_FILE"

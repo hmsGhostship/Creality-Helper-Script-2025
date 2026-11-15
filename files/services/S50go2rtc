@@ -16,6 +16,7 @@ case "$1" in
   stop)
     echo "Stopping go2rtc..."
 	start-stop-daemon -K -x "$GO2RTC" -p "$PIDFILE" -o
+        killall go2rtc_linux_mipsel 2>/dev/null || true
 	;;
   reload|force-reload)
     echo "Reloading go2rtc..."
