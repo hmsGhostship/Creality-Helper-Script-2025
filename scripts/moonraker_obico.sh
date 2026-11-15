@@ -78,11 +78,11 @@ function install_moonraker_obico(){
         if [ -f "$USB_CAMERA_FILE" ]; then
           echo -e "Info: USB camera detected (priority 1). Configuring port 8082..."
           # Replace the entire [webcam] section—up to the blank line—with the USB block
-          sed -i '/\[webcam\]/,/^$/c\[webcam\]\ndisable_video_streaming = False\nstream_url = http://localhost:8082/?action=stream\nsnapshot_url = http://localhost:8082/?action=snapshot\n' "$obico_cfg"
+          sed -i '/\[webcam\]/,/^$/c\[webcam\]\ndisable_video_streaming = False\nstream_url = http://127.0.0.1:8082/?action=stream\nsnapshot_url = http://127.0.0.1:8082/?action=snapshot\n' "$obico_cfg"
         elif [ -f "$BUILTIN_CAMERA_FILE" ]; then
           echo -e "Info: Only original camera detected. Configuring Nginx system path..."
           # Replaces the entire [webcam] section—up to the blank line—neatly with the built-in block
-          sed -i '/\[webcam\]/,/^$/c\[webcam\]\ndisable_video_streaming = False\nstream_url = http://localhost/webcam/?action=stream\nsnapshot_url = http://localhost/webcam/?action=snapshot\n' "$obico_cfg"
+          sed -i '/\[webcam\]/,/^$/c\[webcam\]\ndisable_video_streaming = False\nstream_url = http://127.0.0.1/webcam/?action=stream\nsnapshot_url = http://127.0.0.1/webcam/?action=snapshot\n' "$obico_cfg"
         else
           echo -e "Info: No active camera found in the framework. Leaving the webcam section neutral."
           sed -i '/\[webcam\]/,/^$/c\[webcam\]\ndisable_video_streaming = False\n' "$obico_cfg"

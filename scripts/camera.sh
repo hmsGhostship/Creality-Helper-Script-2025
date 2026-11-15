@@ -25,30 +25,72 @@ function builtin_camera_message(){
 }
 
 function sync_timelapse_snapshot_url_k1_2025() {
-  if [ ! -f "$MOONRAKER_CFG" ]; then
+  if [ ! -f "$MOONRAKER_CFG" ] || ! grep -q "^\[timelapse\]" "$MOONRAKER_CFG"; then
     return
   fi
 
   echo -e "Info: Syncing Timelapse snapshot URL with current camera topology..."
-  
-  if grep -q "^\[timelapse\]" "$MOONRAKER_CFG"; then
-    local target_url=""
-    
-    if [ -f "$USB_CAMERA_FILE" ] || [ -f "$USB_CAMERA_LEGACY_FILE" ]; then
-      echo -e " -> USB Camera verified. Target routing: Port 8082..."
-      target_url="http://localhost:8082/?action=snapshot"
-    else
-      echo -e " -> USB Camera inactive. Target routing fallback: Port 8080..."
-      target_url="http://localhost:8080/?action=snapshot"
-    fi
 
-    if sed -n '/^\[timelapse\]/,/^\[/p' "$MOONRAKER_CFG" | grep -q "^snapshoturl:"; then
-      sed -i '/^\[timelapse\]/,/^\[/ s|^snapshoturl:.*|snapshoturl: '"$target_url"'|' "$MOONRAKER_CFG"
-    else
-      sed -i '/^\[timelapse\]/a snapshoturl: '"$target_url"'' "$MOONRAKER_CFG"
-    fi
+  local has_usb=0
+  local has_chassis=0
+  local chassis_url="http://127.0.0.1:8080/?action=snapshot"
+
+  if [ -f "$USB_CAMERA_FILE" ] || [ -f "$USB_CAMERA_LEGACY_FILE" ]; then
+    has_usb=1
+  fi
+
+  if [ -f "$BUILTIN_CAMERA_FILE" ] || [ -f "$BUILTIN_CAMERA_LEGACY_FILE" ]; then
+    has_chassis=1
+    chassis_url="http://127.0.0.1:8080/?action=snapshot"
+  elif [ -f "$GO2RTC_FILE" ] || [ -f "$GO2RTC_SERVICE_FILE" ]; then
+    has_chassis=1
+    chassis_url="http://127.0.0.1:1984/api/frame.jpeg?src=chassis"
+  fi
+
+  local target_url=""
+  if [ "$has_usb" -eq 1 ] && [ "$has_chassis" -eq 1 ]; then
+    echo -e "Note: Multiple active cameras detected (USB + Built-in/Go2rtc)!"
+    echo
+    local cam_choice
+    while true; do
+      read -p " Which camera should Timelapse use? (${yellow}1${white}=USB Camera / ${yellow}2${white}=Built-in Camera): ${yellow}" cam_choice
+      echo -e "${white}"
+      case "${cam_choice}" in
+        1)
+          target_url="http://127.0.0.1:8082/?action=snapshot"
+          break;;
+        2)
+          target_url="$chassis_url"
+          break;;
+        *)
+          error_msg "Please select a correct choice! (1 or 2)";;
+      esac
+    done
+  elif [ "$has_usb" -eq 1 ]; then
+    echo -e " -> USB Camera active. Routing Timelapse to Port 8082..."
+    target_url="http://127.0.0.1:8082/?action=snapshot"
+  elif [ "$has_chassis" -eq 1 ]; then
+    echo -e " -> Built-in/Go2rtc Camera active. Routing Timelapse to ${chassis_url}..."
+    target_url="$chassis_url"
+  else
+    echo -e " -> No custom camera active. Falling back to Port 8080..."
+    target_url="http://127.0.0.1:8080/?action=snapshot"
+  fi
+
+  if sed -n '/^\[timelapse\]/,/^\[/p' "$MOONRAKER_CFG" | grep -q "^snapshoturl:"; then
+    sed -i '/^\[timelapse\]/,/^\[/ s|^snapshoturl:.*|snapshoturl: '"$target_url"'|' "$MOONRAKER_CFG"
+  else
+    sed -i '/^\[timelapse\]/a snapshoturl: '"$target_url"'' "$MOONRAKER_CFG"
+  fi
+
+  if [ "$model" = "K1_2025" ] || [ "$model" = "K1_2025_CFS-C" ]; then
+    ( umask 022
+      "$INITD_FOLDER"/S56moonraker_service stop 2>/dev/null
+      sleep 1
+      "$INITD_FOLDER"/S56moonraker_service start 2>/dev/null ) || true
   fi
 }
+
 
 function configure_usb_camera_k1_2025(){
   local usb_dev
@@ -243,6 +285,10 @@ function install_builtin_camera(){
     install_msg "Built-in Camera Fix" yn
     case "${yn}" in
       Y|y)
+        if [ -f "$GO2RTC_FILE" ] || [ -f "$GO2RTC_SERVICE_FILE" ]; then
+         error_msg "Go2rtc is active! Please remove Go2rtc first to avoid a /dev/video0 conflict."
+         return 1
+        fi
         echo -e "${white}"
         echo -e "Info: Checking necessary packages..."
         if ! ensure_mjpg_streamer_packages; then
@@ -383,7 +429,6 @@ function remove_usb_camera(){
         # ====================================================================
         # AUTOMATISCHE RUNTIME-SYNC: PORT RETTEN & MAKRO-FLAGS DEAKTIVIEREN
         # ====================================================================
-        sync_timelapse_snapshot_url_k1_2025
         if [ -f "/usr/data/printer_data/config/Helper-Script/camera-settings.cfg" ]; then
           echo -e "Info: Deactivating USB flag (video2) in camera-settings.cfg..."
           sed -i 's/variable_has_video2.*/variable_has_video2: False/g' "/usr/data/printer_data/config/Helper-Script/camera-settings.cfg"
@@ -396,6 +441,7 @@ function remove_usb_camera(){
         echo -e "Info: Removing file..."
         rm -f "$USB_CAMERA_FILE"
         rm -f "$USB_CAMERA_LEGACY_FILE"
+        sync_timelapse_snapshot_url_k1_2025
         sync_octoeverywhere_camera_k1_2025
         # ====================================================================
 

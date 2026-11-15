@@ -147,6 +147,8 @@ function enable_camera_settings(){
         if [ "$model" = "K1_2025" ] || [ "$model" = "K1_2025_CFS-C" ]; then
           if [ -f "$BUILTIN_CAMERA_FILE" ] || [ -f "$BUILTIN_CAMERA_LEGACY_FILE" ]; then
             configure_builtin_camera_k1_2025
+          elif [ -f "$GO2RTC_FILE" ] || [ -f "$GO2RTC_SERVICE_FILE" ]; then
+         configure_go2rtc_k1_2025
           fi
           if [ -f "$USB_CAMERA_FILE" ] || [ -f "$USB_CAMERA_LEGACY_FILE" ]; then
             configure_usb_camera_k1_2025

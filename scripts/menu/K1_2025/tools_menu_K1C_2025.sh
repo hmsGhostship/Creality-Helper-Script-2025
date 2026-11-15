@@ -71,10 +71,10 @@ function tools_menu_k1_2025() {
         ;;
       3)
         clear
-        if [ ! -f "$BUILTIN_CAMERA_FILE" ] && [ ! -f "$BUILTIN_CAMERA_LEGACY_FILE" ] && [ ! -f "$USB_CAMERA_FILE" ] && [ ! -f "$USB_CAMERA_LEGACY_FILE" ]; then
+        if [ ! -f "$BUILTIN_CAMERA_FILE" ] && [ ! -f "$BUILTIN_CAMERA_LEGACY_FILE" ] && [ ! -f "$USB_CAMERA_FILE" ] && [ ! -f "$USB_CAMERA_LEGACY_FILE" ] && [ ! -f "$GO2RTC_FILE" ]; then
           tools_menu_ui_k1_2025
           echo
-          error_msg "Built-in Camera Fix or USB Camera Support is needed, please install one first!"
+          error_msg "Built-in Camera Fix, Go2rtc or USB Camera Support is needed, please install one first!"
           echo
         elif grep -q "^\[webcam chassis\]\|^\[webcam usb\]" "$MOONRAKER_CFG"; then
           tools_menu_ui_k1_2025

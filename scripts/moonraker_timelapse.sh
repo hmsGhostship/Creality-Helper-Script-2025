@@ -64,8 +64,13 @@ function install_moonraker_timelapse(){
         if [ -f "$MOONRAKER_CFG" ]; then
           sed -i '/\[timelapse\]/,/^[[:space:]]*$/d' "$MOONRAKER_CFG"
           
-          local CAM_PORT="8080"
-          
+          local SNAP_URL="http://127.0.0.1:8080/?action=snapshot"
+          local CHASSIS_SNAP="http://127.0.0.1:8080/?action=snapshot"
+
+          if grep -A 8 '^\[webcam chassis\]' "$MOONRAKER_CFG" | grep -q '/go2rtc/'; then
+            CHASSIS_SNAP="http://127.0.0.1:1984/api/frame.jpeg?src=chassis"
+          fi
+
           if grep -q "^\[webcam usb\]" "$MOONRAKER_CFG" && grep -q "^\[webcam chassis\]" "$MOONRAKER_CFG"; then
             echo -e "Note: Multiple active webcam setups detected in moonraker.conf!"
             echo
@@ -75,11 +80,11 @@ function install_moonraker_timelapse(){
               case "${cam_choice}" in
                 1)
                   echo -e "${white}Info: Routing Timelapse to USB Camera (Port 8082)."
-                  CAM_PORT="8082"
+                  SNAP_URL="http://127.0.0.1:8082/?action=snapshot"
                   break;;
                 2)
-                  echo -e "${white}Info: Routing Timelapse to Built-in Camera (Port 8080)."
-                  CAM_PORT="8080"
+                  echo -e "${white}Info: Routing Timelapse to Built-in Camera."
+                  SNAP_URL="$CHASSIS_SNAP"
                   break;;
                 *)
                   error_msg "Please select a correct choice! (1 or 2)";;
@@ -87,10 +92,10 @@ function install_moonraker_timelapse(){
             done
           elif grep -q "^\[webcam usb\]" "$MOONRAKER_CFG"; then
             echo -e "Info: Active USB webcam configuration found. Using port 8082..."
-            CAM_PORT="8082"
+            SNAP_URL="http://127.0.0.1:8082/?action=snapshot"
           elif grep -q "^\[webcam chassis\]" "$MOONRAKER_CFG"; then
-            echo -e "Info: Active Built-in webcam configuration found. Using port 8080..."
-            CAM_PORT="8080"
+            echo -e "Info: Active Built-in webcam configuration found."
+            SNAP_URL="$CHASSIS_SNAP"
           else
             echo -e "Warning: No custom webcam section found. Falling back to default port 8080."
           fi
@@ -99,9 +104,8 @@ function install_moonraker_timelapse(){
           echo -e "\n[timelapse]" >> "$MOONRAKER_CFG"
           echo -e "output_path: /usr/data/printer_data/timelapse/" >> "$MOONRAKER_CFG"
           echo -e "frame_path: /usr/data/printer_data/frames/" >> "$MOONRAKER_CFG"
-          # -> WIR TRAGEN HIER DIE UNZENSURIERTE ENTWARE-VERSION EIN, DAMIT DIE AUTOMATIK BEIM DRUCKENDE NIE WIEDER ABSTÜRZT:
           echo -e "ffmpeg_binary_path: /opt/bin/ffmpeg" >> "$MOONRAKER_CFG"
-          echo -e "snapshoturl: http://localhost:${CAM_PORT}/?action=snapshot" >> "$MOONRAKER_CFG"
+          echo -e "snapshoturl: ${SNAP_URL}" >> "$MOONRAKER_CFG"
         fi
         
         # -> AUTOMATISCHES ENTWARE-FFMPEG SETUP FÜR NATIVEN CODER-SUPPORT

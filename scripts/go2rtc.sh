@@ -68,6 +68,10 @@ function install_go2rtc(){
     install_msg "Go2rtc" yn
     case "${yn}" in
       Y|y)
+        if [ -f "$BUILTIN_CAMERA_FILE" ] || [ -f "$BUILTIN_CAMERA_LEGACY_FILE" ]; then
+         error_msg "Built-in Camera Fix is active! Please remove it first to avoid a /dev/video0 conflict."
+         return 1
+        fi
         echo -e "${white}"
         check_ram_requirement "Go2rtc" 20 || return
         echo -e "Info: Downloading go2rtc..."
@@ -116,6 +120,12 @@ function remove_go2rtc(){
         stop_go2rtc
         echo -e "Info: Removing files..."
         rm -f "$GO2RTC_SERVICE_FILE" "$GO2RTC_CONFIG_FILE" "$GO2RTC_FILE"
+        if [ -f "$MOONRAKER_CFG" ] && grep -A 8 '^\[webcam chassis\]' "$MOONRAKER_CFG" | grep -q '/go2rtc/'; then
+          echo -e "Info: Removing Go2rtc chassis webcam from moonraker.conf..."
+          sed -i '/^\[webcam chassis\]/,/^$/d' "$MOONRAKER_CFG"
+          stop_moonraker
+          start_moonraker
+        fi
         ok_msg "Go2rtc has been removed successfully!"
         return;;
       N|n)

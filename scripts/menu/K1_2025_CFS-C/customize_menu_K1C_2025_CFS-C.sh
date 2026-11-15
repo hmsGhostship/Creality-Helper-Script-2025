@@ -251,7 +251,7 @@ function customize_menu_k1_2025_cfs_c() {
         elif [ ! -d "$MOONRAKER_FOLDER" ] && [ ! -d "$NGINX_FOLDER" ]; then
         customize_menu_ui_k1_2025_cfs_c
           error_msg "Moonraker and Nginx are needed, please install them first!"
-        elif ! curl -s localhost:7126/server/info 2>/dev/null | grep -Eq '"klippy_connected"[[:space:]]*:[[:space:]]*true'; then
+        elif ! curl -s 127.0.0.1:7126/server/info 2>/dev/null | grep -Eq '"klippy_connected"[[:space:]]*:[[:space:]]*true'; then
           customize_menu_ui_k1_2025_cfs_c
           error_msg "Moonraker and Klipper do not seem to be functional. Please check this!"
         elif [ ! -f "$KLIPPER_SHELL_FILE" ]; then
