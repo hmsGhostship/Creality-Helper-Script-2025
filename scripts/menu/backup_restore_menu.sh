@@ -13,6 +13,9 @@ function backup_restore_menu_ui() {
   menu_option '3' 'Backup' 'Moonraker database'
   menu_option '4' 'Restore' 'Moonraker database'
   hr
+  menu_option '5' 'Backup' 'Helper-Script State (OTA Safe)'
+  menu_option '6' 'Restore' 'Helper-Script State (After FW Update)'
+  hr
   inner_line
   hr
   bottom_menu_option 'b' 'Back to [Main Menu]' "${yellow}"
@@ -44,6 +47,14 @@ function backup_restore_menu() {
           error_msg "Please backup Moonraker database before restore!"
         else
           run "restore_moonraker_database" "backup_restore_menu_ui"
+        fi;;
+      5)
+        run "backup_ota_state" "backup_restore_menu_ui";;
+      6)
+        if [ ! -f "/usr/data/helper-script-ota-backup/ota_state.env" ]; then
+          error_msg "Please create an OTA Helper-Script State backup first!"
+        else
+          run "restore_ota_state" "backup_restore_menu_ui"
         fi;;
       B|b)
         clear; main_menu; break;;
