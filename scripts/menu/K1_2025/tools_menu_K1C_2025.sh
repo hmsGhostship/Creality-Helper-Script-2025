@@ -25,9 +25,9 @@ function tools_menu_ui_k1_2025() {
   menu_option '10' 'Clear' 'cache'
   menu_option '11' 'Clear' 'logs files'
   hr
-#  subtitle '•Bed Leveling & Calibration:'
-#  menu_option '12' 'Enable' 'Creality Calibration Toolbox (BED MESH)'
-#  menu_option '13' 'Disable' 'Creality Calibration Toolbox (BED MESH)'
+  subtitle '•Bed Leveling & Calibration:'
+  menu_option '12' 'Enable' 'Creality Calibration Toolbox (BED MESH)'
+  menu_option '13' 'Disable' 'Creality Calibration Toolbox (BED MESH)'
 #  hr
 #  subtitle '•CFS-C Mainsail/Fluidd integration:'
 #  menu_option '14' 'Install' 'CFS-C Web Addon (Mainsail / Fluidd)'
