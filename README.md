@@ -82,8 +82,6 @@ This repository is tailored and tested for advanced hardware modifications:
 * **CFS-C Purge Volume Fix (Prime Tower):** Available in the **Install Menu**, this patch fixes under-extrusion and empty extrusion inside the Prime Tower during toolchanges by adjusting the purge volume (`E40`) and feeding velocity (`120 mm/min`) in `box.cfg`. This prevents torn lines, stabilizes the Prime Tower structure, and reduces material waste across both stock and aftermarket hotends.
 * **Creality Calibration Toolbox (Bed Mesh & Native Adaptive Mesh):** Integrates Creality's original **Adaptive Bed Mesh** directly into the Calibration Toolbox. You can easily switch between **Original (Full Mesh)**, **Adaptive Bed Mesh**, or **Disabled** directly from the interface, ensuring fast, localized probing and precise first layers.
 
-> ⚠️ **Important Service Dependency Note:** Creality's core backend services (`nexusp` and `solusp`) are strictly required for both the **CFS-C Multi-Material System** and the **Creality Calibration Toolbox (Adaptive Bed Mesh)**. Do **not** disable these services or retire the `nexusp` backend when using either feature.
-
 ### ⚡ CFS-C Speed Fix (High Back-Pressure & Grinding Prevention)
 
 By default, the Creality CFS-C multi-material engine feeds the filament too aggressively into the hotend during the loading cycle. When dealing with high volumetric melting restrictions, this rapid feeding creates severe **High Back-Pressure** inside the melt zone. As a result, the dual-drive gears lose traction, causing destructive **Filament Grinding** and irreversible toolchange jams.
@@ -109,6 +107,8 @@ The **Creality Calibration Toolbox** (`Tools Menu`) automatically detects whethe
 Recommended machine and profile settings for optimal integration with the CFS-C Multi-Material system:
 
 #### 1. Machine Start G-code
+
+#### A. For CFS-C (nexusp running)
 Copy and paste the following macro into your Orca Slicer Printer Settings -> **Machine Start G-code**:
 
 ```gcode
@@ -119,10 +119,43 @@ BOX_ENABLE_CFS_PRINT ENABLE=1
 ; --- CORRECT 2025 CFS-C MAPPING LINE ---
 BOX_MODIFY_TN T[initial_no_support_extruder]=T[initial_no_support_extruder]
 
+; --- OPTIONAL: OVERRIDE BED MESH FROM SLICER ---
+; IMPORTANT: When nexusp is active (K1_2025_CFS-C / Stock), A_BED_MESH_CALIB in the Web UI
+; MUST be set to OFF before starting the print, otherwise nexusp triggers the Web UI setting first!
+; Option A (Per-print override via START_PRINT):
+; START_PRINT EXTRUDER_TEMP=[nozzle_temperature_initial_layer] BED_TEMP=[bed_temperature_initial_layer_single] MESH=ADAPTIVE
+; Option B (Switch Web UI button state for subsequent prints):
+; SET_CALIB_MODE MODE=ADAPTIVE
+
 ; --- ORIGINAL CREALITY START CHAIN ---
 START_PRINT EXTRUDER_TEMP=[nozzle_temperature_initial_layer] BED_TEMP=[bed_temperature_initial_layer_single]
 
 T[initial_no_support_extruder]
+M204 S2000
+M104 S[nozzle_temperature_initial_layer]
+G1 Z3 F600
+M83
+G92 E0
+G1 Z1 F600
+```
+
+#### B. For Native Klipper (nexusp not running)
+
+```gcode
+; --- START MELODY ---
+MUSIC_TO_START
+
+; --- OPTIONAL: OVERRIDE BED MESH FROM SLICER ---
+; IMPORTANT: When nexusp is active (Stock K1C 2025), A_BED_MESH_CALIB in the Web UI
+; MUST be set to OFF before starting the print (not needed if nexusp is retired)!
+; Option A (Per-print override via START_PRINT):
+; START_PRINT EXTRUDER_TEMP=[nozzle_temperature_initial_layer] BED_TEMP=[bed_temperature_initial_layer_single] MESH=ADAPTIVE
+; Option B (Switch Web UI button state for subsequent prints):
+; SET_CALIB_MODE MODE=ADAPTIVE
+
+; --- ORIGINAL CREALITY START CHAIN ---
+START_PRINT EXTRUDER_TEMP=[nozzle_temperature_initial_layer] BED_TEMP=[bed_temperature_initial_layer_single]
+
 M204 S2000
 M104 S[nozzle_temperature_initial_layer]
 G1 Z3 F600
