@@ -112,6 +112,41 @@ install_calib_toolbox() {
         [ ! -d "/usr/data/printer_data/config/Helper-Script" ] && mkdir -p "/usr/data/printer_data/config/Helper-Script"
         cp -f "$SOURCE_FILE" "$TARGET_FILE"
 
+        # Detect whether Creality nexusp daemon is active (1 = Nexusp/CFS-C, 0 = Native Klipper)
+        local nexusp_flag=1
+        if [ -f "${INITD_FOLDER}/disabled.CS56nexusp_service" ] || [ -f "${INITD_FOLDER}/disabled.S56nexusp_service" ]; then
+          nexusp_flag=0
+        elif ! pidof nexusp >/dev/null 2>&1 && [ ! -f "${INITD_FOLDER}/CS56nexusp_service" ] && [ ! -f "${INITD_FOLDER}/S56nexusp_service" ]; then
+          nexusp_flag=0
+        fi
+        local VARS_FILE="${PRINTER_DATA_FOLDER}/config/variables.cfg"
+        [ ! -f "$VARS_FILE" ] && echo "[Variables]" > "$VARS_FILE"
+        grep -q "^\[Variables\]" "$VARS_FILE" || sed -i "1i [Variables]" "$VARS_FILE"
+        if grep -q "^nexusp_active[[:space:]]*=" "$VARS_FILE"; then
+          sed -i "s/^nexusp_active[[:space:]]*=.*/nexusp_active = ${nexusp_flag}/" "$VARS_FILE"
+        else
+          echo "nexusp_active = ${nexusp_flag}" >> "$VARS_FILE"
+        fi
+
+        # If gcode_shell_command is installed, enable live runtime detection of nexusp
+        if [ -f "${KLIPPER_EXTRAS_FOLDER}/gcode_shell_command.py" ]; then
+          cat << 'LIVE_EOF' >> "$TARGET_FILE"
+
+# =========================================================================
+# LIVE RUNTIME DETECTION (via gcode_shell_command)
+# =========================================================================
+[gcode_shell_command _SYNC_NEXUSP_STATE]
+command: sh -c "if pidof nexusp >/dev/null 2>&1; then val=1; else val=0; fi; f=/usr/data/printer_data/config/variables.cfg; [ ! -f \"\$f\" ] && echo [Variables] > \"\$f\"; if grep -q ^nexusp_active[[:space:]]*= \"\$f\"; then sed -i \"s/^nexusp_active[[:space:]]*=.*/nexusp_active = \$val/\" \"\$f\"; else echo \"nexusp_active = \$val\" >> \"\$f\"; fi"
+timeout: 2.0
+verbose: False
+
+[delayed_gcode _LIVE_NEXUSP_POLL]
+initial_duration: 1.0
+gcode:
+  RUN_SHELL_COMMAND CMD=_SYNC_NEXUSP_STATE
+LIVE_EOF
+        fi
+
         # Remove old kamp_only.cfg entries
         sed -i '/kamp_only\.cfg/d' "$PRINTER_CFG"
 
