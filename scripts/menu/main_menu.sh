@@ -1,5 +1,3 @@
-function main_menu_ui() {
-  CURRENT_MENU_UI="main_menu_ui"
 #!/bin/sh
 
 set -e
@@ -46,7 +44,8 @@ function script_title() {
   echo "${title}"
 }
 
-
+function main_menu_ui() {
+  CURRENT_MENU_UI="main_menu_ui"
   top_line
   title "• HELPER SCRIPT FOR CREALITY $(script_title) •" "${blue}"
   title "Copyright © Cyril Guislain (Guilouz)" "${white}"

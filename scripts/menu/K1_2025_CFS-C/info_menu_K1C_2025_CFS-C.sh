@@ -1,5 +1,3 @@
-function info_menu_ui_k1_2025_cfs_c() {
-  CURRENT_MENU_UI="info_menu_ui_k1_2025_cfs_c"
 #!/bin/sh
 
 set -e
@@ -187,7 +185,8 @@ function check_moonraker_port_k1_2025() {
   fi
 }
 
-
+function info_menu_ui_k1_2025_cfs_c() {
+  CURRENT_MENU_UI="info_menu_ui_k1_2025_cfs_c"
   top_line
   title "• CREALITY $(script_title) •" "${blue}"
   title '[ INFORMATION MENU ]' "${yellow}"

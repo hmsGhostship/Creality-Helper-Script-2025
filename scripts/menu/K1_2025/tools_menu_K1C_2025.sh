@@ -1,10 +1,9 @@
-function tools_menu_ui_k1_2025() {
-  CURRENT_MENU_UI="tools_menu_ui_k1_2025"
 #!/bin/sh
 
 set -e
 
-
+function tools_menu_ui_k1_2025() {
+  CURRENT_MENU_UI="tools_menu_ui_k1_2025"
   top_line
   title "• CREALITY $(script_title) •" "${blue}"
   title '[ TOOLS MENU ]' "${yellow}"

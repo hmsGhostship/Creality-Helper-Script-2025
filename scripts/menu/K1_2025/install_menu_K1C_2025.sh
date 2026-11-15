@@ -1,10 +1,9 @@
-function install_menu_ui_k1_2025() {
-  CURRENT_MENU_UI="install_menu_ui_k1_2025"
 #!/bin/sh
 
 set -e
 
-
+function install_menu_ui_k1_2025() {
+  CURRENT_MENU_UI="install_menu_ui_k1_2025"
   top_line
   title "• CREALITY $(script_title) •" "${blue}"
   title '[ INSTALL MENU ]' "${yellow}"

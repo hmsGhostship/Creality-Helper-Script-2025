@@ -1,10 +1,9 @@
-function backup_restore_menu_ui() {
-  CURRENT_MENU_UI="backup_restore_menu_ui"
 #!/bin/sh
 
 set -e
 
-
+function backup_restore_menu_ui() {
+  CURRENT_MENU_UI="backup_restore_menu_ui"
   top_line
   title '[ BACKUP & RESTORE MENU ]' "${yellow}"
   inner_line
