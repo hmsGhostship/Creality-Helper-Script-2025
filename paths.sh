@@ -239,7 +239,17 @@ function set_paths() {
   CLOUD_BLOCK_SERVICE_FILE="${INITD_FOLDER}/S995cloudblock"
   
   # CFS Mainsail integration #
-
+  SOURCE_CFS_WEB_UI="${HS_FILES}/cfs_mainsail"
+  CFS_WEB_UI_JS="${SOURCE_CFS_WEB_UI}/static/mainsail-panel.js"
+  CFS_WEB_UI_SOURCE_JS="${SOURCE_CFS_WEB_UI}/cfs-overrides.json"
+  CFS_WEB_UI_SOURCE_PY="${SOURCE_CFS_WEB_UI}/klipper/cfs_material_db.py"
+  CFS_WEB_UI_TARGET_JS="${HS_CONFIG_FOLDER}/cfs-overrides.json"
+  
+  # reccon Creality K1C 2025 Recovery Console #
+  RECCON_BIN_URL="${HELPER_SCRIPT_FOLDER}/files/reccon/reccon"
+  RECCON_SERVICE_URL="${HELPER_SCRIPT_FOLDER}/files/services/S39console"
+  RECCON_BIN_FILE="/usr/apps/overlay/sbin/reccon"
+  RECCON_SERVICE_FILE="${INITD_FOLDER}/S39console"
 }
 
 function set_permissions() {

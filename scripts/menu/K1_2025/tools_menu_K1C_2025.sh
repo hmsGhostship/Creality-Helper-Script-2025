@@ -31,6 +31,10 @@ function tools_menu_ui_k1_2025() {
 #  subtitle '•CFS-C Mainsail/Fluidd integration:'
 #  menu_option '14' 'Install' 'CFS-C Web Addon (Mainsail / Fluidd)'
 #  menu_option '15' 'Remove' 'CFS-C Web Addon (Mainsail / Fluidd)'
+  hr
+  subtitle '•System Recovery:'
+  menu_option '16' 'Install' 'Recovery Console (reccon)'
+  menu_option '17' 'Remove' 'Recovery Console (reccon)'
   inner_line
   hr
   bottom_menu_option 'b' 'Back to [Main Menu]' "${yellow}"
@@ -185,25 +189,48 @@ function tools_menu_k1_2025() {
       14)
         clear
         if [ -f "${MAINSAIL_FOLDER}/k1c-cfs-panel.js" ] || [ -f "${FLUIDD_FOLDER}/k1c-cfs-panel.js" ]; then
-          tools_menu_ui_k1_2025_cfs_c
+          tools_menu_ui_k1_2025
           echo
           error_msg "CFS-C Web Addon is already installed!"
           echo
         else
-          run "install_cfs_integration" "tools_menu_ui_k1_2025_cfs_c"
+          run "install_cfs_integration" "tools_menu_ui_k1_2025"
         fi
         ;;
       15)
         clear
         if [ ! -f "${MAINSAIL_FOLDER}/k1c-cfs-panel.js" ] && [ ! -f "${FLUIDD_FOLDER}/k1c-cfs-panel.js" ]; then
-          tools_menu_ui_k1_2025_cfs_c
+          tools_menu_ui_k1_2025
           echo
           error_msg "CFS-C Web Addon is not installed!"
           echo
         else
-          run "remove_cfs_integration" "tools_menu_ui_k1_2025_cfs_c"
+          run "remove_cfs_integration" "tools_menu_ui_k1_2025"
         fi
         ;;
+      16)
+        clear
+        if [ -f "$RECCON_BIN_FILE" ] && [ -f "$RECCON_SERVICE_FILE" ]; then
+          tools_menu_ui_k1_2025
+          echo
+          error_msg "Recovery Console (reccon) is already installed!"
+          echo
+        else
+          run "install_reccon" "tools_menu_ui_k1_2025"
+        fi
+        ;;
+      17)
+        clear
+        if [ ! -f "$RECCON_BIN_FILE" ] && [ ! -f "$RECCON_SERVICE_FILE" ]; then
+          tools_menu_ui_k1_2025
+          echo
+          error_msg "Recovery Console (reccon) is not installed!"
+          echo
+        else
+          run "remove_reccon" "tools_menu_ui_k1_2025"
+        fi
+        ;;
+
       B|b)
         clear
         main_menu

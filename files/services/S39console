@@ -1,0 +1,11 @@
+#!/bin/sh
+
+case "$1" in
+    start)
+        /usr/apps/overlay/sbin/reccon /bin/busybox sh >> /tmp/reccon.log 2>&1
+    ;;
+    *)
+        exit 1
+esac
+
+exit 0
