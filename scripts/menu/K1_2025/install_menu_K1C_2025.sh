@@ -47,12 +47,11 @@ function install_menu_ui_k1_2025() {
   menu_option '17' 'Install' 'Motor Sound Support'
   menu_option '18' 'Install' 'Useful Macros'
   menu_option '19' 'Install' 'Git Backup'
-  if ! creality_services_pending && nexusp_retired && ! nexusp_resurrected; then
-  :
-#  menu_option '20' 'Install' 'Fans Control Macros'
-#  menu_option '21' 'Install' 'Nozzle Cleaning Fan Control'
-#  menu_option '22' 'Install' 'Improved Shapers Calibrations'
-#  menu_option '23' 'Install' 'M600 Support'
+  if nexusp_retired && ! nexusp_resurrected; then
+  menu_option '20' 'Install' 'Fans Control Macros'
+  menu_option '21' 'Install' 'Nozzle Cleaning Fan Control'
+  menu_option '22' 'Install' 'Improved Shapers Calibrations'
+  menu_option '23' 'Install' 'M600 Support'
   fi
   hr
   subtitle '•REMOTE ACCESS:'
@@ -287,8 +286,6 @@ function install_menu_k1_2025() {
         fi;;
       20)
         clear
-        disabled_feature
-        continue
         if [ -f "$FAN_CONTROLS_FILE" ]; then
           error_msg "Fans Control Macros are already installed!"
         else
@@ -296,8 +293,6 @@ function install_menu_k1_2025() {
         fi;;
       21)
         clear
-        disabled_feature
-        continue
         if [ -d "$NOZZLE_CLEANING_FOLDER" ]; then
           error_msg "Nozzle Cleaning Fan Control is already installed!"
         else
@@ -305,8 +300,6 @@ function install_menu_k1_2025() {
         fi;;
       22)
         clear
-        disabled_feature
-        continue
         # C13-Check: Nutzt deine globale Variable aus der paths.sh
         if [ -d "$IMP_SHAPERS_FOLDER" ]; then
           error_msg "Improved Shapers Calibrations (C13 Edition) are already installed!"
@@ -320,8 +313,6 @@ function install_menu_k1_2025() {
         fi;;
       23)
         clear
-        disabled_feature
-        continue
         if [ -f "$M600_SUPPORT_FILE" ]; then
           error_msg "M600 Support is already installed!"
         else

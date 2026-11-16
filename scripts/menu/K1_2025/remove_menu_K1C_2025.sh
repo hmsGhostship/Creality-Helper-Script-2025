@@ -40,12 +40,12 @@ function remove_menu_ui_k1_2025() {
   menu_option '17' 'Remove' 'Motor Sound Support'
   menu_option '18' 'Remove' 'Useful Macros'
   menu_option '19' 'Remove' 'Git Backup'
-  if ! creality_services_pending && nexusp_retired && ! nexusp_resurrected; then
+  if nexusp_retired && ! nexusp_resurrected; then
   :
-# menu_option '20' 'Remove' 'Fans Control Macros'
-# menu_option '21' 'Remove' 'Nozzle Cleaning Fan Control'
-# menu_option '22' 'Remove' 'Improved Shapers Calibrations'
-# menu_option '23' 'Remove' 'M600 Support'
+  menu_option '20' 'Remove' 'Fans Control Macros'
+  menu_option '21' 'Remove' 'Nozzle Cleaning Fan Control'
+  menu_option '22' 'Remove' 'Improved Shapers Calibrations'
+  menu_option '23' 'Remove' 'M600 Support'
   fi
   hr
   subtitle '•REMOTE ACCESS:'
@@ -253,8 +253,6 @@ function remove_menu_k1_2025() {
          fi;;
       20)
         clear
-        disabled_feature
-        continue
         if [ ! -f "$FAN_CONTROLS_FILE" ]; then
           error_msg "Fans Control Macros are not installed!"
         else
@@ -262,8 +260,6 @@ function remove_menu_k1_2025() {
         fi;;
       21)
         clear
-        disabled_feature
-        continue
         if [ ! -d "$NOZZLE_CLEANING_FOLDER" ]; then
           error_msg "Nozzle Cleaning Fan Control is not installed!"
         else
@@ -271,8 +267,6 @@ function remove_menu_k1_2025() {
         fi;;
       22)
         clear
-        disabled_feature
-        continue
         if [ ! -d "$IMP_SHAPERS_FOLDER" ]; then
           error_msg "Improved Shapers Calibrations (C13 Edition) are not active!"
           echo
@@ -281,8 +275,6 @@ function remove_menu_k1_2025() {
         fi;;
       23)
         clear
-        disabled_feature
-        continue
         if [ ! -f "$M600_SUPPORT_FILE" ]; then
           error_msg "M600 Support is not installed!"
         else
