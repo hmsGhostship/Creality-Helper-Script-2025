@@ -34,13 +34,13 @@ install_improved_shapers(){
 
         echo -e "Info: Creating writeable configuration folders in User-Space..."
         # Utilizing your global variables from central paths.sh
-        mkdir -p "$IMP_SHAPERS_FOLDER"/scripts
+        mkdir -p "${IMP_SHAPERS_FOLDER:-$HS_CONFIG_FOLDER/improved-shapers}"/scripts
         
         # 2. FILE OPERATIONS: Copy macros and mathematical python scripts (NO system .so files!)
         echo -e "Info: Copying macro files locally..."
-        cp -f "${IMP_SHAPERS_URL:-$HS_FILES/improved-shapers}"/scripts/*.py "$IMP_SHAPERS_FOLDER"/scripts/ 2>/dev/null || true
-        chmod +x "$IMP_SHAPERS_FOLDER"/scripts/*.py 2>/dev/null || true
-        cp -f "${IMP_SHAPERS_URL:-$HS_FILES/improved-shapers}"/improved-shapers.cfg "$IMP_SHAPERS_FOLDER"/improved-shapers.cfg
+        cp -f "${IMP_SHAPERS_URL:-$HS_FILES/improved-shapers}"/scripts/*.py "${IMP_SHAPERS_FOLDER:-$HS_CONFIG_FOLDER/improved-shapers}"/scripts/ 2>/dev/null || true
+        chmod +x "${IMP_SHAPERS_FOLDER:-$HS_CONFIG_FOLDER/improved-shapers}"/scripts/*.py 2>/dev/null || true
+        cp -f "${IMP_SHAPERS_URL:-$HS_FILES/improved-shapers}"/improved-shapers.cfg "${IMP_SHAPERS_FOLDER:-$HS_CONFIG_FOLDER/improved-shapers}"/improved-shapers.cfg
         if [ -f "${IMP_SHAPERS_URL:-$HS_FILES/improved-shapers}"/calibrate_shaper_config.py ] && [ -d "$KLIPPY_EXTRAS" ]; then
           cp -f "${IMP_SHAPERS_URL:-$HS_FILES/improved-shapers}"/calibrate_shaper_config.py "$KLIPPY_EXTRAS"/calibrate_shaper_config.py
         fi
@@ -53,11 +53,11 @@ install_improved_shapers(){
 
         # 4. ENFORCE INDEPENDENT X/Y CALIBRATION: Vital for your modified DXC printhead weight
         # We append the [resonance_tester] block safely to our own configuration file
-        if grep -q "axis_x_use_y" "$IMP_SHAPERS_FOLDER/improved-shapers.cfg" 2>/dev/null; then
+        if grep -q "axis_x_use_y" "${IMP_SHAPERS_FOLDER:-$HS_CONFIG_FOLDER/improved-shapers}/improved-shapers.cfg" 2>/dev/null; then
           echo -e "Info: Independent X/Y calibration is already configured in improved-shapers.cfg."
         else
           echo -e "Info: Adding independent X/Y tuning under [resonance_tester] in improved-shapers.cfg..."
-          echo -e "\n[resonance_tester]\naxis_x_use_y: false" >> "$IMP_SHAPERS_FOLDER/improved-shapers.cfg"
+          echo -e "\n[resonance_tester]\naxis_x_use_y: false" >> "${IMP_SHAPERS_FOLDER:-$HS_CONFIG_FOLDER/improved-shapers}/improved-shapers.cfg"
         fi
 
         # 5. INJECT CONFIGURATION INCLUDE INTO PRINTER.CFG
@@ -97,7 +97,7 @@ remove_improved_shapers(){
         echo -e "${white}"
         
         echo -e "Info: Removing Shaper configuration files..."
-        rm -rf "$IMP_SHAPERS_FOLDER"
+        rm -rf "${IMP_SHAPERS_FOLDER:-$HS_CONFIG_FOLDER/improved-shapers}"
         rm -f "$KLIPPY_EXTRAS"/calibrate_shaper_config.py
         
         # 1. Restore factory Autotune macros
