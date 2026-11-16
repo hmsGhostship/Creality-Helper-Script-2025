@@ -259,9 +259,15 @@ function nexusp_wait_for_port_7125() {
 # check turns a slow-but-successful swap into an automatic rollback of a swap
 # that worked, which is a worse outcome than the failure it is trying to catch.
 function nexusp_http_get() {
-  local py
+  local py lan_ip target_url
   py="$(nexusp_python)"
-  "$py" -c "import urllib.request; print(urllib.request.urlopen('$1', timeout=4).read().decode())" 2>/dev/null
+  route add -net 127.0.0.0 netmask 255.0.0.0 dev lo 2>/dev/null || true
+  lan_ip="$(ip route get 1.1.1.1 2>/dev/null | awk '{print $7; exit}')"
+  target_url="$1"
+  if [ -n "$lan_ip" ]; then
+    target_url="$(echo "$target_url" | sed "s|127\.0\.0\.1|$lan_ip|g")"
+  fi
+  "$py" -c "import urllib.request; print(urllib.request.urlopen('$target_url', timeout=4).read().decode())" 2>/dev/null
 }
 
 function nexusp_verify_retired() {
