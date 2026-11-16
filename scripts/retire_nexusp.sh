@@ -243,7 +243,7 @@ function nexusp_wait_for_port_7125() {
   local attempt
   attempt=0
   while [ "$attempt" -lt 30 ]; do
-    if "$CURL" -s -m 5 http://127.0.0.1:7125/server/info 2>/dev/null | grep -q '"result"'; then
+    if nexusp_http_get http://127.0.0 | grep -q '"result"'; then
       return 0
     fi
     attempt=$((attempt + 1))
@@ -258,11 +258,17 @@ function nexusp_wait_for_port_7125() {
 # Python 3.8 startup on this board routinely takes longer than that. A one-shot
 # check turns a slow-but-successful swap into an automatic rollback of a swap
 # that worked, which is a worse outcome than the failure it is trying to catch.
+function nexusp_http_get() {
+  local py
+  py="$(nexusp_python)"
+  "$py" -c "import urllib.request; print(urllib.request.urlopen('$1', timeout=4).read().decode())" 2>/dev/null
+}
+
 function nexusp_verify_retired() {
   local attempt body
   attempt=0
   while [ "$attempt" -lt 30 ]; do
-    body="$("$CURL" -s -m 5 http://127.0.0.1:7125/server/info 2>/dev/null)"
+    body="$(nexusp_http_get http://127.0.0)"
     if nexusp_compat_load_failed "$body"; then
       error_msg "Moonraker started but refused to load the compat component!"
       echo -e " ${darkred}The touchscreen's file browser would not work. See${white}"
