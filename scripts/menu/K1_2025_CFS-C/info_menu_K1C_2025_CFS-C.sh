@@ -221,8 +221,6 @@ function info_menu_ui_k1_2025_cfs_c() {
   #info_line "$(check_file_k1_2025 "$FAN_CONTROLS_FILE")" 'Fans Control Macros'
   #info_line "$(check_folder_k1_2025 "$IMP_SHAPERS_FOLDER")" 'Improved Shapers Calibrations'
   #info_line "$(check_file_k1_2025 "$M600_SUPPORT_FILE")" 'M600 Support'
-  # ... Dein bestehender Code im Info-Menü
-  # ... Dein bestehender Code im Info-Menü (Sektion 7)
   hr
   subtitle '•CAMERA:'
   info_line "$(check_file_k1_2025 "$CAMERA_SETTINGS_FILE")" 'Camera Settings Control Module'
