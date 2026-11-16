@@ -38,11 +38,11 @@ install_improved_shapers(){
         
         # 2. FILE OPERATIONS: Copy macros and mathematical python scripts (NO system .so files!)
         echo -e "Info: Copying macro files locally..."
-        cp -f "$IMP_SHAPERS_URL"/scripts/*.py "$IMP_SHAPERS_FOLDER"/scripts/ 2>/dev/null || true
+        cp -f "${IMP_SHAPERS_URL:-$HS_FILES/improved-shapers}"/scripts/*.py "$IMP_SHAPERS_FOLDER"/scripts/ 2>/dev/null || true
         chmod +x "$IMP_SHAPERS_FOLDER"/scripts/*.py 2>/dev/null || true
-        cp -f "$IMP_SHAPERS_URL"/improved-shapers.cfg "$IMP_SHAPERS_FOLDER"/improved-shapers.cfg
-        if [ -f "$IMP_SHAPERS_URL"/calibrate_shaper_config.py ] && [ -d "$KLIPPY_EXTRAS" ]; then
-          cp -f "$IMP_SHAPERS_URL"/calibrate_shaper_config.py "$KLIPPY_EXTRAS"/calibrate_shaper_config.py
+        cp -f "${IMP_SHAPERS_URL:-$HS_FILES/improved-shapers}"/improved-shapers.cfg "$IMP_SHAPERS_FOLDER"/improved-shapers.cfg
+        if [ -f "${IMP_SHAPERS_URL:-$HS_FILES/improved-shapers}"/calibrate_shaper_config.py ] && [ -d "$KLIPPY_EXTRAS" ]; then
+          cp -f "${IMP_SHAPERS_URL:-$HS_FILES/improved-shapers}"/calibrate_shaper_config.py "$KLIPPY_EXTRAS"/calibrate_shaper_config.py
         fi
 
         # 3. STOCK MACRO DEACTIVATION: Comment out Creality's limited factory autotune macro
