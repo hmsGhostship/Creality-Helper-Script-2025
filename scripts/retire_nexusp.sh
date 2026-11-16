@@ -94,6 +94,8 @@ function restore_nexusp_message(){
   echo -e " │ ${cyan}helper's Moonraker to 7126. Prints made while nexusp was       ${white}│"
   echo -e " │ ${cyan}retired are merged back into its database first, or the        ${white}│"
   echo -e " │ ${cyan}touchscreen's history would silently stop at the retire date.  ${white}│"
+  echo -e " │ ${yellow}Note: Fans Control (20), Improved Shapers (21) & M600 (22)     ${white}│"
+  echo -e " │ ${yellow}will be uninstalled automatically before restoring nexusp.     ${white}│"
   hr
   bottom_line
 }
@@ -744,6 +746,19 @@ function retire_nexusp(){
         fi
         if ! creality_confirm_printer_idle; then
           return
+        fi
+
+        if [ -f "$HS_CONFIG_FOLDER/fans-control.cfg" ] || grep -q "Helper-Script/fans-control.cfg" "$PRINTER_CFG" 2>/dev/null; then
+          echo -e "Info: Removing Fans Control Macros before restoring nexusp..."
+          yes y | remove_fans_control_macros >/dev/null 2>&1 || true
+        fi
+        if [ -d "$HS_CONFIG_FOLDER/improved-shapers" ] || grep -q "Helper-Script/improved-shapers" "$PRINTER_CFG" 2>/dev/null; then
+          echo -e "Info: Removing Improved Shapers Calibrations before restoring nexusp..."
+          yes y | remove_improved_shapers >/dev/null 2>&1 || true
+        fi
+        if [ -f "$HS_CONFIG_FOLDER/M600-support.cfg" ] || grep -q "Helper-Script/M600-support.cfg" "$PRINTER_CFG" 2>/dev/null; then
+          echo -e "Info: Removing M600 Support before restoring nexusp..."
+          yes y | remove_m600_support >/dev/null 2>&1 || true
         fi
 
         # Every decision is collected BEFORE the first mutation, so an abandoned
