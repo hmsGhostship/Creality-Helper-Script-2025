@@ -50,8 +50,35 @@ install_cfs_integration() {
       Y|y)
         echo "=== Starting installation of CFS-C Web Addon ==="
 
-        apply_cfs_to_frontend "mainsail" "$MAINSAIL_FOLDER" || true
-        apply_cfs_to_frontend "fluidd" "$FLUIDD_FOLDER" || true
+        local has_ms=0 has_fl=0 inst_choice="1"
+        [ -f "${MAINSAIL_FOLDER}/index.html" ] && has_ms=1
+        [ -f "${FLUIDD_FOLDER}/index.html" ] && has_fl=1
+
+        if [ "$has_ms" -eq 1 ] && [ "$has_fl" -eq 1 ]; then
+          echo
+          echo -e " ${white}Both Mainsail and Fluidd are installed:${white}"
+          echo -e "   ${yellow}1)${white} Install into ${cyan}ALL${white} (Mainsail & Fluidd)"
+          echo -e "   ${yellow}2)${white} Install into ${cyan}Mainsail${white} only"
+          echo -e "   ${yellow}3)${white} Install into ${cyan}Fluidd${white} only"
+          echo -e "   ${yellow}c)${white} Cancel"
+          echo
+          while true; do
+            read -p " ${white}Select an option (${yellow}1${white}/${yellow}2${white}/${yellow}3${white}/${yellow}c${white}): ${yellow}" inst_choice </dev/tty
+            echo -e "${white}"
+            case "$inst_choice" in
+              1|2|3) break;;
+              C|c) error_msg "Installation canceled!"; return;;
+              *) error_msg "Please select a correct choice!";;
+            esac
+          done
+        fi
+
+        if [ "$inst_choice" = "1" ] || [ "$inst_choice" = "2" ]; then
+          apply_cfs_to_frontend "mainsail" "$MAINSAIL_FOLDER" || true
+        fi
+        if [ "$inst_choice" = "1" ] || [ "$inst_choice" = "3" ]; then
+          apply_cfs_to_frontend "fluidd" "$FLUIDD_FOLDER" || true
+        fi
 
         mkdir -p "$HS_CONFIG_FOLDER"
         if [ -f "$CFS_WEB_UI_SOURCE_JS" ]; then
