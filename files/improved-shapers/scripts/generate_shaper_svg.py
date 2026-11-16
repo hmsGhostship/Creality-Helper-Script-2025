@@ -76,7 +76,7 @@ def parse_csv_stream(path):
     n_fft = len(mags) * 2
     for i, m in enumerate(mags):
         freq = i * fs / n_fft
-        if 5.0 <= freq <= 140.0:
+        if 15.0 <= freq <= 100.0:
             freqs.append(freq)
             vals.append(m)
     return freqs, vals
@@ -91,8 +91,8 @@ def write_svg(out_path, series, title):
         f'<svg xmlns="http://w3.org" width="{w}" height="{h}" style="background:#0f172a;font-family:sans-serif">',
         f'<text x="{w//2}" y="26" fill="#f8fafc" font-size="16" font-weight="bold" text-anchor="middle">{title}</text>'
     ]
-    for gx in range(10, 141, 10):
-        x = pad_l + (gx - 5.0) / 135.0 * pw
+    for gx in range(20, 101, 10):
+        x = pad_l + (gx - 15.0) / 85.0 * pw
         lines.append(f'<line x1="{x:.1f}" y1="{pad_t}" x2="{x:.1f}" y2="{pad_t+ph}" stroke="#1e293b" stroke-width="1"/>')
         lines.append(f'<text x="{x:.1f}" y="{h-22}" fill="#94a3b8" font-size="11" text-anchor="middle">{gx}</text>')
     lines.append(f'<text x="{w//2}" y="{h-5}" fill="#cbd5e1" font-size="12" text-anchor="middle">Frequency (Hz)</text>')
@@ -100,7 +100,7 @@ def write_svg(out_path, series, title):
         if not freqs:
             continue
         col = colors[idx % len(colors)]
-        pts = [f'{pad_l + (f - 5.0) / 135.0 * pw:.1f},{pad_t + ph - (v / max_y) * ph:.1f}' for f, v in zip(freqs, vals) if 5.0 <= f <= 140.0]
+        pts = [f'{pad_l + (f - 15.0) / 85.0 * pw:.1f},{pad_t + ph - (v / max_y) * ph:.1f}' for f, v in zip(freqs, vals) if 15.0 <= f <= 100.0]
         lines.append(f'<polyline fill="none" stroke="{col}" stroke-width="2" points="{" ".join(pts)}"/>')
         lines.append(f'<text x="{pad_l + 10}" y="{pad_t + 18 + idx*18}" fill="{col}" font-size="12" font-weight="bold">{label}{peak_txt}</text>')
     lines.append('</svg>')
