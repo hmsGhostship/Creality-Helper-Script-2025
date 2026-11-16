@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-import csv, math, os, sys
+import csv, glob, math, os, sys
 
 def fft_mag(samples):
     n = 1
@@ -123,7 +123,7 @@ def main():
         elif args[i].startswith("-"):
             i += 1
         else:
-            csv_files.append(args[i])
+            matches = sorted(glob.glob(args[i])); csv_files.extend(matches if matches else [args[i]])
             i += 1
     if not out_path or not csv_files:
         sys.exit(1)
