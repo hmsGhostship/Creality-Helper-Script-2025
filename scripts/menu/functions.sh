@@ -107,9 +107,9 @@ function info_line() {
   local status=$1
   local text=$2
   local color=$3
-  local max_length=68
-  local total_text_length=$(( ${#status} + ${#text} ))
-  local padding=$((max_length - total_text_length))
+  local max_text_width=58
+  local padding=$((max_text_width - ${#text}))
+  [ "$padding" -lt 0 ] && padding=0
   printf " │   $color${status} ${white}${text}%-${padding}s${white}│\n" ''
 }
 
