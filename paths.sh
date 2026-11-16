@@ -32,6 +32,7 @@ function set_paths() {
   # Helper Script #
   HS_FILES="${HELPER_SCRIPT_FOLDER}/files"
   HS_CONFIG_FOLDER="$PRINTER_DATA_FOLDER/config/Helper-Script"
+  IMP_SHAPERS_FOLDER="$HS_CONFIG_FOLDER/improved-shapers"
   HS_BACKUP_FOLDER="$USR_DATA/helper-script-backup"
   
   # Configuration Files #
