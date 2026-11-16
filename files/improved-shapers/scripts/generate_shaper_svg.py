@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-import csv, glob, math, os, sys
+import csv, glob, math, os, sys, time
 
 def fft_mag(samples):
     n = 512
@@ -122,7 +122,15 @@ def main():
         elif args[i].startswith("-"):
             i += 1
         else:
-            matches = sorted(glob.glob(args[i]))
+                for _ in range(20):
+        matches = sorted(glob.glob(args[i]))
+        if matches and os.path.getsize(matches) > 1000:
+            s1 = os.path.getsize(matches)
+            time.sleep(0.5)
+            if os.path.getsize(matches) == s1:
+                break
+        time.sleep(0.5)
+    matches = sorted(glob.glob(args[i]))
             csv_files.extend(matches if matches else [args[i]])
             i += 1
     if not out_path or not csv_files:
