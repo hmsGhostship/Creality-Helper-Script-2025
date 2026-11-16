@@ -41,9 +41,6 @@ install_improved_shapers(){
         cp -f "${IMP_SHAPERS_URL:-$HS_FILES/improved-shapers}"/scripts/*.py "${IMP_SHAPERS_FOLDER:-$HS_CONFIG_FOLDER/improved-shapers}"/scripts/ 2>/dev/null || true
         chmod +x "${IMP_SHAPERS_FOLDER:-$HS_CONFIG_FOLDER/improved-shapers}"/scripts/*.py 2>/dev/null || true
         cp -f "${IMP_SHAPERS_URL:-$HS_FILES/improved-shapers}"/improved-shapers.cfg "${IMP_SHAPERS_FOLDER:-$HS_CONFIG_FOLDER/improved-shapers}"/improved-shapers.cfg
-        if [ -f "${IMP_SHAPERS_URL:-$HS_FILES/improved-shapers}"/calibrate_shaper_config.py ] && [ -d "$KLIPPY_EXTRAS" ]; then
-          cp -f "${IMP_SHAPERS_URL:-$HS_FILES/improved-shapers}"/calibrate_shaper_config.py "$KLIPPY_EXTRAS"/calibrate_shaper_config.py
-        fi
 
         # 3. STOCK MACRO DEACTIVATION: Comment out Creality's limited factory autotune macro
         if grep -q 'variable_autotune_shapers:' "$MACROS_CFG" 2>/dev/null; then
