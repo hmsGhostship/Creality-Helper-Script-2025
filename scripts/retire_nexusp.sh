@@ -243,7 +243,7 @@ function nexusp_wait_for_port_7125() {
   local attempt
   attempt=0
   while [ "$attempt" -lt 30 ]; do
-    if nexusp_http_get http://127.0.0 | grep -q '"result"'; then
+    if nexusp_http_get http://127.0.0.1:7125/server/info | grep -q '"result"'; then
       return 0
     fi
     attempt=$((attempt + 1))
@@ -268,7 +268,7 @@ function nexusp_verify_retired() {
   local attempt body
   attempt=0
   while [ "$attempt" -lt 30 ]; do
-    body="$(nexusp_http_get http://127.0.0)"
+    body="$(nexusp_http_get http://127.0.0.1:7125/server/info)"
     if nexusp_compat_load_failed "$body"; then
       error_msg "Moonraker started but refused to load the compat component!"
       echo -e " ${darkred}The touchscreen's file browser would not work. See${white}"
