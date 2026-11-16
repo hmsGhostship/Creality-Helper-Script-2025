@@ -34,7 +34,8 @@ install_improved_shapers(){
 
         echo -e "Info: Creating writeable configuration folders in User-Space..."
         # Utilizing your global variables from central paths.sh
-        mkdir -p "${IMP_SHAPERS_FOLDER:-$HS_CONFIG_FOLDER/improved-shapers}"/scripts
+        mkdir -p "${IMP_SHAPERS_FOLDER:-$HS_CONFIG_FOLDER/improved-shapers}"/scripts "${IMP_SHAPERS_FOLDER:-$HS_CONFIG_FOLDER/improved-shapers}"/graphs
+        chown -R creality:creality "${IMP_SHAPERS_FOLDER:-$HS_CONFIG_FOLDER/improved-shapers}" 2>/dev/null || true
         
         # 2. FILE OPERATIONS: Copy macros and mathematical python scripts (NO system .so files!)
         echo -e "Info: Copying macro files locally..."
