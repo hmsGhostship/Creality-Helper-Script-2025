@@ -748,36 +748,6 @@ function retire_nexusp(){
           return
         fi
 
-        local removed_any=0
-        if [ -f "$HS_CONFIG_FOLDER/fans-control.cfg" ] || grep -q "Helper-Script/fans-control.cfg" "$PRINTER_CFG" 2>/dev/null; then
-          echo -e "Info: Removing Fans Control Macros before restoring nexusp..."
-          rm -f "$HS_CONFIG_FOLDER/fans-control.cfg"
-          sed -i '/include Helper-Script\/fans-control\.cfg/d' "$PRINTER_CFG"
-          sed -i -e 's/^\s*#[[:space:]]*\[duplicate_pin_override\]/[duplicate_pin_override]/' -e '/^\[duplicate_pin_override\]/,/^\s*$/ s/^\(\s*\)#/\1/' "$PRINTER_CFG"
-          sed -i -e 's/^\s*#[[:space:]]*\[temperature_fan chamber_fan\]/[temperature_fan chamber_fan]/' -e '/^\[temperature_fan chamber_fan\]/,/^\s*$/ s/^\(\s*\)#/\1/' "$PRINTER_CFG"
-          for m in M106 M141 M191; do
-            sed -i -e "s/^\s*#[[:space:]]*\[gcode_macro ${m}\]/[gcode_macro ${m}]/" -e "/^\[gcode_macro ${m}\]/,/^\s*$/ s/^\(\s*\)#/\1/" "$MACROS_CFG" 2>/dev/null || true
-          done
-          removed_any=1
-        fi
-        if [ -d "${IMP_SHAPERS_FOLDER:-$HS_CONFIG_FOLDER/improved-shapers}" ] || grep -q "improved-shapers.cfg" "$PRINTER_CFG" 2>/dev/null; then
-          echo -e "Info: Removing Improved Shapers Calibrations before restoring nexusp..."
-          rm -rf "${IMP_SHAPERS_FOLDER:-$HS_CONFIG_FOLDER/improved-shapers}"
-          sed -i '/improved-shapers\.cfg/d' "$PRINTER_CFG"
-          sed -i 's/#variable_autotune_shapers:/variable_autotune_shapers:/' "$MACROS_CFG" 2>/dev/null || true
-          removed_any=1
-        fi
-        if [ -f "$HS_CONFIG_FOLDER/M600-support.cfg" ] || grep -q "Helper-Script/M600-support.cfg" "$PRINTER_CFG" 2>/dev/null; then
-          echo -e "Info: Removing M600 Support before restoring nexusp..."
-          rm -f "$HS_CONFIG_FOLDER/M600-support.cfg"
-          sed -i '/include Helper-Script\/M600-support\.cfg/d' "$PRINTER_CFG"
-          removed_any=1
-        fi
-        if [ "$removed_any" -eq 1 ]; then
-          echo -e "Info: Restarting Klipper service after macro cleanup..."
-          restart_klipper
-        fi
-
         echo -e "Info: If you run a Moonraker watchdog or supervisor, stop it now -"
         echo -e "      a restart mid-merge overwrites the merged totals."
         # 2-3. Both daemons down, or the merge refuses.
@@ -966,6 +936,37 @@ function restore_nexusp(){
         if ! creality_confirm_printer_idle; then
           return
         fi
+
+        local removed_any=0
+        if [ -f "$HS_CONFIG_FOLDER/fans-control.cfg" ] || grep -q "Helper-Script/fans-control.cfg" "$PRINTER_CFG" 2>/dev/null; then
+          echo -e "Info: Removing Fans Control Macros before restoring nexusp..."
+          rm -f "$HS_CONFIG_FOLDER/fans-control.cfg"
+          sed -i '/include Helper-Script\/fans-control\.cfg/d' "$PRINTER_CFG"
+          sed -i -e 's/^\s*#[[:space:]]*\[duplicate_pin_override\]/[duplicate_pin_override]/' -e '/^\[duplicate_pin_override\]/,/^\s*$/ s/^\(\s*\)#/\1/' "$PRINTER_CFG"
+          sed -i -e 's/^\s*#[[:space:]]*\[temperature_fan chamber_fan\]/[temperature_fan chamber_fan]/' -e '/^\[temperature_fan chamber_fan\]/,/^\s*$/ s/^\(\s*\)#/\1/' "$PRINTER_CFG"
+          for m in M106 M141 M191; do
+            sed -i -e "s/^\s*#[[:space:]]*\[gcode_macro ${m}\]/[gcode_macro ${m}]/" -e "/^\[gcode_macro ${m}\]/,/^\s*$/ s/^\(\s*\)#/\1/" "$MACROS_CFG" 2>/dev/null || true
+          done
+          removed_any=1
+        fi
+        if [ -d "${IMP_SHAPERS_FOLDER:-$HS_CONFIG_FOLDER/improved-shapers}" ] || grep -q "improved-shapers.cfg" "$PRINTER_CFG" 2>/dev/null; then
+          echo -e "Info: Removing Improved Shapers Calibrations before restoring nexusp..."
+          rm -rf "${IMP_SHAPERS_FOLDER:-$HS_CONFIG_FOLDER/improved-shapers}"
+          sed -i '/improved-shapers\.cfg/d' "$PRINTER_CFG"
+          sed -i 's/#variable_autotune_shapers:/variable_autotune_shapers:/' "$MACROS_CFG" 2>/dev/null || true
+          removed_any=1
+        fi
+        if [ -f "$HS_CONFIG_FOLDER/M600-support.cfg" ] || grep -q "Helper-Script/M600-support.cfg" "$PRINTER_CFG" 2>/dev/null; then
+          echo -e "Info: Removing M600 Support before restoring nexusp..."
+          rm -f "$HS_CONFIG_FOLDER/M600-support.cfg"
+          sed -i '/include Helper-Script\/M600-support\.cfg/d' "$PRINTER_CFG"
+          removed_any=1
+        fi
+        if [ "$removed_any" -eq 1 ]; then
+          echo -e "Info: Restarting Klipper service after macro cleanup..."
+          restart_klipper
+        fi
+
 
         echo -e "Info: If you run a Moonraker watchdog or supervisor, stop it now -"
         echo -e "      a restart mid-merge overwrites the merged totals."
