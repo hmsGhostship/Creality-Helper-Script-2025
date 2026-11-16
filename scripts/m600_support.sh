@@ -30,7 +30,10 @@ function install_m600_support(){
           mkdir -p "$HS_CONFIG_FOLDER"
         fi
         echo -e "Info: Linking file..."
-        if [ "$model" = "K1" ]; then
+        if [ "$model" = "K1_2025" ] || [ "$model" = "K1_2025_CFS-C" ]; then
+          echo "Info: Copying M600 K1C 2025 configuration file..."
+          cp -f "$SOURCE_DIR/M600-support-k1-2025.cfg" "$HS_CONFIG_FOLDER/M600-support.cfg"
+        elif [ "$model" = "K1" ]; then
           echo "Info: Copying M600 K1 configuration file..."
           cp -f "$SOURCE_DIR/M600-support-k1.cfg" "$HS_CONFIG_FOLDER/M600-support.cfg"
         else
@@ -43,6 +46,7 @@ function install_m600_support(){
           echo -e "Info: Adding M600 Support configurations in printer.cfg file..."
           sed -i '/\[include printer_params\.cfg\]/a \[include Helper-Script/M600-support\.cfg\]' "$PRINTER_CFG"
         fi
+        if [ "$model" != "K1_2025" ] && [ "$model" != "K1_2025_CFS-C" ]; then
         if grep -q "\[idle_timeout\]" "$PRINTER_CFG" ; then
           echo -e "Info: Disabling [idle_timeout] configurations in printer.cfg file..."
           sed -i '/^\[idle_timeout\]/,/^\s*$/ s/^\(\s*\)\([^#]\)/#\1\2/' "$PRINTER_CFG"
@@ -63,6 +67,7 @@ function install_m600_support(){
           sed -i '/^\[gcode_macro RESUME\]/,/^\s*$/ s/^\(\s*\)\([^#]\)/#\1\2/' "$MACROS_CFG"
         else
           echo -e "Info: [gcode_macro RESUME] is already disabled in gcode_macro.cfg file..."
+        fi
         fi
         echo -e "Info: Restarting Klipper service..."
         restart_klipper
@@ -93,6 +98,7 @@ function remove_m600_support(){
         else
           echo -e "Info: M600 Support configurations are already removed in printer.cfg file..."
         fi
+        if [ "$model" != "K1_2025" ] && [ "$model" != "K1_2025_CFS-C" ]; then
         if grep -q "#\[idle_timeout\]" "$PRINTER_CFG" ; then
           echo -e "Info: Enabling [idle_timeout] configurations in printer.cfg file..."
           sed -i -e 's/^\s*#[[:space:]]*\[idle_timeout\]/[idle_timeout]/' -e '/^\[idle_timeout\]/,/^\s*$/ s/^\(\s*\)#/\1/' "$PRINTER_CFG"
@@ -113,6 +119,7 @@ function remove_m600_support(){
         fi
         if [ ! -n "$(ls -A "$HS_CONFIG_FOLDER")" ]; then
           rm -rf "$HS_CONFIG_FOLDER"
+        fi
         fi
         echo -e "Info: Restarting Klipper service..."
         restart_klipper
