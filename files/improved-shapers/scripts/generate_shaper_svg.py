@@ -2,7 +2,7 @@
 import csv, glob, math, os, sys
 
 def fft_mag(samples):
-    n = 2048
+    n = 512
     x = [complex(samples[i], 0.0) if i < len(samples) else 0j for i in range(n)]
     j = 0
     for i in range(1, n):
@@ -40,7 +40,7 @@ def parse_csv_stream(path):
     with open(path, "r") as f:
         reader = csv.reader(f)
         for r in reader:
-            if not r or not r[0] or r[0].startswith("#"):
+            if not r or not r[0].strip() or r[0].strip().startswith("#"):
                 continue
             if row_idx == 0:
                 try:
@@ -59,7 +59,8 @@ def parse_csv_stream(path):
                     freqs.append(float(r[fi]))
                     vals.append(float(r[vi]))
             else:
-                if (row_idx % 4 == 0) and len(acc) < 2048 and len(r) >= 4:
+                # Sample evenly across the entire sweep (every 60th sample -> ~2000 samples over 15-100Hz)
+                if (row_idx % 10 == 0) and len(acc) < 16384 and len(r) >= 4:
                     times.append(float(r[0]))
                     ax, ay, az = float(r[1]), float(r[2]), float(r[3])
                     acc.append(math.sqrt(ax*ax + ay*ay + az*az))
@@ -70,7 +71,7 @@ def parse_csv_stream(path):
     mean = sum(acc) / len(acc)
     acc = [a - mean for a in acc]
     dt = (times[-1] - times[0]) / max(1, len(times) - 1)
-    fs = 1.0 / dt if dt > 0 else 800.0
+    fs = 1.0 / dt if dt > 0 else 53.3
     mags = fft_mag(acc)
     n_fft = len(mags) * 2
     for i, m in enumerate(mags):
@@ -85,7 +86,7 @@ def write_svg(out_path, series, title):
     pad_l, pad_r, pad_t, pad_b = 65, 25, 45, 50
     pw, ph = w - pad_l - pad_r, h - pad_t - pad_b
     max_y = max([max(v) for _, _, v, _ in series if v] + [1e-6])
-    colors = ["#2563eb", "#dc2626", "#16a34a"]
+    colors = ["#38bdf8", "#f87171", "#4ade80"]
     lines = [
         f'<svg xmlns="http://w3.org" width="{w}" height="{h}" style="background:#0f172a;font-family:sans-serif">',
         f'<text x="{w//2}" y="26" fill="#f8fafc" font-size="16" font-weight="bold" text-anchor="middle">{title}</text>'
