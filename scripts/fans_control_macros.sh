@@ -33,7 +33,11 @@ function install_fans_control_macros(){
           echo -e "Info: Fans Control Macros configurations are already enabled in printer.cfg file..."
         else
           echo -e "Info: Adding Fans Control Macros configurations in printer.cfg file..."
-          sed -i '/\[include printer_params\.cfg\]/a \[include Helper-Script/fans-control\.cfg\]' "$PRINTER_CFG"
+          if grep -q "^# CreateDate:" "$PRINTER_CFG"; then
+            sed -i '/^# CreateDate:/a \[include Helper-Script/fans-control.cfg\]' "$PRINTER_CFG"
+          else
+            sed -i '1i [include Helper-Script/fans-control.cfg]' "$PRINTER_CFG"
+          fi
         fi
         if grep -q "\[duplicate_pin_override\]" "$PRINTER_CFG" ; then
           echo -e "Info: Disabling [duplicate_pin_override] configuration in printer.cfg file..."
