@@ -490,7 +490,7 @@ function nexusp_merge_history() {
   echo -e " will not be carried across, and after this the other database is"
   echo -e " no longer read. Note the backup path it prints.${white}"
   echo
-  read -p " ${white}Apply this print history merge? (${yellow}y${white}/${yellow}n${white}): ${yellow}" merge_yn || merge_yn="n"
+  read -p " ${white}Apply this print history merge? (${yellow}y${white}/${yellow}n${white}): ${yellow}" merge_yn </dev/tty || merge_yn="n"
   echo -e "${white}"
   case "${merge_yn}" in
     Y|y)
@@ -882,6 +882,14 @@ function retire_nexusp(){
         else
           echo "nexusp_active = 0" >> "$VARS_FILE"
         fi
+        # Migrate any companion services from port 7126 to 7125
+        for cfg in "${PRINTER_DATA_FOLDER}/config/octoeverywhere.conf" "${PRINTER_DATA_FOLDER}/config/mobileraker.conf" "${PRINTER_DATA_FOLDER}/config/octoapp.conf" "${PRINTER_DATA_FOLDER}/config/moonraker-obico.cfg" "/usr/data/guppyscreen/guppyscreen.json"; do
+          [ -f "$cfg" ] && sed -i "s/7126/7125/g" "$cfg" 2>/dev/null || true
+        done
+        [ -x "${INITD_FOLDER}/S99octoeverywhere" ] && "${INITD_FOLDER}/S99octoeverywhere" restart >/dev/null 2>&1 || true
+        [ -x "${INITD_FOLDER}/S99mobileraker" ] && "${INITD_FOLDER}/S99mobileraker" restart >/dev/null 2>&1 || true
+        [ -x "${INITD_FOLDER}/S99octoapp" ] && "${INITD_FOLDER}/S99octoapp" restart >/dev/null 2>&1 || true
+        [ -x "${INITD_FOLDER}/S99guppyscreen" ] && "${INITD_FOLDER}/S99guppyscreen" restart >/dev/null 2>&1 || true
         ok_msg "Nexusp Backend has been retired successfully!"
         echo -e "   ${cyan}Moonraker now answers on 7125 for the touchscreen and for you.${white}"
         echo -e "   ${cyan}The touchscreen reconnects on its own; give it a few seconds.${white}"
@@ -1026,6 +1034,14 @@ function restore_nexusp(){
         else
           echo "nexusp_active = 1" >> "$VARS_FILE"
         fi
+        # Migrate any companion services back from port 7125 to 7126
+        for cfg in "${PRINTER_DATA_FOLDER}/config/octoeverywhere.conf" "${PRINTER_DATA_FOLDER}/config/mobileraker.conf" "${PRINTER_DATA_FOLDER}/config/octoapp.conf" "${PRINTER_DATA_FOLDER}/config/moonraker-obico.cfg" "/usr/data/guppyscreen/guppyscreen.json"; do
+          [ -f "$cfg" ] && sed -i "s/7125/7126/g" "$cfg" 2>/dev/null || true
+        done
+        [ -x "${INITD_FOLDER}/S99octoeverywhere" ] && "${INITD_FOLDER}/S99octoeverywhere" restart >/dev/null 2>&1 || true
+        [ -x "${INITD_FOLDER}/S99mobileraker" ] && "${INITD_FOLDER}/S99mobileraker" restart >/dev/null 2>&1 || true
+        [ -x "${INITD_FOLDER}/S99octoapp" ] && "${INITD_FOLDER}/S99octoapp" restart >/dev/null 2>&1 || true
+        [ -x "${INITD_FOLDER}/S99guppyscreen" ] && "${INITD_FOLDER}/S99guppyscreen" restart >/dev/null 2>&1 || true
         ok_msg "Nexusp Backend has been restored successfully!"
         echo -e "   ${cyan}The touchscreen is back on nexusp, and Moonraker on 7126.${white}"
         return;;
