@@ -934,6 +934,16 @@ function retire_nexusp(){
         [ -x "${INITD_FOLDER}/S99octoapp" ] && "${INITD_FOLDER}/S99octoapp" restart >/dev/null 2>&1 || true
         [ -x "${INITD_FOLDER}/S99guppyscreen" ] && "${INITD_FOLDER}/S99guppyscreen" restart >/dev/null 2>&1 || true
         ok_msg "Nexusp Backend has been retired successfully!"
+
+        echo
+        echo -e " ${yellow}Note: A system reboot is required so Moonraker, Nginx,${white}"
+        echo -e " ${yellow}touchscreen and camera streams initialize cleanly.${white}"
+        echo
+        read -p " ${white}Press ${yellow}[Enter]${white} to reboot the printer now...${yellow}" _ </dev/tty || true
+        echo -e "${white}"
+        echo -e "Info: Rebooting printer now..."
+        sync
+        reboot
         echo -e "   ${cyan}Moonraker now answers on 7125 for the touchscreen and for you.${white}"
         echo -e "   ${cyan}The touchscreen reconnects on its own; give it a few seconds.${white}"
         echo -e "   ${cyan}For about four seconds after a COLD boot the screen polls two${white}"
@@ -1086,6 +1096,16 @@ function restore_nexusp(){
         [ -x "${INITD_FOLDER}/S99octoapp" ] && "${INITD_FOLDER}/S99octoapp" restart >/dev/null 2>&1 || true
         [ -x "${INITD_FOLDER}/S99guppyscreen" ] && "${INITD_FOLDER}/S99guppyscreen" restart >/dev/null 2>&1 || true
         ok_msg "Nexusp Backend has been restored successfully!"
+
+        echo
+        echo -e " ${yellow}Note: A system reboot is required so Moonraker, Nginx,${white}"
+        echo -e " ${yellow}touchscreen and camera streams initialize cleanly.${white}"
+        echo
+        read -p " ${white}Press ${yellow}[Enter]${white} to reboot the printer now...${yellow}" _ </dev/tty || true
+        echo -e "${white}"
+        echo -e "Info: Rebooting printer now..."
+        sync
+        reboot
         echo -e "   ${cyan}The touchscreen is back on nexusp, and Moonraker on 7126.${white}"
         return;;
       N|n)
