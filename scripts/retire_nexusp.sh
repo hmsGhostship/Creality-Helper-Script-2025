@@ -476,10 +476,17 @@ function nexusp_merge_history() {
   fi
   echo -e "Info: Print history merge (${direction}), dry run..."
   set +e
-  "$python" "$MERGE_JOB_HISTORY_URL" --direction "$direction"
+  local dry_out
+  dry_out=$("$python" "$MERGE_JOB_HISTORY_URL" --direction "$direction" 2>&1)
   rc=$?
+  echo "$dry_out"
   if [ "$rc" != "0" ]; then
     return "$rc"
+  fi
+  if echo "$dry_out" | grep -q "to insert: 0"; then
+    echo -e "Info: Both databases are already in sync (0 new jobs to insert)."
+    set -e
+    return 0
   fi
   # The dry run is only worth printing if somebody reads it. Running --apply
   # straight afterwards made it decorative in the only context it is ever run
@@ -500,10 +507,17 @@ function nexusp_merge_history() {
       return 1;;
   esac
   echo -e "Info: Merging print history..."
-  "$python" "$MERGE_JOB_HISTORY_URL" --direction "$direction" --apply
+  local dry_out
+  dry_out=$("$python" "$MERGE_JOB_HISTORY_URL" --direction "$direction" 2>&1)
   rc=$?
+  echo "$dry_out"
   if [ "$rc" != "0" ]; then
     return "$rc"
+  fi
+  if echo "$dry_out" | grep -q "to insert: 0"; then
+    echo -e "Info: Both databases are already in sync (0 new jobs to insert)."
+    set -e
+    return 0
   fi
   set -e
   return 0
