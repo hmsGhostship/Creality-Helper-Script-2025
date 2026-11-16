@@ -220,7 +220,6 @@ function info_menu_ui_k1_2025_cfs_c() {
   info_line "$(check_file_k1_2025 "$GIT_BACKUP_FILE")" 'Git Backup'
   #info_line "$(check_folder_k1_2025 "$KAMP_FOLDER")" 'Klipper Adaptive Meshing & Purging'
   #info_line "$(check_file_k1_2025 "$FAN_CONTROLS_FILE")" 'Fans Control Macros'
-  #info_line "$(check_folder_k1_2025 "$NOZZLE_CLEANING_FOLDER")" 'Nozzle Cleaning Fan Control'
   #info_line "$(check_folder_k1_2025 "$IMP_SHAPERS_FOLDER")" 'Improved Shapers Calibrations'
   #info_line "$(check_file_k1_2025 "$M600_SUPPORT_FILE")" 'M600 Support'
   # ... Dein bestehender Code im Info-Menü

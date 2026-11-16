@@ -48,27 +48,26 @@ function install_menu_ui_k1_2025_cfs_c() {
   menu_option '18' 'Install' 'Useful Macros'
   menu_option '19' 'Install' 'Git Backup'
 # menu_option '20' 'Install' 'Fans Control Macros'
-# menu_option '21' 'Install' 'Nozzle Cleaning Fan Control'
-# menu_option '22' 'Install' 'Improved Shapers Calibrations'
-# menu_option '23' 'Install' 'M600 Support'
+# menu_option '21' 'Install' 'Improved Shapers Calibrations'
+# menu_option '22' 'Install' 'M600 Support'
   hr
   subtitle '•REMOTE ACCESS:'
-    menu_option '24' 'Install' 'OctoEverywhere'
+    menu_option '23' 'Install' 'OctoEverywhere'
   if [ -f "${INITD_FOLDER}/S99octoeverywhere" ]; then
-    menu_option '24a' 'Show' 'OctoEverywhere [Show / renew link code]'
+    menu_option '23a' 'Show' 'OctoEverywhere [Show / renew link code]'
   else
-    unavailable_menu_option '24a' 'Show' 'OctoEverywhere Link Code' 'DISABLED: Module must be installed first'
+    unavailable_menu_option '23a' 'Show' 'OctoEverywhere Link Code' 'DISABLED: Module must be installed first'
   fi
-  menu_option '25' 'Install' 'Moonraker Obico'
+  menu_option '24' 'Install' 'Moonraker Obico'
   if [ -d "$MOONRAKER_OBICO_FOLDER" ] && [ -f "$KLIPPER_CONFIG_FOLDER/moonraker-obico.cfg" ]; then
-    menu_option '25a' 'Repair' 'Moonraker Obico [Regenerate link code]'
+    menu_option '24a' 'Repair' 'Moonraker Obico [Regenerate link code]'
   else
-    unavailable_menu_option '25a' 'Repair' 'Moonraker Obico' 'DISABLED: Module must be installed first'
+    unavailable_menu_option '24a' 'Repair' 'Moonraker Obico' 'DISABLED: Module must be installed first'
   fi
-  menu_option '26' 'Install' 'GuppyFLO'
-  menu_option '27' 'Install' 'Mobileraker Companion'
-  menu_option '28' 'Install' 'OctoApp Companion'
-  menu_option '29' 'Install' 'SimplyPrint'
+  menu_option '25' 'Install' 'GuppyFLO'
+  menu_option '26' 'Install' 'Mobileraker Companion'
+  menu_option '27' 'Install' 'OctoApp Companion'
+  menu_option '28' 'Install' 'SimplyPrint'
   hr
   inner_line
   hr
@@ -285,15 +284,6 @@ function install_menu_k1_2025_cfs_c() {
           run "install_fans_control_macros" "install_menu_ui_k1_2025_cfs_c"
         fi;;
       21)
-       clear
-       disabled_feature
-        continue
-       if [ -d "$NOZZLE_CLEANING_FOLDER" ]; then
-         error_msg "Nozzle Cleaning Fan Control is already installed!"
-       else
-         run "install_nozzle_cleaning_fan_control" "install_menu_ui_k1_2025_cfs_c"
-       fi;;
-      22)
         clear
         disabled_feature
         continue
@@ -308,7 +298,7 @@ function install_menu_k1_2025_cfs_c() {
           # Startet die bereinigte, schreibfeste C13-Installationsroutine
           run "install_improved_shapers" "install_menu_ui_k1_2025_cfs_c"
         fi;;
-      23)
+      22)
         clear
         disabled_feature
         continue
@@ -317,7 +307,7 @@ function install_menu_k1_2025_cfs_c() {
         else
           run "install_m600_support" "install_menu_ui_k1_2025_cfs_c"
         fi;;
-      24)
+      23)
        if [ ! -d "$MOONRAKER_FOLDER" ]; then
          error_msg "Moonraker and Nginx are needed, please install them first!"
        elif [ ! -d "$FLUIDD_FOLDER" ] && [ ! -d "$MAINSAIL_FOLDER" ]; then
@@ -337,7 +327,7 @@ function install_menu_k1_2025_cfs_c() {
           echo
         fi
         ;;
-      25)
+      24)
         clear
         if [ -d "$MOONRAKER_OBICO_FOLDER" ] && [ -f "$KLIPPER_CONFIG_FOLDER/moonraker-obico.cfg" ]; then
           error_msg "Moonraker Obico is already installed!"
@@ -350,7 +340,7 @@ function install_menu_k1_2025_cfs_c() {
         else
           run "install_moonraker_obico" "install_menu_ui_k1_2025_cfs_c"
         fi;;
-      25a|25A)
+      24a|24A)
         clear
         if [ -d "$MOONRAKER_OBICO_FOLDER" ] && [ -f "$KLIPPER_CONFIG_FOLDER/moonraker-obico.cfg" ]; then
           run "repair_pairing_moonraker_obico" "install_menu_ui_k1_2025_cfs_c"
@@ -358,13 +348,13 @@ function install_menu_k1_2025_cfs_c() {
           error_msg "RE-PAIRING LOCKED: Moonraker Obico is currently not installed!"
           echo
         fi;;
-      26)
+      25)
         if [ ! -d "$MOONRAKER_FOLDER" ] && [ ! -d "$NGINX_FOLDER" ]; then
           error_msg "Moonraker and Nginx are needed, please install them first!"
         else
           run "install_guppyflo" "install_menu_ui_k1_2025_cfs_c"
         fi;;
-      27)
+      26)
         if [ -d "$MOBILERAKER_COMPANION_FOLDER" ]; then
           error_msg "Mobileraker Companion is already installed!"
         elif [ ! -d "$MOONRAKER_FOLDER" ]; then
@@ -377,7 +367,7 @@ function install_menu_k1_2025_cfs_c() {
           run "install_mobileraker_companion" "install_menu_ui_k1_2025_cfs_c"
           echo -e "\n${yellow} Press Enter to return to the menu...${white}" && read -r _
         fi;;
-      28)
+      27)
         if [ -d "$OCTOAPP_COMPANION_FOLDER" ]; then
           error_msg "OctoApp Companion is already installed!"
         elif [ ! -d "$MOONRAKER_FOLDER" ]; then
@@ -389,7 +379,7 @@ function install_menu_k1_2025_cfs_c() {
         else
           run "install_octoapp_companion" "install_menu_ui_k1_2025_cfs_c"
         fi;;
-      29)
+      28)
         if grep -q "\[simplyprint\]" "$MOONRAKER_CFG"; then
           error_msg "SimplyPrint is already installed!"
         elif [ ! -d "$MOONRAKER_FOLDER" ]; then
