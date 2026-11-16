@@ -56,7 +56,7 @@ install_improved_shapers(){
           echo -e "Info: Independent X/Y calibration is already configured in improved-shapers.cfg."
         else
           echo -e "Info: Adding independent X/Y tuning under [resonance_tester] in improved-shapers.cfg..."
-          echo -e "\n[resonance_tester]\naxis_x_use_y: false" >> "${IMP_SHAPERS_FOLDER:-$HS_CONFIG_FOLDER/improved-shapers}/improved-shapers.cfg"
+          : # axis_x_use_y not supported on C13
         fi
 
         # 5. INJECT CONFIGURATION INCLUDE INTO PRINTER.CFG
