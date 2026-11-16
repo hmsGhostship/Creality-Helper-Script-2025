@@ -2,11 +2,7 @@
 import csv, glob, math, os, sys
 
 def fft_mag(samples):
-    n = 1
-    while n < len(samples):
-        n <<= 1
-    if n > 4096:
-        n = 4096
+    n = 2048
     x = [complex(samples[i], 0.0) if i < len(samples) else 0j for i in range(n)]
     j = 0
     for i in range(1, n):
@@ -33,41 +29,48 @@ def fft_mag(samples):
         step <<= 1
     return [abs(x[i]) / n for i in range(n // 2)]
 
-def parse_csv(path):
+def parse_csv_stream(path):
     if not os.path.exists(path):
         return [], []
     freqs, vals = [], []
+    times, acc = [], []
+    is_freq_table = False
+    fi, vi = 0, 1
+    row_idx = 0
     with open(path, "r") as f:
-        rows = [r for r in csv.reader(f) if r and not r.startswith("#")]
-    if not rows:
-        return [], []
-    try:
-        float(rows)
-        data_rows = rows
-    except ValueError:
-        header = [h.strip().lower() for h in rows]
-        data_rows = rows[1:]
-        if "freq" in header:
-            fi = header.index("freq")
-            vi = header.index("psd_xyz") if "psd_xyz" in header else len(header) - 1
-            for r in data_rows:
+        reader = csv.reader(f)
+        for r in reader:
+            if not r or not r[0] or r[0].startswith("#"):
+                continue
+            if row_idx == 0:
+                try:
+                    float(r[0])
+                except ValueError:
+                    header = [h.strip().lower() for h in r]
+                    if "freq" in header:
+                        is_freq_table = True
+                        fi = header.index("freq")
+                        vi = header.index("psd_xyz") if "psd_xyz" in header else len(header) - 1
+                    row_idx += 1
+                    continue
+            row_idx += 1
+            if is_freq_table:
                 if len(r) > max(fi, vi):
                     freqs.append(float(r[fi]))
                     vals.append(float(r[vi]))
-            return freqs, vals
-    times, acc = [], []
-    for r in data_rows:
-        if len(r) >= 4:
-            t = float(r)
-            ax, ay, az = float(r), float(r), float(r)
-            times.append(t)
-            acc.append(math.sqrt(ax*ax + ay*ay + az*az))
+            else:
+                if (row_idx % 4 == 0) and len(acc) < 2048 and len(r) >= 4:
+                    times.append(float(r[0]))
+                    ax, ay, az = float(r[1]), float(r[2]), float(r[3])
+                    acc.append(math.sqrt(ax*ax + ay*ay + az*az))
+    if is_freq_table:
+        return freqs, vals
     if len(times) < 32:
         return [], []
     mean = sum(acc) / len(acc)
     acc = [a - mean for a in acc]
-    dt = (times[-1] - times) / max(1, len(times) - 1)
-    fs = 1.0 / dt if dt > 0 else 3200.0
+    dt = (times[-1] - times[0]) / max(1, len(times) - 1)
+    fs = 1.0 / dt if dt > 0 else 800.0
     mags = fft_mag(acc)
     n_fft = len(mags) * 2
     for i, m in enumerate(mags):
@@ -84,27 +87,22 @@ def write_svg(out_path, series, title):
     max_y = max([max(v) for _, _, v, _ in series if v] + [1e-6])
     colors = ["#2563eb", "#dc2626", "#16a34a"]
     lines = [
-        f"<svg xmlns="http://w3.org" width="{w}" height="{h}" style="background:#0f172a;font-family:sans-serif">",
-        f"<text x="{w//2}" y="26" fill="#f8fafc" font-size="16" font-weight="bold" text-anchor="middle">{title}</text>"
+        f'<svg xmlns="http://w3.org" width="{w}" height="{h}" style="background:#0f172a;font-family:sans-serif">',
+        f'<text x="{w//2}" y="26" fill="#f8fafc" font-size="16" font-weight="bold" text-anchor="middle">{title}</text>'
     ]
     for gx in range(10, 141, 10):
         x = pad_l + (gx - 5.0) / 135.0 * pw
-        lines.append(f"<line x1="{x:.1f}" y1="{pad_t}" x2="{x:.1f}" y2="{pad_t+ph}" stroke="#1e293b" stroke-width="1"/>")
-        lines.append(f"<text x="{x:.1f}" y="{h-22}" fill="#94a3b8" font-size="11" text-anchor="middle">{gx}</text>")
-    lines.append(f"<text x="{w//2}" y="{h-5}" fill="#cbd5e1" font-size="12" text-anchor="middle">Frequency (Hz)</text>")
+        lines.append(f'<line x1="{x:.1f}" y1="{pad_t}" x2="{x:.1f}" y2="{pad_t+ph}" stroke="#1e293b" stroke-width="1"/>')
+        lines.append(f'<text x="{x:.1f}" y="{h-22}" fill="#94a3b8" font-size="11" text-anchor="middle">{gx}</text>')
+    lines.append(f'<text x="{w//2}" y="{h-5}" fill="#cbd5e1" font-size="12" text-anchor="middle">Frequency (Hz)</text>')
     for idx, (label, freqs, vals, peak_txt) in enumerate(series):
         if not freqs:
             continue
         col = colors[idx % len(colors)]
-        pts = []
-        for f, v in zip(freqs, vals):
-            if 5.0 <= f <= 140.0:
-                x = pad_l + (f - 5.0) / 135.0 * pw
-                y = pad_t + ph - (v / max_y) * ph
-                pts.append(f"{x:.1f},{y:.1f}")
-        lines.append(f"<polyline fill="none" stroke="{col}" stroke-width="2" points="{" ".join(pts)}"/>")
-        lines.append(f"<text x="{pad_l + 10}" y="{pad_t + 18 + idx*18}" fill="{col}" font-size="12" font-weight="bold">{label}{peak_txt}</text>")
-    lines.append("</svg>")
+        pts = [f'{pad_l + (f - 5.0) / 135.0 * pw:.1f},{pad_t + ph - (v / max_y) * ph:.1f}' for f, v in zip(freqs, vals) if 5.0 <= f <= 140.0]
+        lines.append(f'<polyline fill="none" stroke="{col}" stroke-width="2" points="{" ".join(pts)}"/>')
+        lines.append(f'<text x="{pad_l + 10}" y="{pad_t + 18 + idx*18}" fill="{col}" font-size="12" font-weight="bold">{label}{peak_txt}</text>')
+    lines.append('</svg>')
     os.makedirs(os.path.dirname(out_path), exist_ok=True)
     with open(out_path, "w") as f:
         f.write("\n".join(lines))
@@ -123,13 +121,14 @@ def main():
         elif args[i].startswith("-"):
             i += 1
         else:
-            matches = sorted(glob.glob(args[i])); csv_files.extend(matches if matches else [args[i]])
+            matches = sorted(glob.glob(args[i]))
+            csv_files.extend(matches if matches else [args[i]])
             i += 1
     if not out_path or not csv_files:
         sys.exit(1)
     series = []
     for cf in csv_files:
-        freqs, vals = parse_csv(cf)
+        freqs, vals = parse_csv_stream(cf)
         peak_txt = ""
         if freqs and vals:
             mi = max(range(len(vals)), key=lambda k: vals[k])
