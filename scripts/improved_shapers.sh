@@ -25,6 +25,7 @@ install_improved_shapers(){
     case "${yn}" in
       Y|y)
         echo -e "${white}"
+        if ! check_ram_requirement "Improved Shapers Calibrations" 20; then return; fi
         
         # 1. VALIDATION: Check if required Klipper files exist on the C13 platform
         if [ ! -f "$PRINTER_CFG" ]; then
