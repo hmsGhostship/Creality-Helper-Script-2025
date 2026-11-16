@@ -748,73 +748,36 @@ function retire_nexusp(){
           return
         fi
 
+        local removed_any=0
         if [ -f "$HS_CONFIG_FOLDER/fans-control.cfg" ] || grep -q "Helper-Script/fans-control.cfg" "$PRINTER_CFG" 2>/dev/null; then
           echo -e "Info: Removing Fans Control Macros before restoring nexusp..."
-          yes y | remove_fans_control_macros >/dev/null 2>&1 || true
+          rm -f "$HS_CONFIG_FOLDER/fans-control.cfg"
+          sed -i '/include Helper-Script\/fans-control\.cfg/d' "$PRINTER_CFG"
+          sed -i -e 's/^\s*#[[:space:]]*\[duplicate_pin_override\]/[duplicate_pin_override]/' -e '/^\[duplicate_pin_override\]/,/^\s*$/ s/^\(\s*\)#/\1/' "$PRINTER_CFG"
+          sed -i -e 's/^\s*#[[:space:]]*\[temperature_fan chamber_fan\]/[temperature_fan chamber_fan]/' -e '/^\[temperature_fan chamber_fan\]/,/^\s*$/ s/^\(\s*\)#/\1/' "$PRINTER_CFG"
+          for m in M106 M141 M191; do
+            sed -i -e "s/^\s*#[[:space:]]*\[gcode_macro ${m}\]/[gcode_macro ${m}]/" -e "/^\[gcode_macro ${m}\]/,/^\s*$/ s/^\(\s*\)#/\1/" "$MACROS_CFG" 2>/dev/null || true
+          done
+          removed_any=1
         fi
-        if [ -d "$HS_CONFIG_FOLDER/improved-shapers" ] || grep -q "Helper-Script/improved-shapers" "$PRINTER_CFG" 2>/dev/null; then
+        if [ -d "${IMP_SHAPERS_FOLDER:-$HS_CONFIG_FOLDER/improved-shapers}" ] || grep -q "improved-shapers.cfg" "$PRINTER_CFG" 2>/dev/null; then
           echo -e "Info: Removing Improved Shapers Calibrations before restoring nexusp..."
-          yes y | remove_improved_shapers >/dev/null 2>&1 || true
+          rm -rf "${IMP_SHAPERS_FOLDER:-$HS_CONFIG_FOLDER/improved-shapers}"
+          sed -i '/improved-shapers\.cfg/d' "$PRINTER_CFG"
+          sed -i 's/#variable_autotune_shapers:/variable_autotune_shapers:/' "$MACROS_CFG" 2>/dev/null || true
+          removed_any=1
         fi
         if [ -f "$HS_CONFIG_FOLDER/M600-support.cfg" ] || grep -q "Helper-Script/M600-support.cfg" "$PRINTER_CFG" 2>/dev/null; then
           echo -e "Info: Removing M600 Support before restoring nexusp..."
-          yes y | remove_m600_support >/dev/null 2>&1 || true
+          rm -f "$HS_CONFIG_FOLDER/M600-support.cfg"
+          sed -i '/include Helper-Script\/M600-support\.cfg/d' "$PRINTER_CFG"
+          removed_any=1
+        fi
+        if [ "$removed_any" -eq 1 ]; then
+          echo -e "Info: Restarting Klipper service after macro cleanup..."
+          restart_klipper
         fi
 
-        # Every decision is collected BEFORE the first mutation, so an abandoned
-        # prompt cannot leave the printer half-swapped.
-        pillow_yn="n"
-        if ! nexusp_pillow_installed; then
-          echo -e " ${yellow}Pillow is not in Moonraker's virtualenv. Without it the screen"
-          echo -e " shows no thumbnail at all for newly uploaded files - and that is"
-          echo -e " true of Moonraker's own thumbnail parsing today, retired or not,"
-          echo -e " so installing it fixes both. It is a large download and there may"
-          echo -e " be no prebuilt wheel for this board.${white}"
-          echo
-          read -p " ${white}Install ${green}Pillow ${white}into Moonraker's virtualenv? (${yellow}y${white}/${yellow}n${white}): ${yellow}" pillow_yn || pillow_yn="n"
-          echo -e "${white}"
-        fi
-
-        # Re-check immediately before mutating: the prompt above may have taken
-        # a while, and a print may have been started from the screen.
-        if ! creality_confirm_printer_idle; then
-          return
-        fi
-
-        case "${pillow_yn}" in
-          Y|y)
-            # Pinned, and binary-only first. This is Python 3.8 on MIPS, where
-            # there is no manylinux wheel, so an unpinned install resolves to
-            # whatever PyPI serves today and then runs that sdist's setup.py as
-            # root on the printer. Try a wheel first; fall back to the sdist
-            # only after saying so.
-            echo -e "Info: Installing Pillow..."
-            set +e
-            "$MOONRAKER_ENV_PYTHON" -m pip install --only-binary :all: 'Pillow==9.5.0'
-            if [ "$?" != "0" ]; then
-              echo -e "${yellow}No prebuilt wheel for this board - building from source.${white}"
-              "$MOONRAKER_ENV_PYTHON" -m pip install 'Pillow==9.5.0'
-            fi
-            if [ "$?" != "0" ]; then
-              echo -e "${yellow}Warning: Pillow could not be installed. Continuing without it -${white}"
-              echo -e "${yellow}thumbnails already on disk are still listed.${white}"
-            fi
-            set -e;;
-        esac
-
-        # From here on the printer is being mutated, so arm a signal handler.
-        # helper.sh's only trap resets the terminal colour, and SIGHUP keeps its
-        # default terminate-immediately behaviour - so a dropped SSH or WiFi
-        # session anywhere below would kill the helper with both daemons stopped
-        # and, past step 6, with nexusp disabled and the port not yet moved:
-        # nothing on :7125 and no rollback. The window includes an unbounded
-        # "read the merge list" prompt, which is exactly where a user walks away.
-        # Cleared on every exit path below.
-        trap 'echo; echo -e "${yellow}Interrupted - rolling back...${white}"; nexusp_rollback_retire; trap - INT TERM HUP; exit 1' INT TERM HUP
-        NEXUSP_RETIRE_STAGE=1
-        # 1. Anything that can restart Moonraker behind our back has to be off
-        #    BEFORE the merge, not just the daemon. Nothing in this repo can, so
-        #    this is a warning; a fork that ships a watchdog owns disarming it.
         echo -e "Info: If you run a Moonraker watchdog or supervisor, stop it now -"
         echo -e "      a restart mid-merge overwrites the merged totals."
         # 2-3. Both daemons down, or the merge refuses.
