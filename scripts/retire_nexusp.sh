@@ -900,6 +900,23 @@ function retire_nexusp(){
           return
         fi
 
+        # Offer to remove CFS-C Web Addon if still installed in Mainsail or Fluidd
+        if [ -f "${MAINSAIL_FOLDER}/k1c-cfs-panel.js" ] || [ -f "${FLUIDD_FOLDER}/k1c-cfs-panel.js" ] || [ -f "${HS_CONFIG_FOLDER}/.cfs_addon_mainsail" ] || [ -f "${HS_CONFIG_FOLDER}/.cfs_addon_fluidd" ]; then
+          echo
+          echo -e " ${yellow}Note: The CFS-C Web Addon is currently installed in Mainsail/Fluidd,${white}"
+          echo -e " ${yellow}which requires nexusp and is not needed in standalone Klipper mode.${white}"
+          local rm_cfs_yn
+          read -p " ${white}Remove the CFS-C Web Addon now? (${yellow}y${white}/${yellow}n${white}): ${yellow}" rm_cfs_yn </dev/tty || rm_cfs_yn="n"
+          echo -e "${white}"
+          case "${rm_cfs_yn}" in
+            Y|y)
+              if type remove_cfs_integration >/dev/null 2>&1; then
+                remove_cfs_integration || true
+              fi
+              ;;
+          esac
+        fi
+
         local VARS_FILE="${PRINTER_DATA_FOLDER}/config/variables.cfg"
         [ ! -f "$VARS_FILE" ] && echo "[Variables]" > "$VARS_FILE"
         grep -q "^\[Variables\]" "$VARS_FILE" || sed -i "1i [Variables]" "$VARS_FILE"
