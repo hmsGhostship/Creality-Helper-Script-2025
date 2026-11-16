@@ -145,6 +145,9 @@ def main():
         series.append((os.path.basename(cf), freqs, vals, peak_txt))
     title = "Belts Frequency Spectrum" if len(csv_files) > 1 else f"Resonance Spectrum ({os.path.basename(out_path)})"
     write_svg(out_path, series, title)
+    for cf in csv_files:
+        if cf.startswith("/tmp/") and os.path.exists(cf):
+            os.remove(cf)
     print(f"Generated SVG spectrum: {out_path}")
 
 if __name__ == "__main__":
