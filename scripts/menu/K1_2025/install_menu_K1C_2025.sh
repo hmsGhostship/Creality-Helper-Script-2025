@@ -49,7 +49,7 @@ function install_menu_ui_k1_2025() {
   menu_option '19' 'Install' 'Git Backup'
   if nexusp_retired && ! nexusp_resurrected; then
   menu_option '20' 'Install' 'Fans Control Macros'
-  menu_option '21' 'Install' 'Nozzle Cleaning Fan Control'
+# menu_option '21' 'Install' 'Nozzle Cleaning Fan Control'
   menu_option '22' 'Install' 'Improved Shapers Calibrations'
   menu_option '23' 'Install' 'M600 Support'
   fi
@@ -309,6 +309,17 @@ function install_menu_k1_2025() {
           echo
         else
           # Startet die bereinigte, schreibfeste C13-Installationsroutine
+          run "install_improved_shapers" "install_menu_ui_k1_2025"
+        fi;;
+      22)
+        clear
+        if [ -d "$IMP_SHAPERS_FOLDER" ]; then
+          error_msg "Improved Shapers Calibrations (C13 Edition) are already installed!"
+          echo
+        elif [ -d "$GUPPY_SCREEN_FOLDER" ]; then
+          error_msg "Guppy Screen already has these features!"
+          echo
+        else
           run "install_improved_shapers" "install_menu_ui_k1_2025"
         fi;;
       23)

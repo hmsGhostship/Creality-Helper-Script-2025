@@ -39,7 +39,11 @@ install_improved_shapers(){
         # 2. FILE OPERATIONS: Copy macros and mathematical python scripts (NO system .so files!)
         echo -e "Info: Copying macro files locally..."
         cp -f "$IMP_SHAPERS_URL"/scripts/*.py "$IMP_SHAPERS_FOLDER"/scripts/ 2>/dev/null || true
+        chmod +x "$IMP_SHAPERS_FOLDER"/scripts/*.py 2>/dev/null || true
         cp -f "$IMP_SHAPERS_URL"/improved-shapers.cfg "$IMP_SHAPERS_FOLDER"/improved-shapers.cfg
+        if [ -f "$IMP_SHAPERS_URL"/calibrate_shaper_config.py ] && [ -d "$KLIPPY_EXTRAS" ]; then
+          cp -f "$IMP_SHAPERS_URL"/calibrate_shaper_config.py "$KLIPPY_EXTRAS"/calibrate_shaper_config.py
+        fi
 
         # 3. STOCK MACRO DEACTIVATION: Comment out Creality's limited factory autotune macro
         if grep -q 'variable_autotune_shapers:' "$MACROS_CFG" 2>/dev/null; then
@@ -61,7 +65,11 @@ install_improved_shapers(){
           echo -e "Info: Include configuration is already present in printer.cfg."
         else
           echo -e "Info: Adding Improved Shapers include configuration to printer.cfg..."
-          sed -i '/\[include printer_params\.cfg\]/a \[include Helper-Script/improved-shapers/improved-shapers\.cfg\]' "$PRINTER_CFG"
+          if grep -q "^# CreateDate:" "$PRINTER_CFG"; then
+            sed -i '/^# CreateDate:/a \[include Helper-Script/improved-shapers/improved-shapers.cfg\]' "$PRINTER_CFG"
+          else
+            sed -i '1i [include Helper-Script/improved-shapers/improved-shapers.cfg]' "$PRINTER_CFG"
+          fi
         fi
         
         # 6. SERVICE RESTART: Safely cycle Klipper using C13 framework commands
@@ -90,6 +98,7 @@ remove_improved_shapers(){
         
         echo -e "Info: Removing Shaper configuration files..."
         rm -rf "$IMP_SHAPERS_FOLDER"
+        rm -f "$KLIPPY_EXTRAS"/calibrate_shaper_config.py
         
         # 1. Restore factory Autotune macros
         if grep -q "#variable_autotune_shapers:" "$MACROS_CFG" 2>/dev/null; then

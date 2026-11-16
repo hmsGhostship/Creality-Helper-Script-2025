@@ -43,7 +43,7 @@ function remove_menu_ui_k1_2025() {
   if nexusp_retired && ! nexusp_resurrected; then
   :
   menu_option '20' 'Remove' 'Fans Control Macros'
-  menu_option '21' 'Remove' 'Nozzle Cleaning Fan Control'
+# menu_option '21' 'Remove' 'Nozzle Cleaning Fan Control'
   menu_option '22' 'Remove' 'Improved Shapers Calibrations'
   menu_option '23' 'Remove' 'M600 Support'
   fi
@@ -53,7 +53,7 @@ function remove_menu_ui_k1_2025() {
   menu_option '25' 'Remove' 'Moonraker Obico'
   menu_option '26' 'Remove' 'GuppyFLO'
   menu_option '27' 'Remove' 'Mobileraker Companion'
-# menu_option '28' 'Remove' 'OctoApp Companion'
+  menu_option '28' 'Remove' 'OctoApp Companion'
   menu_option '29' 'Remove' 'SimplyPrint'
   hr
   inner_line
@@ -264,6 +264,14 @@ function remove_menu_k1_2025() {
           error_msg "Nozzle Cleaning Fan Control is not installed!"
         else
           run "remove_nozzle_cleaning_fan_control" "remove_menu_ui_k1_2025"
+        fi;;
+      22)
+        clear
+        if [ ! -d "$IMP_SHAPERS_FOLDER" ]; then
+          error_msg "Improved Shapers Calibrations (C13 Edition) are not active!"
+          echo
+        else
+          run "remove_improved_shapers" "remove_menu_ui_k1_2025"
         fi;;
       22)
         clear
