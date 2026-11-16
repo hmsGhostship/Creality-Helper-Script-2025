@@ -43,7 +43,7 @@ function install_motor_sound(){
           echo -e "Info: Motor Sound configurations are already enabled in printer.cfg file..."
         else
           echo -e "Info: Adding Motor Sound configurations in printer.cfg file..."
-          sed -i "/\[include printer_params\.cfg\]/a \[include Helper-Script/$cfg_filename\]" "$PRINTER_CFG"
+          if grep -q "# CreateDate:" "$PRINTER_CFG"; then sed -i "/^[[:space:]]*#[[:space:]]*CreateDate:.*/a [include Helper-Script/$cfg_filename]" "$PRINTER_CFG"; else sed -i "5i [include Helper-Script/$cfg_filename]" "$PRINTER_CFG"; fi
         fi
         
         echo -e "Info: Restarting Klipper service..."
