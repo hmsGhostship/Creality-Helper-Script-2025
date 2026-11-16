@@ -76,7 +76,7 @@ function install_mobileraker_companion(){
         # 4. Moonraker-Port ermitteln & mobileraker.conf anlegen
         local real_port=7126
         if [ -f "$MOONRAKER_CFG" ]; then
-          local detected_port=$(grep -A 5 "\[server\]" "$MOONRAKER_CFG" | grep "port" | awk '{print $3}' | tr -d '\r')
+          local detected_port=$(grep -A 5 "\[server\]" "$MOONRAKER_CFG" | grep "port" | awk -F'[:= ]+' '{print $2}' | tr -d '\r')
           if [ -n "$detected_port" ]; then
             real_port=$detected_port
           fi
