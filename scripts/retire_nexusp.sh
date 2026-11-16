@@ -265,9 +265,9 @@ function nexusp_http_get() {
   lan_ip="$(ip route get 1.1.1.1 2>/dev/null | awk '{print $7; exit}')"
   target_url="$1"
   if [ -n "$lan_ip" ]; then
-    target_url="$(echo "$target_url" | sed "s|127\.0\.0\.1|$lan_ip|g")"
+    target_url="$(printf "%s" "$target_url" | sed "s|127\.0\.0\.1|$lan_ip|g")"
   fi
-  "$py" -c "import urllib.request; print(urllib.request.urlopen('$target_url', timeout=4).read().decode())" 2>/dev/null
+  "$py" -c "import sys, urllib.request; print(urllib.request.urlopen(sys.argv[1], timeout=4).read().decode())" "$target_url" 2>/dev/null
 }
 
 function nexusp_verify_retired() {
