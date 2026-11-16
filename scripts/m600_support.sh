@@ -9,8 +9,8 @@ function m600_support_message(){
   title 'M600 Support' "${yellow}"
   inner_line
   hr
-  echo -e " │ ${cyan}It allows to use M600 command in your slicer to change       ${white}│"
-  echo -e " │ ${cyan}filament.                                                    ${white}│"
+  echo -e " │ ${cyan}It allows to use M600 command in your slicer to change         ${white}│"
+  echo -e " │ ${cyan}filament.                                                      ${white}│"
   hr
   bottom_line
 }
@@ -44,7 +44,13 @@ function install_m600_support(){
           echo -e "Info: M600 Support configurations are already enabled in printer.cfg file..."
         else
           echo -e "Info: Adding M600 Support configurations in printer.cfg file..."
-          sed -i '/\[include printer_params\.cfg\]/a \[include Helper-Script/M600-support\.cfg\]' "$PRINTER_CFG"
+          if grep -q "\[include printer_params\.cfg\]" "$PRINTER_CFG"; then
+            sed -i '/\[include printer_params\.cfg\]/a \[include Helper-Script/M600-support\.cfg\]' "$PRINTER_CFG"
+          elif grep -q "^\[include Helper-Script/" "$PRINTER_CFG"; then
+            sed -i '0,/^\[include Helper-Script\//s//\[include Helper-Script\/M600-support.cfg\]\n&/' "$PRINTER_CFG"
+          else
+            sed -i '1a [include Helper-Script/M600-support.cfg]' "$PRINTER_CFG"
+          fi
         fi
         if [ "$model" != "K1_2025" ] && [ "$model" != "K1_2025_CFS-C" ]; then
         if grep -q "\[idle_timeout\]" "$PRINTER_CFG" ; then
