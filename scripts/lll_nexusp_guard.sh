@@ -8,7 +8,7 @@ CFG_SOURCE="/usr/data/helper-script/files/macros/lll-plus-nexusp-switch.cfg"
 PRINTER_CFG="/usr/data/printer_data/config/printer.cfg"
 
 is_nexusp_running() {
-  ps -w | grep '[n]exusp' >/dev/null 2>&1
+  ps -w | grep '/usr/apps/usr/bin/[n]exusp' >/dev/null 2>&1
 }
 
 start_nexusp_now() {
@@ -16,7 +16,12 @@ start_nexusp_now() {
     echo "Info: nexusp backend is already running (CFS-C mode active)."
     return 0
   fi
-  FORCE_NEXUSP=1 sh "$NEXUSP_SVC" start >/dev/null 2>&1
+  if [ "$(id -u)" -eq 0 ]; then
+    FORCE_NEXUSP=1 sh "$NEXUSP_SVC" start >/dev/null 2>&1
+  else
+    mkdir -p /usr/data/printer_data /usr/data/printer_data/logs /home/creality/run
+    start-stop-daemon -S -q -b -m -p /home/creality/run/nexusp.pid --exec /usr/apps/usr/bin/nexusp -- -d /usr/data/printer_data -c /usr/apps/etc/nexusp/nexusp.conf >/dev/null 2>&1
+  fi
   sleep 1
   if is_nexusp_running; then
     echo "OK: nexusp backend started (CFS-C mode active)."
@@ -30,7 +35,11 @@ stop_nexusp_now() {
     echo "Info: nexusp backend is already paused (External Spool / LLL Plus mode active)."
     return 0
   fi
-  sh "$NEXUSP_SVC" stop >/dev/null 2>&1
+  if [ "$(id -u)" -eq 0 ]; then
+    sh "$NEXUSP_SVC" stop >/dev/null 2>&1
+  else
+    start-stop-daemon -K -q -p /home/creality/run/nexusp.pid >/dev/null 2>&1 || killall nexusp >/dev/null 2>&1 || true
+  fi
   sleep 1
   if ! is_nexusp_running; then
     echo "OK: nexusp backend paused (External Spool / LLL Plus mode active)."
