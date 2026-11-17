@@ -36,7 +36,7 @@ function remove_menu_ui_k1_2025_cfs_c() {
   menu_option '13' 'Remove' 'DXC Filament Sensor'
   menu_option '14' 'Remove' 'CFS-C Universal Purge Speed Fix'
   menu_option '15' 'Remove' 'CFS-C Purge Volume Fix (Prime Tower)'
-# menu_option '16' 'Remove' 'FLY-LLL PLUS Safetysystem'
+  menu_option '16' 'Remove' 'FLY-LLL PLUS Safetysystem'
   menu_option '17' 'Remove' 'Motor Sound Support'
   menu_option '18' 'Remove' 'Useful Macros'
   menu_option '19' 'Remove' 'Git Backup'
@@ -210,8 +210,8 @@ function remove_menu_k1_2025_cfs_c() {
         fi;;
       16)
         clear
-        disabled_feature
-        continue
+#        disabled_feature
+#        continue
         # CHECK: Is the LLL Plus actually live and active?
         if ! grep -q "^\[include Helper-Script/cfs_lll_safety.cfg\]" "$PRINTER_CFG" 2>/dev/null; then
             error_msg "FLY-LLL PLUS Safetysystem is not active in printer.cfg!"
@@ -222,11 +222,9 @@ function remove_menu_k1_2025_cfs_c() {
             rm -f /usr/data/printer_data/config/Helper-Script/cfs_lll_safety.cfg
             sed -i '/cfs_lll_safety.cfg/d' /usr/data/printer_data/config/printer.cfg
 
-            echo
-            echo -e "  ${green}✅ FLY-LLL PLUS successfully removed from the system!${white}"
-            echo -e "  Restarting Klipper service automatically..."
-            echo
-            run "restart_klipper" "remove_menu_ui_k1_2025_cfs_c"
+            echo -e "Info: Restarting Klipper service..."
+            restart_klipper
+            ok_msg "FLY-LLL PLUS Safetysystem has been removed!"
         fi;;
       17)
         if [ ! -f "$MOTOR_SOUND_TARGET_FILE" ]; then
