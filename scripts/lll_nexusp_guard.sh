@@ -40,6 +40,10 @@ wait_for_cfs_retract_done() {
 }
 
 start_nexusp_now() {
+  if query_sensor_true "lll_plus_sensor"; then
+    echo "BLOCKED: Filament is still inserted in FLY-LLL Plus (PD7)! Remove external filament first."
+    return 1
+  fi
   if is_nexusp_running; then echo "Info: nexusp backend is already running (CFS-C mode active)."; return 0; fi
   if [ "$(id -u)" -eq 0 ]; then FORCE_NEXUSP=1 sh "$NEXUSP_SVC" start >/dev/null 2>&1
   else
