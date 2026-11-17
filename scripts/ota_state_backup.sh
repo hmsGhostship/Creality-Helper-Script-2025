@@ -70,7 +70,7 @@ function ota_backup_macro_message(){
   title 'OTA State Backup Macro' "${yellow}"
   inner_line
   hr
-  echo -e " │ ${cyan}Installs the BACKUP_OTA_STATE macro in Klipper so you can    ${white}│"
+  echo -e " │ ${cyan}Installs the BACKUP_OTA_STATE macro in Klipper so you can      ${white}│"
   echo -e " │ ${cyan}trigger an OTA-safe Helper-Script snapshot from Mainsail/UI.   ${white}│"
   hr
   bottom_line
@@ -91,12 +91,11 @@ function install_ota_backup_macro(){
         mkdir -p "$HS_CONFIG_FOLDER"
         cp -f "$HS_FILES/macros/ota-state-backup.cfg" "$HS_CONFIG_FOLDER/ota-state-backup.cfg"
         chown creality:creality "$HS_CONFIG_FOLDER/ota-state-backup.cfg" 2>/dev/null || true
-        if ! grep -q "include Helper-Script/ota-state-backup.cfg" "$PRINTER_CFG" 2>/dev/null; then
-          if grep -q "^\[include Helper-Script/" "$PRINTER_CFG" 2>/dev/null; then
-            sed -i '0,/^\[include Helper-Script\//s//\[include Helper-Script\/ota-state-backup.cfg\]\n&/' "$PRINTER_CFG"
-          else
-            sed -i '1a [include Helper-Script/ota-state-backup.cfg]' "$PRINTER_CFG"
-          fi
+        sed -i '/\[include Helper-Script\/ota-state-backup\.cfg\]/d' "$PRINTER_CFG" 2>/dev/null || true
+        if grep -q "^[[:space:]]*#[[:space:]]*CreateDate:" "$PRINTER_CFG" 2>/dev/null; then
+          sed -i "/^[[:space:]]*#[[:space:]]*CreateDate:.*/a [include Helper-Script/ota-state-backup.cfg]" "$PRINTER_CFG"
+        else
+          sed -i '1a [include Helper-Script/ota-state-backup.cfg]' "$PRINTER_CFG"
         fi
         echo -e "Info: Restarting Klipper service..."
         restart_klipper
