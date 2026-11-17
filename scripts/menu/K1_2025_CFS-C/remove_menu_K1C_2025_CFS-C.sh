@@ -212,8 +212,14 @@ function remove_menu_k1_2025_cfs_c() {
         clear
 #        disabled_feature
 #        continue
-        # CHECK: Is the LLL Plus actually live and active?
-        if ! grep -q "^\[include Helper-Script/cfs_lll_safety.cfg\]" "$PRINTER_CFG" 2>/dev/null; then
+        # 1. ANTI-UNLOCK: Block removal while FLY-LLL Plus Nexusp Auto-Switch (Customize Option 13) uses lll_plus_sensor!
+        if grep -q "^\[include Helper-Script/lll-plus-nexusp-switch.cfg\]" "$PRINTER_CFG" 2>/dev/null; then
+            error_msg "REMOVE LOCKED: FLY-LLL PLUS Safetysystem is blocked!"
+            echo -e "  Sensor lll_plus_sensor (PD7) is currently used by FLY-LLL Plus Nexusp Auto-Switch."
+            echo -e "  Please remove FLY-LLL Plus Nexusp Auto-Switch (Customize Menu Option 14) first!"
+            echo
+        # 2. CHECK: Is the LLL Plus actually live and active?
+        elif ! grep -q "^\[include Helper-Script/cfs_lll_safety.cfg\]" "$PRINTER_CFG" 2>/dev/null; then
             error_msg "FLY-LLL PLUS Safetysystem is not active in printer.cfg!"
             echo
         else
