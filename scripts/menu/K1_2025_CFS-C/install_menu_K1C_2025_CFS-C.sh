@@ -318,7 +318,7 @@ function install_menu_k1_2025_cfs_c() {
          run "install_octoeverywhere" "install_menu_ui_k1_2025_cfs_c"
          echo -e "\n${yellow} Press Enter to return to the menu...${white}" && read -r _
        fi;;
-     24a|24A)
+     23a|23A)
         clear
         if [ -f "${INITD_FOLDER}/S99octoeverywhere" ]; then
           run "show_octoeverywhere_link" "install_menu_ui_k1_2025_cfs_c"
