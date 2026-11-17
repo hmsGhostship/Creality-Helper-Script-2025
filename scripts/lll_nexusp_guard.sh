@@ -45,16 +45,20 @@ async def go():
         msg = await asyncio.wait_for(ws.read_message(), timeout=3.0)
         if not msg: break
         d = json.loads(msg)
-        bi = d.get("boxsInfo") or (d.get("result") or {}).get("boxsInfo") or (d.get("params") or {}).get("boxsInfo")
-        if isinstance(bi, dict):
-            for b in (bi.get("materialBoxs") or []):
+        if not isinstance(d, dict): continue
+        res = d.get("result") if isinstance(d.get("result"), dict) else {}
+        par = d.get("params") if isinstance(d.get("params"), dict) else {}
+        bi = d.get("boxsInfo") or res.get("boxsInfo") or par.get("boxsInfo")
+        mboxes = bi if isinstance(bi, list) else (bi.get("materialBoxs") if isinstance(bi, dict) else [])
+        if mboxes:
+            for b in mboxes:
                 if isinstance(b, dict) and b.get("type") == 0:
                     bid = b.get("id", 1)
                     for m in (b.get("materials") or []):
                         if isinstance(m, dict) and int(m.get("selected") or 0) == 1:
                             mid = int(m.get("id", 0)); found = True; break
                 if found: break
-            if bi.get("materialBoxs"): break
+            break
     if not found:
         print("Info: No active CFS-C slot selected - skipping CFS retract.")
         ws.close(); sys.exit(2)
@@ -90,7 +94,7 @@ stop_nexusp_now() {
   if ! is_nexusp_running; then echo "Info: nexusp backend is already paused (External Spool / LLL Plus mode active)."; return 0; fi
   [ "${SKIP_CFS_RETRACT:-0}" != "1" ] && retract_cfs_if_loaded
   if [ "$(id -u)" -eq 0 ]; then sh "$NEXUSP_SVC" stop >/dev/null 2>&1
-  else start-stop-daemon -K -q -p /home/creality/run/nexusp.pid >/dev/null 2>&1 || killall nexusp >/dev/null 2>&1 || true
+  else start-stop-daemon -K -q -p /home/creality/run/nexusp.pid >/dev/null 2>&1 || killall nexusp nexusp-main >/dev/null 2>&1 || true
   fi
   sleep 1
   ! is_nexusp_running && echo "OK: nexusp backend paused (External Spool / LLL Plus mode active)." || echo "ERROR: Failed to stop nexusp backend!"
