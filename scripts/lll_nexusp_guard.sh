@@ -57,10 +57,15 @@ start_nexusp_now() {
 stop_nexusp_now() {
   if ! is_nexusp_running; then echo "Info: nexusp backend is already paused (External Spool / LLL Plus mode active)."; return 0; fi
   [ "${WAIT_RETRACT:-0}" = "1" ] && wait_for_cfs_retract_done
-  if [ "$(id -u)" -eq 0 ]; then sh "$NEXUSP_SVC" stop >/dev/null 2>&1
-  else start-stop-daemon -K -q -p /home/creality/run/nexusp.pid >/dev/null 2>&1 || killall nexusp nexusp-main >/dev/null 2>&1 || true
-  fi
-  sleep 1
+  start-stop-daemon -K -q -p /home/creality/run/nexusp.pid >/dev/null 2>&1 || true
+  killall -q nexusp-main nexusp >/dev/null 2>&1 || true
+  rm -f /home/creality/run/nexusp.pid
+  local k=0
+  while [ "$k" -lt 6 ]; do
+    is_nexusp_running || break
+    sleep 1
+    k=$((k + 1))
+  done
   ! is_nexusp_running && echo "OK: nexusp backend paused (External Spool / LLL Plus mode active)." || echo "ERROR: Failed to stop nexusp backend!"
 }
 
