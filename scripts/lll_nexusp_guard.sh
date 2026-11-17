@@ -77,6 +77,10 @@ async def do_retract():
                 break
         if found or boxes:
             break
+    if not found:
+        print("Info: No active CFS-C slot selected in boxsInfo - skipping CFS retract.")
+        ws.close()
+        return
     print(f"Info: Sending CFS-C retract command (boxId={box_id}, materialId={mat_id})...")
     await ws.write_message(json.dumps({
         "method": "set",
