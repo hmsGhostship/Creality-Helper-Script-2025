@@ -82,6 +82,10 @@ function install_lll_nexusp_guard() {
     case "${yn}" in
       Y|y)
         echo -e "${white}"
+        if ! grep -q "^\[include Helper-Script/cfs_lll_safety.cfg\]" "$PRINTER_CFG" 2>/dev/null; then
+          error_msg "Please install FLY-LLL PLUS Safetysystem (Install Menu Option 16) first!"
+          return
+        fi
         if [ ! -f "$KLIPPY_EXTRAS/gcode_shell_command.py" ]; then
           error_msg "Klipper Gcode Shell Command is required! Please install it first."
           return
