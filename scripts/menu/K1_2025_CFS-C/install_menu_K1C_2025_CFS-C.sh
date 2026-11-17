@@ -43,7 +43,7 @@ function install_menu_ui_k1_2025_cfs_c() {
   menu_option '13' 'Install' 'DXC Filament Sensor'
   menu_option '14' 'Install' 'CFS-C Universal Purge Speed Fix'
   menu_option '15' 'Install' 'CFS-C Purge Volume Fix (Prime Tower)'
-# menu_option '16' 'Install' 'FLY-LLL PLUS Safetysystem (Einschalt-Sperre)'
+  menu_option '16' 'Install' 'FLY-LLL PLUS Safetysystem (Einschalt-Sperre)'
   menu_option '17' 'Install' 'Motor Sound Support'
   menu_option '18' 'Install' 'Useful Macros'
   menu_option '19' 'Install' 'Git Backup'
@@ -225,8 +225,8 @@ function install_menu_k1_2025_cfs_c() {
         fi;;
       16)
         clear
-        disabled_feature
-        continue
+#        disabled_feature
+#        continue
         if ! grep -q "^\[include Helper-Script/dxc_sensor.cfg\]" "$PRINTER_CFG" 2>/dev/null; then
           error_msg "INSTALL LOCKED: DXC Filament Sensor is not active!"
           echo -e "  The original filament sensor currently still occupies pin PD7."
@@ -240,15 +240,16 @@ function install_menu_k1_2025_cfs_c() {
           echo -e "  Copying configuration files..."
           cp /usr/data/helper-script/files/cfs-lll-plus-safety/cfs_lll_safety.cfg /usr/data/printer_data/config/Helper-Script/
 
-          if ! grep -q "cfs_lll_safety.cfg" "$PRINTER_CFG" 2>/dev/null; then
-              echo -e "\n[include Helper-Script/cfs_lll_safety.cfg]" >> "$PRINTER_CFG"
+          sed -i "/\[include Helper-Script\/cfs_lll_safety\.cfg\]/d" "$PRINTER_CFG" 2>/dev/null || true
+          if grep -q "^[[:space:]]*#[[:space:]]*CreateDate:" "$PRINTER_CFG" 2>/dev/null; then
+            sed -i "/^[[:space:]]*#[[:space:]]*CreateDate:.*/a [include Helper-Script/cfs_lll_safety.cfg]" "$PRINTER_CFG"
+          else
+            sed -i "1a [include Helper-Script/cfs_lll_safety.cfg]" "$PRINTER_CFG"
           fi
 
-          echo
-          echo -e "  ${green}✅ FLY-LLL PLUS successfully installed!${white}"
-          echo -e "  Restarting Klipper service automatically..."
-          echo
-          run "restart_klipper" "install_menu_ui_k1_2025_cfs_c"
+          echo -e "Info: Restarting Klipper service..."
+          restart_klipper
+          ok_msg "FLY-LLL PLUS Safetysystem has been installed!"
         fi;;
       17)
         if [ -f "$MOTOR_SOUND_TARGET_FILE" ]; then
