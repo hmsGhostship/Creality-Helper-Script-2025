@@ -24,13 +24,21 @@ retract_cfs_if_loaded() {
     echo "Info: FLY-LLL Plus already has filament inserted - skipping CFS retract."
     return 0
   fi
-  echo "Info: Filament in extruder - checking CFS-C loaded slot via port 9999..."
+  echo "Info: Filament in extruder - checking CFS-C loaded slot via port 7125..."
   local rc=0
   /usr/data/moonraker/moonraker-env/bin/python -c '
 import asyncio, json, sys
 from tornado.websocket import websocket_connect
 async def go():
-    ws = await websocket_connect("ws://localhost:9999")
+    ws = None
+    for _ in range(10):
+        try:
+            ws = await websocket_connect("ws://localhost:7125/websocket")
+            break
+        except Exception:
+            await asyncio.sleep(1.0)
+    if ws is None:
+        raise RuntimeError("nexusp websocket on 7125 not reachable")
     await ws.write_message(json.dumps({"method":"get","params":{"boxsInfo":1}}))
     bid, mid, found = 1, 0, False
     for _ in range(12):
