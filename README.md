@@ -203,16 +203,6 @@ When running a standard **`K1_2025`** (without CFS-C) and **`Retire Nexusp Backe
 * **M600 Filament Change Support (`Option 22`):** Provides a complete `M600` filament-change workflow with safe front-right parking, fan/heater state restoration, full compatibility with both the stock filament sensor and the **Phaetus DXC** extruder sensor (`dxc_sensor.cfg`), and an interactive Mainsail/Fluidd popup (`UNLOAD`, `LOAD`, `PURGE`, `RESUME`, `CANCEL`).
 * **Automatic Nexusp Restore Guard:** Running **Restore Nexusp Backend** automatically detects and cleanly uninstalls **Options 20, 21, 22**, and the **`BACKUP_OTA_STATE`** macro before switching back to Creality's `nexusp` service so stock firmware startup cannot crash.
 
-<br>
-<hr style="height: 4px; background-color: #7f8c8d; border: none; border-radius: 2px;">
-<br>
-
-Additional support for standard `K1_2025` (non-CFS) by @C0DEbrained.
-
-> 💡 **Scope & Hardware Validation Note for `K1_2025` & `K1_2025_CFS-C` Users:** This fork automatically detects whether a CFS-C unit is present and supports both **`K1_2025_CFS-C`** and standard **`K1_2025`** (non-CFS) printers. Both branches — including `@C0DEbrained`'s `Retire Nexusp Backend`, the `K1_2025`-exclusive macro packages (`Options 20–22`), camera auto-routing, and OTA Backup/Restore — have been live-tested on physical K1C 2025 hardware and work seamlessly together. **(Do not use `Retire Nexusp Backend` on `K1_2025_CFS-C` printers.)**
-
----
-
 ### 🔄 FLY-LLL Plus & CFS-C Auto-Switch (`Customize Menu -> Options 13 & 14`)
 
 Automatic and live switching between the **Creality CFS-C** (`nexusp` backend) and an **External Spool via FLY-LLL Plus** (`^PD7` sensor from `cfs_lll_safety.cfg`):
@@ -220,6 +210,13 @@ Automatic and live switching between the **Creality CFS-C** (`nexusp` backend) a
 * **Smart Fail-Safe Boot Detection:** At power-on, `_LLL_BOOT_NEXUSP_EVAL` & `lll_nexusp_guard.sh` check `lll_plus_sensor` (`^PD7`). If filament is already inserted in the FLY-LLL Plus, `nexusp` remains paused (preventing the CFS-C from feeding its slots) and plays a distinctive **4-tone startup fanfare** (`LLL_EXTERNAL_SPOOL_READY_SOUND`). When the FLY-LLL Plus is empty at boot, `nexusp` starts normally for CFS-C operation.
 * **One-Click Live Switching (`NEXUSP_OFF_EXTERNAL_SPOOL` / `NEXUSP_ON_CFS` / `TOGGLE_NEXUSP` / `NEXUSP_STATUS`):** Switch modes at any time in Mainsail/Fluidd without rebooting. When switching to External Spool while CFS-C filament is still loaded in the extruder, `NEXUSP_OFF_EXTERNAL_SPOOL` automatically holds the nozzle temperature (`>= 240 °C`), executes `BOX_RETRUDE_MATERIAL`, verifies completion (`T1.filament = None` and extruder sensor empty), pauses `nexusp`, and plays the 4-tone confirmation fanfare.
 
+<br>
+<hr style="height: 4px; background-color: #7f8c8d; border: none; border-radius: 2px;">
+<br>
+
+Additional support for standard `K1_2025` (non-CFS) by @C0DEbrained.
+
+> 💡 **Scope & Hardware Validation Note for `K1_2025` & `K1_2025_CFS-C` Users:** This fork automatically detects whether a CFS-C unit is present and supports both **`K1_2025_CFS-C`** and standard **`K1_2025`** (non-CFS) printers. Both branches — including `@C0DEbrained`'s `Retire Nexusp Backend`, the `K1_2025`-exclusive macro packages (`Options 20–22`), camera auto-routing, and OTA Backup/Restore — have been live-tested on physical K1C 2025 hardware and work seamlessly together. **(Do not use `Retire Nexusp Backend` on `K1_2025_CFS-C` printers.)**
 
 ---
 
