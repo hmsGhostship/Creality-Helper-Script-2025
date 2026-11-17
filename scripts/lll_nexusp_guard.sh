@@ -17,13 +17,39 @@ query_sensor_true() {
 query_sensor_false() {
   "$CURL_BIN" -s --max-time 2 "http://localhost:7126/printer/objects/query?filament_switch_sensor%20$1" 2>/dev/null | grep -Eq '"filament_detected"[[:space:]]*:[[:space:]]*false'
 }
-retract_cfs_if_loaded() {
-  if query_sensor_true "filament_sensor" && ! query_sensor_true "lll_plus_sensor"; then
-    echo "Notice: Extruder sensor still detects filament (ensure CFS-C filament is unloaded before inserting LLL Plus)."
-  fi
-  return 0
-}
 
+wait_for_cfs_retract_done() {
+  is_nexusp_running || return 0
+  echo "Info: Waiting for CFS-C retract completion (T1.filament=None & idle_timeout=Ready)..."
+  sleep 3
+  local w=0
+  while [ "$w" -lt 90 ]; do
+    local k_resp db_resp
+    k_resp=$("$CURL_BIN" -s --max-time 2 "http://localhost:7126/printer/objects/query?idle_timeout&filament_switch_sensor%20filament_sensor" 2>/dev/null)
+    db_resp=$("$CURL_BIN" -s --max-time 2 "http://localhost:7125/server/database/item?namespace=color_box&key=box_info" 2>/dev/null)
+    if /usr/data/moonraker/moonraker-env/bin/python -c '
+import json, sys
+try:
+    kd = json.loads(sys.argv).get("result", {}).get("status", {})
+    dd = json.loads(sys.argv).get("result", {}).get("value", {})
+    idle = (kd.get("idle_timeout") or {}).get("state", "")
+    det = (kd.get("filament_switch_sensor filament_sensor") or {}).get("filament_detected", True)
+    t1_fil = str((dd.get("T1") or {}).get("filament", "None"))
+    if idle == "Ready" and (det is False) and (t1_fil in ("None", "")):
+        sys.exit(0)
+except Exception:
+    pass
+sys.exit(1)
+' "$k_resp" "$db_resp" 2>/dev/null; then
+      echo "OK: CFS-C retract verified complete (T1.filament=None, Extruder=Empty, State=Ready)!"
+      sleep 1
+      return 0
+    fi
+    sleep 1
+    w=$((w + 1))
+  done
+  echo "Warning: Timed out waiting for CFS-C retract verification - pausing nexusp anyway."
+}
 start_nexusp_now() {
   if is_nexusp_running; then echo "Info: nexusp backend is already running (CFS-C mode active)."; return 0; fi
   if [ "$(id -u)" -eq 0 ]; then FORCE_NEXUSP=1 sh "$NEXUSP_SVC" start >/dev/null 2>&1
@@ -37,13 +63,14 @@ start_nexusp_now() {
 
 stop_nexusp_now() {
   if ! is_nexusp_running; then echo "Info: nexusp backend is already paused (External Spool / LLL Plus mode active)."; return 0; fi
-  [ "${SKIP_CFS_RETRACT:-0}" != "1" ] && retract_cfs_if_loaded
+  [ "${WAIT_RETRACT:-0}" = "1" ] && wait_for_cfs_retract_done
   if [ "$(id -u)" -eq 0 ]; then sh "$NEXUSP_SVC" stop >/dev/null 2>&1
   else start-stop-daemon -K -q -p /home/creality/run/nexusp.pid >/dev/null 2>&1 || killall nexusp nexusp-main >/dev/null 2>&1 || true
   fi
   sleep 1
   ! is_nexusp_running && echo "OK: nexusp backend paused (External Spool / LLL Plus mode active)." || echo "ERROR: Failed to stop nexusp backend!"
 }
+
 boot_check_and_start() {
   rm -f /tmp/lll_boot_decided /tmp/lll_boot_locked
   local i=0
@@ -105,10 +132,11 @@ function remove_lll_nexusp_guard() {
 
 case "$1" in
   boot-guard) boot_check_and_start ;;
-  boot-lock) touch /tmp/lll_boot_locked; SKIP_CFS_RETRACT=1 stop_nexusp_now ;;
+  boot-lock) touch /tmp/lll_boot_locked; stop_nexusp_now ;;
   boot-release) touch /tmp/lll_boot_decided; start_nexusp_now ;;
   on) start_nexusp_now ;;
   off) stop_nexusp_now ;;
+  off-after-retract) WAIT_RETRACT=1 stop_nexusp_now ;;
   toggle) is_nexusp_running && stop_nexusp_now || start_nexusp_now ;;
   status) is_nexusp_running && echo "Nexusp Backend: RUNNING (CFS-C Mode Active)" || echo "Nexusp Backend: PAUSED (External Spool / FLY-LLL Plus Mode Active)" ;;
 esac
