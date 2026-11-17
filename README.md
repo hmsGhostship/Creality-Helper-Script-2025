@@ -2,7 +2,7 @@
 
 ## About
 
-This script intended for use on Creality **K1 Series** and **Ender-3 V3 Series** printers allows to add more features.
+This script is intended only for Creality K1 (2025 Series) printers and allows you to add more features. (Not compatible with older K1 models or the Ender-3 V3 series.)
 
 Additional support for K1 2025 CFS-C by @hmsGhostship.
 
@@ -192,6 +192,16 @@ To survive Creality OTA firmware updates without manually reconfiguring services
 
 * **Option 5 – Backup Helper-Script State (OTA Safe):** Saves a compact snapshot (~70 KB) of your Klipper/Moonraker configs, Moonraker database, custom `init.d` scripts, active camera mode, and disabled Creality stock services to `/usr/data/helper-script-ota-backup/`.
 * **Option 6 – Restore Helper-Script State (After FW Update):** Automatically backs up the new firmware's default configs first, then lets you choose between **Safe Merge Mode** (preserves Creality's updated `printer.cfg` / `box.cfg` while re-injecting your `Helper-Script/` files and `[include]` lines) or **Full Restore**, re-applies your disabled stock services, and offers a one-click reboot.
+* **Option 7 & 8 – `BACKUP_OTA_STATE` Klipper Macro (`Backup & Restore Menu`):** Installs or removes a dedicated `BACKUP_OTA_STATE` macro (powered by `gcode_shell_command`) so you can trigger an OTA-safe Helper-Script snapshot directly from Mainsail/Fluidd with live console progress (blocked automatically while a print is active).
+
+### 🧩 Exclusive `K1_2025` (Non-CFS / Native Klipper) Features
+
+When running a standard **`K1_2025`** (without CFS-C) and **`Retire Nexusp Backend`** is active (native Moonraker on `:7125`), three additional tuning and workflow packages are unlocked in the **Install / Remove Menus** (intentionally hidden on `K1_2025_CFS-C` and incompatible with stock `nexusp`):
+
+* **Fans Control Macros (`Option 20`):** Restores full manual and slicer-driven control (`M106`, `M141`, `M191`) over part cooling, side auxiliary, and chamber exhaust fans on the 2025 mainboard.
+* **Improved Shapers Calibrations (`Option 21` – C13 / X2600 Low-RAM Edition):** Adds `BELTS_SHAPER_CALIBRATION`, `INPUT_SHAPER_CALIBRATION`, and `TEST_RESONANCES_GRAPHS` with lightweight SVG resonance plots stored directly under `Helper-Script/improved-shapers/graphs/` (no heavy `matplotlib`/`numpy` install required) and automatic temporary pausing of companion daemons during calibration to stay safely within the 200 MB RAM budget.
+* **M600 Filament Change Support (`Option 22`):** Provides a complete `M600` filament-change workflow with safe front-right parking, fan/heater state restoration, full compatibility with both the stock filament sensor and the **Phaetus DXC** extruder sensor (`dxc_sensor.cfg`), and an interactive Mainsail/Fluidd popup (`UNLOAD`, `LOAD`, `PURGE`, `RESUME`, `CANCEL`).
+* **Automatic Nexusp Restore Guard:** Running **Restore Nexusp Backend** automatically detects and cleanly uninstalls **Options 20, 21, 22**, and the **`BACKUP_OTA_STATE`** macro before switching back to Creality's `nexusp` service so stock firmware startup cannot crash.
 
 <br>
 <hr style="height: 4px; background-color: #7f8c8d; border: none; border-radius: 2px;">
@@ -199,7 +209,7 @@ To survive Creality OTA firmware updates without manually reconfiguring services
 
 Additional support for standard `K1_2025` (non-CFS) by @C0DEbrained.
 
-> 💡 **Scope & Testing Note for Non-CFS `K1_2025` Users:** This fork automatically detects whether a CFS-C unit is present and supports both **`K1_2025_CFS-C`** and standard **`K1_2025`** (non-CFS) printers. All shared improvements (RAM Guard, camera topology, Go2rtc modes, and OTA Backup/Restore) are mirrored into the standard `K1_2025` menus as well. Because active development happens on a CFS-C-equipped K1C 2025, the non-CFS `K1_2025` branch and `@C0DEbrained`'s `Retire Nexusp Backend` feature below cannot be live-tested on physical non-CFS hardware here — community feedback from standard K1C 2025 users is always welcome. **(Do not use `Retire Nexusp Backend` on `K1_2025_CFS-C` printers.)**
+> 💡 **Scope & Hardware Validation Note for `K1_2025` & `K1_2025_CFS-C` Users:** This fork automatically detects whether a CFS-C unit is present and supports both **`K1_2025_CFS-C`** and standard **`K1_2025`** (non-CFS) printers. Both branches — including `@C0DEbrained`'s `Retire Nexusp Backend`, the `K1_2025`-exclusive macro packages (`Options 20–22`), camera auto-routing, and OTA Backup/Restore — have been live-tested on physical K1C 2025 hardware and work seamlessly together. **(Do not use `Retire Nexusp Backend` on `K1_2025_CFS-C` printers.)**
 
 ## Retire Nexusp Backend (K1C 2025)
 
