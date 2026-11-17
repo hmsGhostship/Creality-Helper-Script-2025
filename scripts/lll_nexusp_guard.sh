@@ -20,36 +20,25 @@ query_sensor_false() {
 
 wait_for_cfs_retract_done() {
   is_nexusp_running || return 0
-  echo "Info: Waiting for CFS-C retract completion (T1.filament=None & idle_timeout=Ready)..."
-  sleep 3
+  echo "Info: Waiting for CFS-C retract completion (T1.filament=None & Extruder=Empty)..."
+  sleep 2
   local w=0
   while [ "$w" -lt 90 ]; do
-    local k_resp db_resp
-    k_resp=$("$CURL_BIN" -s --max-time 2 "http://localhost:7126/printer/objects/query?idle_timeout&filament_switch_sensor%20filament_sensor" 2>/dev/null)
-    db_resp=$("$CURL_BIN" -s --max-time 2 "http://localhost:7125/server/database/item?namespace=color_box&key=box_info" 2>/dev/null)
-    if /usr/data/moonraker/moonraker-env/bin/python -c '
-import json, sys
-try:
-    kd = json.loads(sys.argv).get("result", {}).get("status", {})
-    dd = json.loads(sys.argv).get("result", {}).get("value", {})
-    idle = (kd.get("idle_timeout") or {}).get("state", "")
-    det = (kd.get("filament_switch_sensor filament_sensor") or {}).get("filament_detected", True)
-    t1_fil = str((dd.get("T1") or {}).get("filament", "None"))
-    if idle == "Ready" and (det is False) and (t1_fil in ("None", "")):
-        sys.exit(0)
-except Exception:
-    pass
-sys.exit(1)
-' "$k_resp" "$db_resp" 2>/dev/null; then
-      echo "OK: CFS-C retract verified complete (T1.filament=None, Extruder=Empty, State=Ready)!"
-      sleep 1
-      return 0
+    if query_sensor_false "filament_sensor"; then
+      local db_resp
+      db_resp=$("$CURL_BIN" -s --max-time 2 "http://localhost:7125/server/database/item?namespace=color_box&key=box_info" 2>/dev/null)
+      if echo "$db_resp" | grep -Eq '"filament"[[:space:]]*:[[:space:]]*("None"|"")'; then
+        echo "OK: CFS-C retract verified complete (T1.filament=None, Extruder=Empty)!"
+        sleep 1
+        return 0
+      fi
     fi
     sleep 1
     w=$((w + 1))
   done
   echo "Warning: Timed out waiting for CFS-C retract verification - pausing nexusp anyway."
 }
+
 start_nexusp_now() {
   if is_nexusp_running; then echo "Info: nexusp backend is already running (CFS-C mode active)."; return 0; fi
   if [ "$(id -u)" -eq 0 ]; then FORCE_NEXUSP=1 sh "$NEXUSP_SVC" start >/dev/null 2>&1
