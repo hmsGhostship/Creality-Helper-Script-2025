@@ -30,10 +30,86 @@ start_nexusp_now() {
   fi
 }
 
+retract_cfs_if_loaded() {
+  # Only retract if nexusp is running AND DXC extruder sensor currently detects filament AND LLL Plus is still empty
+  is_nexusp_running || return 0
+  local dxc_state
+  dxc_state=$(curl -s --max-time 2 "http://127.0.0" 2>/dev/null)
+  if ! echo "$dxc_state" | grep -Eq '"filament_detected"[[:space:]]*:[[:space:]]*true'; then
+    return 0
+  fi
+  local lll_state
+  lll_state=$(curl -s --max-time 2 "http://127.0.0" 2>/dev/null)
+  if echo "$lll_state" | grep -Eq '"filament_detected"[[:space:]]*:[[:space:]]*true'; then
+    echo "Info: FLY-LLL Plus already has filament inserted - skipping automatic CFS retract."
+    return 0
+  fi
+
+  echo "Info: Filament detected in extruder - triggering CFS-C Retract via port 9999 before pausing nexusp..."
+  /usr/data/moonraker/moonraker-env/bin/python -c '
+import asyncio, json
+from tornado.websocket import websocket_connect
+
+async def do_retract():
+    ws = await websocket_connect("ws://127.0.0.1:9999")
+    await ws.write_message(json.dumps({"method": "get", "params": {"boxsInfo": 1}}))
+    box_id, mat_id = 1, 0
+    found = False
+    for _ in range(10):
+        msg = await asyncio.wait_for(ws.read_message(), timeout=3.0)
+        if not msg:
+            break
+        data = json.loads(msg)
+        res = data.get("result") or data.get("params") or data
+        boxes = res.get("boxsInfo") or res.get("boxes") or []
+        if isinstance(boxes, dict):
+            boxes = boxes.get("boxs") or boxes.get("list") or []
+        for b in boxes:
+            bid = b.get("boxId", b.get("id", 1))
+            mats = b.get("materials") or b.get("materialList") or b.get("slots") or []
+            for idx, m in enumerate(mats):
+                if m.get("selected") or m.get("isSelected") or m.get("state") in (1, "loaded", "selected"):
+                    box_id = bid
+                    mat_id = m.get("id", m.get("materialId", idx))
+                    found = True
+                    break
+            if found:
+                break
+        if found or boxes:
+            break
+    print(f"Info: Sending CFS-C retract command (boxId={box_id}, materialId={mat_id})...")
+    await ws.write_message(json.dumps({
+        "method": "set",
+        "params": {"feedInOrOut": {"boxId": box_id, "materialId": mat_id, "isFeed": 0}}
+    }))
+    await asyncio.sleep(1.0)
+    ws.close()
+
+asyncio.run(do_retract())
+' 2>/dev/null || echo "Warning: Could not send WebSocket retract on port 9999."
+
+  # Wait up to 75s until extruder sensor reports empty
+  local w=0
+  while [ "$w" -lt 75 ]; do
+    dxc_state=$(curl -s --max-time 2 "http://127.0.0" 2>/dev/null)
+    if echo "$dxc_state" | grep -Eq '"filament_detected"[[:space:]]*:[[:space:]]*false'; then
+      echo "OK: CFS-C filament retracted cleanly from extruder!"
+      sleep 3
+      return 0
+    fi
+    sleep 1
+    w=$((w + 1))
+  done
+  echo "Warning: Timed out waiting for extruder sensor to clear - pausing nexusp anyway."
+}
+
 stop_nexusp_now() {
   if ! is_nexusp_running; then
     echo "Info: nexusp backend is already paused (External Spool / LLL Plus mode active)."
     return 0
+  fi
+  if [ "${SKIP_CFS_RETRACT:-0}" != "1" ]; then
+    retract_cfs_if_loaded
   fi
   if [ "$(id -u)" -eq 0 ]; then
     sh "$NEXUSP_SVC" stop >/dev/null 2>&1
@@ -190,7 +266,7 @@ case "$1" in
     ;;
   boot-lock)
     touch /tmp/lll_boot_locked
-    stop_nexusp_now
+    SKIP_CFS_RETRACT=1 stop_nexusp_now
     ;;
   boot-release)
     touch /tmp/lll_boot_decided
