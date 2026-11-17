@@ -249,6 +249,7 @@ function install_menu_k1_2025_cfs_c() {
 
           echo -e "Info: Restarting Klipper service..."
           restart_klipper
+          install_menu_ui_k1_2025_cfs_c
           ok_msg "FLY-LLL PLUS Safetysystem has been installed!"
         fi;;
       17)
