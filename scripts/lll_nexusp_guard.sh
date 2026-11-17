@@ -40,25 +40,39 @@ stop_nexusp_now() {
 }
 
 boot_check_and_start() {
-  # Wait up to 20s for Klipper + Moonraker (:7126) to report lll_plus_sensor state
+  rm -f /tmp/lll_boot_decided /tmp/lll_boot_locked
+  # Wait up to 60s for Klipper (_LLL_BOOT_NEXUSP_EVAL) or Moonraker (:7126) to report lll_plus_sensor state
   local i=0
   local resp=""
-  while [ "$i" -lt 20 ]; do
+  while [ "$i" -lt 60 ]; do
+    if [ -f /tmp/lll_boot_locked ]; then
+      logger -t lll-nexusp-guard "Boot locked by Klipper LLL Plus sensor - keeping nexusp paused."
+      exit 0
+    fi
+    if [ -f /tmp/lll_boot_decided ]; then
+      logger -t lll-nexusp-guard "Boot released by Klipper LLL Plus sensor - starting nexusp for CFS-C."
+      FORCE_NEXUSP=1 sh "$NEXUSP_SVC" start >/dev/null 2>&1
+      exit 0
+    fi
     resp=$(curl -s --max-time 2 "http://127.0.0" 2>/dev/null)
-    if echo "$resp" | grep -q '"filament_detected"'; then
-      break
+    if echo "$resp" | grep -Eq '"filament_detected"[[:space:]]*:[[:space:]]*true'; then
+      touch /tmp/lll_boot_locked
+      logger -t lll-nexusp-guard "Filament detected in FLY-LLL Plus (PD7) at boot - keeping nexusp paused."
+      exit 0
+    fi
+    if echo "$resp" | grep -Eq '"filament_detected"[[:space:]]*:[[:space:]]*false'; then
+      touch /tmp/lll_boot_decided
+      logger -t lll-nexusp-guard "No filament in FLY-LLL Plus (PD7) at boot - starting nexusp for CFS-C."
+      FORCE_NEXUSP=1 sh "$NEXUSP_SVC" start >/dev/null 2>&1
+      exit 0
     fi
     sleep 1
     i=$((i + 1))
   done
 
-  if echo "$resp" | grep -Eq '"filament_detected"[[:space:]]*:[[:space:]]*true'; then
-    logger -t lll-nexusp-guard "Filament detected in FLY-LLL Plus (PD7) at boot - keeping nexusp paused so CFS-C does not load slots."
-    exit 0
-  fi
-
-  logger -t lll-nexusp-guard "No filament in FLY-LLL Plus (PD7) at boot - starting nexusp for CFS-C."
-  FORCE_NEXUSP=1 sh "$NEXUSP_SVC" start >/dev/null 2>&1
+  # FAIL-SAFE: Never start nexusp blindly if Klipper/Moonraker did not respond within 60s!
+  logger -t lll-nexusp-guard "FAIL-SAFE: Sensor state unavailable after 60s - keeping nexusp paused to protect CFS/extruder."
+  exit 0
 }
 
 function lll_nexusp_guard_message() {
@@ -164,6 +178,14 @@ function remove_lll_nexusp_guard() {
 case "$1" in
   boot-guard)
     boot_check_and_start
+    ;;
+  boot-lock)
+    touch /tmp/lll_boot_locked
+    stop_nexusp_now
+    ;;
+  boot-release)
+    touch /tmp/lll_boot_decided
+    start_nexusp_now
     ;;
   on)
     start_nexusp_now
