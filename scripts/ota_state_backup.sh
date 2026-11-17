@@ -306,11 +306,15 @@ function restore_ota_state(){
 }
 
 if [ "$1" = "--auto" ]; then
-  HS_ROOT="/usr/data/helper-script"
-  [ -f "$HS_ROOT/paths.sh" ] && . "$HS_ROOT/paths.sh"
-  [ -f "$HS_ROOT/scripts/menu/functions.sh" ] && . "$HS_ROOT/scripts/menu/functions.sh"
-  [ -f "$HS_ROOT/scripts/tools.sh" ] && . "$HS_ROOT/scripts/tools.sh"
-  model=$(get_device_model 2>/dev/null || echo "K1_2025")
+  HELPER_SCRIPT_FOLDER="/usr/data/helper-script"
+  [ -f "$HELPER_SCRIPT_FOLDER/scripts/menu/functions.sh" ] && . "$HELPER_SCRIPT_FOLDER/scripts/menu/functions.sh"
+  [ -f "$HELPER_SCRIPT_FOLDER/scripts/tools.sh" ] && . "$HELPER_SCRIPT_FOLDER/scripts/tools.sh"
+  [ -f "$HELPER_SCRIPT_FOLDER/paths.sh" ] && . "$HELPER_SCRIPT_FOLDER/paths.sh"
+  if command -v get_device_model >/dev/null 2>&1; then
+    get_device_model >/dev/null 2>&1 || true
+  fi
+  [ -z "$model" ] && model="K1_2025"
+  command -v set_paths >/dev/null 2>&1 && set_paths
   run_ota_state_backup_core
   echo "OK: Helper-Script OTA snapshot saved to ${OTA_BACKUP_DIR}"
 fi
