@@ -53,6 +53,16 @@ function install_camera_settings_control(){
           # Universeller Zukunfts-Fallback für nachfolgende Modelle (K2, etc.)
           cp "$CAMERA_SETTINGS_K1_2025_URL" "$HS_CONFIG_FOLDER"/camera-settings.cfg
         fi
+        local v0_flag="False"
+        local v2_flag="False"
+        if [ -f "$BUILTIN_CAMERA_FILE" ] || [ -f "$BUILTIN_CAMERA_LEGACY_FILE" ] || ps -w | grep "[m]jpg_streamer" | grep -q "video0"; then
+          v0_flag="True"
+        fi
+        if [ -f "$USB_CAMERA_FILE" ] || [ -f "$USB_CAMERA_LEGACY_FILE" ] || ps -w | grep "[m]jpg_streamer" | grep -q "video2"; then
+          v2_flag="True"
+        fi
+        sed -i "s/variable_has_video0.*/variable_has_video0: ${v0_flag}/g" "$HS_CONFIG_FOLDER/camera-settings.cfg"
+        sed -i "s/variable_has_video2.*/variable_has_video2: ${v2_flag}/g" "$HS_CONFIG_FOLDER/camera-settings.cfg"
         
         if grep -q "include Helper-Script/camera-settings" "$PRINTER_CFG" ; then
           echo -e "Info: Camera Settings configurations are already enabled in printer.cfg file..."
