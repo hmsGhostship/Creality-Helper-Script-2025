@@ -17,6 +17,9 @@ function backup_restore_menu_ui() {
   menu_option '5' 'Backup' 'Helper-Script State (OTA Safe)'
   menu_option '6' 'Restore' 'Helper-Script State (After FW Update)'
   hr
+  menu_option '7' 'Install' 'OTA State Backup Macro'
+  menu_option '8' 'Remove' 'OTA State Backup Macro'
+  hr
   inner_line
   hr
   bottom_menu_option 'b' 'Back to [Main Menu]' "${yellow}"
@@ -56,6 +59,18 @@ function backup_restore_menu() {
           error_msg "Please create an OTA Helper-Script State backup first!"
         else
           run "restore_ota_state" "backup_restore_menu_ui"
+        fi;;
+      7)
+        if [ -f "$HS_CONFIG_FOLDER/ota-state-backup.cfg" ]; then
+          error_msg "OTA State Backup Macro is already installed!"
+        else
+          run "install_ota_backup_macro" "backup_restore_menu_ui"
+        fi;;
+      8)
+        if [ ! -f "$HS_CONFIG_FOLDER/ota-state-backup.cfg" ]; then
+          error_msg "OTA State Backup Macro is not installed!"
+        else
+          run "remove_ota_backup_macro" "backup_restore_menu_ui"
         fi;;
       B|b)
         clear; main_menu; break;;

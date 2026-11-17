@@ -962,6 +962,12 @@ function restore_nexusp(){
           sed -i '/include Helper-Script\/M600-support\.cfg/d' "$PRINTER_CFG"
           removed_any=1
         fi
+        if [ -f "$HS_CONFIG_FOLDER/ota-state-backup.cfg" ] || grep -q "Helper-Script/ota-state-backup.cfg" "$PRINTER_CFG" 2>/dev/null; then
+          echo -e "Info: Removing OTA State Backup Macro before restoring nexusp..."
+          rm -f "$HS_CONFIG_FOLDER/ota-state-backup.cfg"
+          sed -i '/include Helper-Script\/ota-state-backup\.cfg/d' "$PRINTER_CFG"
+          removed_any=1
+        fi
         if [ "$removed_any" -eq 1 ]; then
           echo -e "Info: Restarting Klipper service after macro cleanup..."
           restart_klipper

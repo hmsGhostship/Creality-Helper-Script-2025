@@ -28,6 +28,112 @@ function restore_ota_state_message(){
   bottom_line
 }
 
+function run_ota_state_backup_core(){
+  mkdir -p "$OTA_BACKUP_DIR"
+  rm -f "$OTA_BACKUP_DIR/ota_configs.tar.gz" "$OTA_BACKUP_DIR/ota_initd.tar.gz" "$OTA_BACKUP_DIR/ota_state.env"
+
+  echo -e "Info: Saving Klipper/Moonraker configs & database..."
+  local cfg_items=""
+  [ -d "$PRINTER_DATA_FOLDER/config" ] && cfg_items="$cfg_items printer_data/config"
+  [ -d "$PRINTER_DATA_FOLDER/database" ] && cfg_items="$cfg_items printer_data/database"
+  [ -d "/usr/data/go2rtc" ] && cfg_items="$cfg_items go2rtc"
+  if [ -n "$cfg_items" ]; then
+    tar -czf "$OTA_BACKUP_DIR/ota_configs.tar.gz" -C /usr/data $cfg_items
+  fi
+
+  echo -e "Info: Saving init scripts & disabled service markers..."
+  if [ -d "$INITD_FOLDER" ]; then
+    tar -czf "$OTA_BACKUP_DIR/ota_initd.tar.gz" -C "$INITD_FOLDER" .
+  fi
+
+  echo -e "Info: Recording active modules & disabled stock services..."
+  {
+    echo "BACKUP_DATE='$(date '+%Y-%m-%d %H:%M:%S')'"
+    echo "BACKUP_MODEL='${model}'"
+    echo "GO2RTC_MODE='$(get_go2rtc_mode_k1_2025 2>/dev/null)'"
+    echo "HAS_USB_CAM=$([ -f "$USB_CAMERA_FILE" ] || [ -f "$USB_CAMERA_LEGACY_FILE" ] && echo 1 || echo 0)"
+    echo "HAS_BUILTIN_CAM=$([ -f "$BUILTIN_CAMERA_FILE" ] || [ -f "$BUILTIN_CAMERA_LEGACY_FILE" ] && echo 1 || echo 0)"
+    echo "HAS_CFS_MAINSAIL=$([ -f "${MAINSAIL_FOLDER}/k1c-cfs-panel.js" ] && echo 1 || echo 0)"
+    echo "HAS_CFS_FLUIDD=$([ -f "${FLUIDD_FOLDER}/k1c-cfs-panel.js" ] && echo 1 || echo 0)"
+    local disabled_list=""
+    local f
+    for f in "$INITD_FOLDER"/disabled.*; do
+      [ -e "$f" ] || continue
+      disabled_list="$disabled_list $(basename "$f" | sed 's/^disabled\.//')"
+    done
+    echo "DISABLED_SERVICES='${disabled_list# }'"
+  } > "$OTA_BACKUP_DIR/ota_state.env"
+}
+
+function ota_backup_macro_message(){
+  top_line
+  title 'OTA State Backup Macro' "${yellow}"
+  inner_line
+  hr
+  echo -e " │ ${cyan}Installs the BACKUP_OTA_STATE macro in Klipper so you can    ${white}│"
+  echo -e " │ ${cyan}trigger an OTA-safe Helper-Script snapshot from Mainsail/UI.   ${white}│"
+  hr
+  bottom_line
+}
+
+function install_ota_backup_macro(){
+  ota_backup_macro_message
+  local yn
+  while true; do
+    install_msg "OTA State Backup Macro" yn
+    case "${yn}" in
+      Y|y)
+        echo -e "${white}"
+        if [ ! -f "$KLIPPY_EXTRAS/gcode_shell_command.py" ]; then
+          error_msg "Klipper Gcode Shell Command is required! Please install it first."
+          return
+        fi
+        mkdir -p "$HS_CONFIG_FOLDER"
+        cp -f "$HS_FILES/macros/ota-state-backup.cfg" "$HS_CONFIG_FOLDER/ota-state-backup.cfg"
+        chown creality:creality "$HS_CONFIG_FOLDER/ota-state-backup.cfg" 2>/dev/null || true
+        if ! grep -q "include Helper-Script/ota-state-backup.cfg" "$PRINTER_CFG" 2>/dev/null; then
+          if grep -q "^\[include Helper-Script/" "$PRINTER_CFG" 2>/dev/null; then
+            sed -i '0,/^\[include Helper-Script\//s//\[include Helper-Script\/ota-state-backup.cfg\]\n&/' "$PRINTER_CFG"
+          else
+            sed -i '1a [include Helper-Script/ota-state-backup.cfg]' "$PRINTER_CFG"
+          fi
+        fi
+        echo -e "Info: Restarting Klipper service..."
+        restart_klipper
+        ok_msg "OTA State Backup Macro (BACKUP_OTA_STATE) has been installed!"
+        return;;
+      N|n)
+        error_msg "Installation canceled!"
+        return;;
+      *)
+        error_msg "Please select a correct choice!";;
+    esac
+  done
+}
+
+function remove_ota_backup_macro(){
+  ota_backup_macro_message
+  local yn
+  while true; do
+    remove_msg "OTA State Backup Macro" yn
+    case "${yn}" in
+      Y|y)
+        echo -e "${white}"
+        rm -f "$HS_CONFIG_FOLDER/ota-state-backup.cfg"
+        sed -i '/include Helper-Script\/ota-state-backup\.cfg/d' "$PRINTER_CFG" 2>/dev/null || true
+        echo -e "Info: Restarting Klipper service..."
+        restart_klipper
+        ok_msg "OTA State Backup Macro has been removed!"
+        return;;
+      N|n)
+        error_msg "Deletion canceled!"
+        return;;
+      *)
+        error_msg "Please select a correct choice!";;
+    esac
+  done
+}
+
 function backup_ota_state(){
   backup_ota_state_message
   local yn
@@ -36,41 +142,7 @@ function backup_ota_state(){
     case "${yn}" in
       Y|y)
         echo -e "${white}"
-        mkdir -p "$OTA_BACKUP_DIR"
-        rm -f "$OTA_BACKUP_DIR/ota_configs.tar.gz" "$OTA_BACKUP_DIR/ota_initd.tar.gz" "$OTA_BACKUP_DIR/ota_state.env"
-
-        echo -e "Info: Saving Klipper/Moonraker configs & database..."
-        local cfg_items=""
-        [ -d "$PRINTER_DATA_FOLDER/config" ] && cfg_items="$cfg_items printer_data/config"
-        [ -d "$PRINTER_DATA_FOLDER/database" ] && cfg_items="$cfg_items printer_data/database"
-        [ -d "/usr/data/go2rtc" ] && cfg_items="$cfg_items go2rtc"
-        if [ -n "$cfg_items" ]; then
-          tar -czf "$OTA_BACKUP_DIR/ota_configs.tar.gz" -C /usr/data $cfg_items
-        fi
-
-        echo -e "Info: Saving init scripts & disabled service markers..."
-        if [ -d "$INITD_FOLDER" ]; then
-          tar -czf "$OTA_BACKUP_DIR/ota_initd.tar.gz" -C "$INITD_FOLDER" .
-        fi
-
-        echo -e "Info: Recording active modules & disabled stock services..."
-        {
-          echo "BACKUP_DATE='$(date '+%Y-%m-%d %H:%M:%S')'"
-          echo "BACKUP_MODEL='${model}'"
-          echo "GO2RTC_MODE='$(get_go2rtc_mode_k1_2025 2>/dev/null)'"
-          echo "HAS_USB_CAM=$([ -f "$USB_CAMERA_FILE" ] || [ -f "$USB_CAMERA_LEGACY_FILE" ] && echo 1 || echo 0)"
-          echo "HAS_BUILTIN_CAM=$([ -f "$BUILTIN_CAMERA_FILE" ] || [ -f "$BUILTIN_CAMERA_LEGACY_FILE" ] && echo 1 || echo 0)"
-          echo "HAS_CFS_MAINSAIL=$([ -f "${MAINSAIL_FOLDER}/k1c-cfs-panel.js" ] && echo 1 || echo 0)"
-          echo "HAS_CFS_FLUIDD=$([ -f "${FLUIDD_FOLDER}/k1c-cfs-panel.js" ] && echo 1 || echo 0)"
-          local disabled_list=""
-          local f
-          for f in "$INITD_FOLDER"/disabled.*; do
-            [ -e "$f" ] || continue
-            disabled_list="$disabled_list $(basename "$f" | sed 's/^disabled\.//')"
-          done
-          echo "DISABLED_SERVICES='${disabled_list# }'"
-        } > "$OTA_BACKUP_DIR/ota_state.env"
-
+        run_ota_state_backup_core
         ok_msg "Helper-Script OTA snapshot saved to ${yellow}${OTA_BACKUP_DIR}${green}!"
         return;;
       N|n)
@@ -233,3 +305,13 @@ function restore_ota_state(){
     esac
   done
 }
+
+if [ "$1" = "--auto" ]; then
+  HS_ROOT="/usr/data/helper-script"
+  [ -f "$HS_ROOT/paths.sh" ] && . "$HS_ROOT/paths.sh"
+  [ -f "$HS_ROOT/scripts/menu/functions.sh" ] && . "$HS_ROOT/scripts/menu/functions.sh"
+  [ -f "$HS_ROOT/scripts/tools.sh" ] && . "$HS_ROOT/scripts/tools.sh"
+  model=$(get_device_model 2>/dev/null || echo "K1_2025")
+  run_ota_state_backup_core
+  echo "OK: Helper-Script OTA snapshot saved to ${OTA_BACKUP_DIR}"
+fi
