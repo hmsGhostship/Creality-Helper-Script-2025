@@ -23,7 +23,7 @@ function install_motor_sound(){
         
         # Sicherheits-Check: Existiert die Quelldatei überhaupt?
         if [ ! -f "$MOTOR_SOUND_SORCE_FILE" ]; then
-          error_msg "Fehler: Quell-Makro unter $MOTOR_SOUND_SORCE_FILE nicht gefunden!"
+          error_msg "Error: Source macro not found at $MOTOR_SOUND_SORCE_FILE!"
           return 1
         fi
 

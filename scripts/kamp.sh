@@ -28,7 +28,7 @@ function install_kamp(){
         # Sicherheits-Check: Existiert der KAMP-Quellordner im Repository?
         local kamp_source_dir="$HS_FILES/KAMP"
         if [ ! -d "$kamp_source_dir" ]; then
-          error_msg "Fehler: KAMP-Quellverzeichnis unter $kamp_source_dir nicht gefunden!"
+          error_msg "Error: KAMP source directory not found at $kamp_source_dir!"
           return 1
         fi
 
@@ -69,8 +69,8 @@ function install_kamp(){
         sed -i '/kamp_only\.cfg/d' "$PRINTER_CFG"
         
         if [ -f "$KLIPPER_CONFIG_FOLDER/calib_tool_box.cfg" ]; then
-          echo -e "Info: hmsGhostship Toolbox erkannt! Toolbox hat absolute Priorität."
-          echo -e "Info: KAMP-Only Interface wird übersprungen (Deine Toolbox übernimmt alles)."
+          echo -e "Info: hmsGhostship Toolbox detected! Toolbox takes full priority."
+          echo -e "Info: Skipping KAMP-Only interface (handled by Calibration Toolbox)."
         else
           echo -e "Info: Keine Toolbox gefunden. Aktiviere KAMP-Only Interface..."
           echo -e "[include Helper-Script/KAMP/kamp_only.cfg]" >> "$PRINTER_CFG"

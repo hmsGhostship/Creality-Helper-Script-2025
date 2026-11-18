@@ -19,6 +19,6 @@ if [ -f "/usr/data/creality/userdata/box/box_${PROFILE}.cfg" ]; then
 
     exit 0
 else
-    echo "Profil box_${PROFILE}.cfg existiert nicht!"
+    echo "Profile box_${PROFILE}.cfg does not exist!"
     exit 1
 fi

@@ -25,7 +25,7 @@ function install_gcode_shell_command(){
         
         # Sicherheits-Check: Existiert die lokale Quelldatei am definierten Pfad?
         if [ ! -f "$KLIPPER_SHELL_URL" ]; then
-          error_msg "Fehler: Quelldatei unter $KLIPPER_SHELL_URL nicht gefunden!"
+          error_msg "Error: Source file not found at $KLIPPER_SHELL_URL!"
           return 1
         fi
         # SAUBERER FIX: Physisches Kopieren statt symbolischer Verlinkung!

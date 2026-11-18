@@ -150,7 +150,7 @@ elif [ "$INSTALL" = 1 ]; then
     # ==============================================================================
     # ➔ FIX: ERZWUNGENER ONLINE-ABGLEICH (Absolut absturzsicher)
     # ==============================================================================
-    echo "${white}${yellow} ℹ️ Synchronisiere lokale Klipper-Config mit GitHub...${white}"
+    echo "${white}${yellow} ℹ️ Syncing local Klipper config with GitHub...${white}"
     set +e
     git pull origin "$REPO_BRANCH" --no-rebase --allow-unrelated-histories --no-edit >/dev/null 2>&1
     git push -u origin "$REPO_BRANCH" >/dev/null 2>&1

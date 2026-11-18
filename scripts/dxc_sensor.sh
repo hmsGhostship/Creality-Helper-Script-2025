@@ -28,7 +28,7 @@ install_dxc_sensor() {
       Y|y)
         echo "=== Starte Installation des DXC Filament Sensors ==="
         if [ ! -f "$SOURCE_FILE" ]; then
-            echo "Fehler: Quell-Makro dxc_sensor.cfg nicht unter $SOURCE_FILE gefunden!"
+            echo "Error: Source macro dxc_sensor.cfg not found at $SOURCE_FILE!"
             break
         fi
         
@@ -49,7 +49,7 @@ install_dxc_sensor() {
         sed -i 's|\[filament_switch_sensor filament_sensor\]|# [filament_switch_sensor filament_sensor]|g' "$PRINTER_CFG"
         sed -i 's|switch_pin: !PD7|# switch_pin: !PD7|g' "$PRINTER_CFG"
         
-        echo "[OK] DXC Sensor erfolgreich ganz oben in printer.cfg installiert."
+        echo "[OK] DXC Sensor successfully installed at the top of printer.cfg."
         echo "Info: Restarting Klipper service..."
         restart_klipper
         break;;

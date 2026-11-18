@@ -40,7 +40,7 @@ function install_octoeverywhere(){
           active_python="$MOONRAKER_ENV_PYTHON"
         fi
         if [ ! -f "$active_python" ]; then
-          error_msg "Fehler: Keine gültige Moonraker Python-Umgebung gefunden!"
+          error_msg "Error: No valid Moonraker Python environment found!"
           return 1
         fi
         local active_venv=$(dirname "$(dirname "$active_python")")
@@ -185,7 +185,7 @@ EOF
         
         # 8. Automatic system reboot to clear RAM
         for i in 10 9 8 7 6 5 4 3 2 1; do
-            echo -e "    Drucker startet neu in $i Sekunden... \r\c"
+            echo -e "    Printer will reboot in $i seconds... \r\c"
             sleep 1
         done
         reboot

@@ -32,7 +32,7 @@ function install_moonraker_obico(){
         fi
         
         if [ ! -f "$active_python" ]; then
-          error_msg "Fehler: Keine gültige Moonraker Python-Umgebung gefunden!"
+          error_msg "Error: No valid Moonraker Python environment found!"
           return 1
         fi
 
@@ -59,7 +59,7 @@ function install_moonraker_obico(){
         if [ -f "./moonraker-obico.cfg.sample" ]; then
           cp ./moonraker-obico.cfg.sample "$obico_cfg"
         else
-          error_msg "Fehler: moonraker-obico.cfg.sample nicht im Repository gefunden!"
+          error_msg "Error: moonraker-obico.cfg.sample not found in repository!"
           return 1
         fi
         

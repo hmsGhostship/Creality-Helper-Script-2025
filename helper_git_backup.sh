@@ -10,7 +10,7 @@ TARGET_DIR="/usr/data/helper-script"
 cd "$TARGET_DIR"
 
 if [ ! -d ".git" ]; then
-    echo "Fehler: Kein Git-Repository im Helper-Script-Ordner gefunden!"
+    echo "Error: No Git repository found in the Helper-Script directory!"
     exit 1
 fi
 
@@ -28,7 +28,7 @@ git config pack.packSizeLimit "0"
 git config http.postBuffer 5242880
 
 if [ -z "$(git status --porcelain)" ]; then
-    echo "Keine Änderungen in den Helper-Skripten vorhanden."
+    echo "No changes detected in the Helper-Scripts."
     exit 0
 fi
 
@@ -50,7 +50,7 @@ git config --local credential.helper store
 
 # 3. FETCH & MERGE CHANGES FROM OTHERS (Pull)
 # --no-edit prevents the script from freezing when running in the background!
-echo "Prüfe Online-Repository auf Updates von anderen Entwicklern..."
+echo "Checking online repository for upstream updates..."
 set +e
 git pull origin main --no-rebase --no-edit --quiet
 set -e

@@ -4,7 +4,7 @@ STATISCHER_PFAD="/usr/data/printer_data/config/printer.cfg"
 TEMP_CFG="/usr/data/printer_data/config/printer_clean.tmp"
 
 if [ ! -f "$STATISCHER_PFAD" ]; then
-    echo "Fehler: printer.cfg nicht gefunden!"
+    echo "Error: printer.cfg not found!"
     exit 1
 fi
 
@@ -25,4 +25,4 @@ awk '
 mv "$TEMP_CFG" "$STATISCHER_PFAD"
 
 echo "Bereinigung erfolgreich abgeschlossen!"
-echo "HINWEIS: Bitte Klipper jetzt einmal manuell in Mainsail neu starten."
+echo "NOTE: Please restart Klipper manually in Mainsail now."

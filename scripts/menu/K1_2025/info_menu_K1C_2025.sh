@@ -138,7 +138,7 @@ function check_camera_capabilities_k1_2025() {
     return 0 # Chassis-Fix läuft aktiv
   fi
 
-  # 2. Fallback: Wenn kein Fix läuft, machen wir den schnellen Hardware-Scan
+  # 2. Fallback: If no fix works, we’ll perform a quick hardware scan
   local i
   for i in 0 2; do
     if [ -e "/dev/video$i" ]; then
@@ -151,14 +151,14 @@ function check_camera_capabilities_k1_2025() {
 }
 
 function check_camera_settings_hardware_ui() {
-  # Gibt NUR das reine Statussymbol für info_line aus!
+  # Outputs ONLY the pure status symbol for info_line!
   if ps -w | grep '[m]jpg_streamer' | grep -qE "video0|video2"; then
-    echo -e "${green}✓" # Fix läuft reell im RAM
+    echo -e "${green}✓" # The fix runs entirely in RAM
   else
     if check_camera_capabilities_k1_2025; then
-      echo -e "${yellow}~" # Kein Fix aktiv, aber Hardware ist bereit (Stock)
+      echo -e "${yellow}~" # No fix active, but hardware is ready (stock)
     else
-      echo -e "${red}✗" # Keine steuerbare Hardware gefunden
+      echo -e "${red}✗" # No controllable hardware found
     fi
   fi
 }
@@ -213,8 +213,6 @@ function info_menu_ui_k1_2025() {
   info_line "$(check_file_k1_2025 "$KLIPPER_SERVICE_DISABLED")" 'Prevent updating Klipper configuration files'
   info_line "$(check_content_k1_2025 "^\[webcam chassis\]\|^\[webcam usb\]" "$MOONRAKER_CFG")" 'camera settings in Moonraker'
   info_line "$(check_live_status_k1_2025 "^\[include Helper-Script/calib_tool_box.cfg\]")" 'Creality Calibration Toolbox (BED MESH)'
-  # info_line "$(check_file_k1_2025 "${MAINSAIL_FOLDER}/k1c-cfs-panel.js")" 'CFS-C Mainsail Addon'
-  # info_line "$(check_file_k1_2025 "${FLUIDD_FOLDER}/k1c-cfs-panel.js")" 'CFS-C Fluidd Addon'
   info_line "$(check_file_k1_2025 "$MOTOR_SOUND_TARGET_FILE")" 'Motor Sound Support'
   info_line "$(check_file_k1_2025 "$USEFUL_MACROS_FILE")" 'Useful Macros'
   info_line "$(check_file_k1_2025 "$GIT_BACKUP_FILE")" 'Git Backup'

@@ -137,7 +137,7 @@ EOF
         
         # 7. Automatic System Reboot
         for i in 5 4 3 2 1; do
-            echo -e "    Drucker startet neu in $i Sekunden... \r\c"
+            echo -e "    Printer will reboot in $i seconds... \r\c"
             sleep 1
         done
         reboot
