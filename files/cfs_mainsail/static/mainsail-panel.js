@@ -309,7 +309,7 @@
       let materialType = String(material.type || "").trim().toUpperCase();
       const rfid = String(material.rfid || "").trim();
       
-      // FIX: Wenn rawState === 1 (Manual), ist physisch eine Spule eingelegt!
+      // FIX: When rawState === 1 (Manual), a spool is physically loaded!
       const hardwareDetected = rawState === 1;
       
       const rfidMissing = ["", "0", "00", "000", "0000", "00000", "000000"].indexOf(rfid) >= 0;
@@ -318,10 +318,10 @@
       
       let stateValue = emptyManualSignature ? 0 : rawState;
       
-      // Eine Spule ist vorhanden, wenn ein gültiger State existiert ODER Hardware-Präsenz gemeldet wird
+      // A spool is present if a valid state exists OR hardware presence is reported
       let present = stateValue > 0 || hardwareDetected;
       
-      // Greift ein, wenn die Spule da ist, aber kein Typ zugeordnet wurde (dein Slot 1D!)
+      // Applies when a spool is present without an assigned filament type (e.g. Slot 1D)
       if (hardwareDetected && (stateValue === 0 || materialType === "" || materialType === "-1" || materialType === "NONE")) {
           materialType = "UNASSIGNED";
           name = "Please assign in Screen";
@@ -1211,7 +1211,7 @@
       if (latestConnected) sendJson({ ModeCode: "heart_beat" });
     }, HEARTBEAT_MS);
 
-    // DIESE ZEILE HIER HINZUFÜGEN: Startet den CFS-C Takt im Hintergrund
+    // ADD THIS LINE HERE: Starts the CFS-C polling loop in the background
     window.setInterval(pollCfsCStatus, 2000);
   }
 
@@ -1254,7 +1254,7 @@
       if (col) return { column: col, after: mainsailTemp };
     }
 
-    // 2. FLUIDD PFAD: Wir suchen nach JEDER Karte im Dashboard, die ein Diagramm (Chart) enthält.
+    // 2. FLUIDD PATH: Search for EVERY card on the dashboard that contains a chart.
     // Da die Temperaturen die einzige Karte mit einem Diagramm im Hauptbereich sind, greift das unfehlbar!
     const fluiddChartCard = document.querySelector("main .f-card:has(.apexcharts-canvas)") || 
                             document.querySelector("main .v-card:has(canvas)") ||
@@ -1371,9 +1371,9 @@
       if (!dbData.result || !dbData.result.value || !dbData.result.value.T1) return;
       if (!klipperData.result || !klipperData.result.status || !klipperData.result.status.idle_timeout) return;
 
-      // ➔ REPRÄSENTATIVER FIX FÜR VUE.JS: 
-      // Jedes Mal, wenn neue Live-Daten reinkommen, erzwingen wir die Überschrift auf der Karte!
-      // Das überschreibt den sturen Vue-Template-Wert dauerhaft.
+      // -> REACTIVE FIX FOR VUE.JS: 
+      // Whenever new live data arrives, enforce the card title!
+      // This permanently overrides the stubborn Vue template value.
       const panelTitle = document.querySelector(".k1c-cfs-panel-card .v-card__title span, .k1c-cfs-panel-card .v-toolbar__title, .k1c-cfs-panel-card h2");
       if (panelTitle && panelTitle.textContent !== "CFS-C") {
         panelTitle.textContent = "CFS-C";

@@ -100,7 +100,7 @@ function install_moonraker_nginx(){
         fi
         cp "$MOONRAKER_URL3" "$PRINTER_DATA_FOLDER"/moonraker.asvc
         if [ "$model" = "K1_2025" ] || [ "$model" = "K1_2025_CFS-C" ]; then
-          echo "TEST 2: Die if-Abfrage ist WAHR! Ich bin REINGESPRUNGEN!"
+          echo "Info: CFS-C Nginx routing branch active."
           echo "TEST 3: Rufe jetzt configure_moonraker_nginx_k1_2025 auf..."
           configure_moonraker_nginx_k1_2025
           echo "TEST 4: Funktion configure_moonraker_nginx_k1_2025 wurde beendet."
