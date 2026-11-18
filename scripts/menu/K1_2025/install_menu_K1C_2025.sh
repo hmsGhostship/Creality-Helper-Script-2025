@@ -43,7 +43,7 @@ function install_menu_ui_k1_2025() {
   menu_option '13' 'Install' 'DXC Filament Sensor'
 # menu_option '14' 'Install' 'CFS-C Universal Purge Speed Fix'
 # menu_option '15' 'Install' 'CFS-C Purge Volume Fix (Prime Tower)'
-  menu_option '16' 'Install' 'FLY-LLL Plus Buffer Runout Sensor (DXC Required)'
+  menu_option '16' 'Install' 'FLY-LLL Plus Buffer Sensor (DXC Req.)'
   menu_option '17' 'Install' 'Motor Sound Support'
   menu_option '18' 'Install' 'Useful Macros'
   menu_option '19' 'Install' 'Git Backup'
