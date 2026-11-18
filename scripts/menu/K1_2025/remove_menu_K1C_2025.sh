@@ -36,7 +36,7 @@ function remove_menu_ui_k1_2025() {
   menu_option '13' 'Remove' 'DXC Filament Sensor'
 # menu_option '14' 'Remove' 'CFS-C Universal Purge Speed Fix'
 # menu_option '15' 'Remove' 'CFS-C Purge Volume Fix (Prime Tower)'
-# menu_option '16' 'Remove' 'FLY-LLL PLUS Safetysystem'
+  menu_option '16' 'Remove' 'FLY-LLL Plus Buffer Runout Sensor (DXC Required)'
   menu_option '17' 'Remove' 'Motor Sound Support'
   menu_option '18' 'Remove' 'Useful Macros'
   menu_option '19' 'Remove' 'Git Backup'
