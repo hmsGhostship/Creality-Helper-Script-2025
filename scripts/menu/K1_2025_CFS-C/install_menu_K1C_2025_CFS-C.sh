@@ -47,9 +47,9 @@ function install_menu_ui_k1_2025_cfs_c() {
   menu_option '17' 'Install' 'Motor Sound Support'
   menu_option '18' 'Install' 'Useful Macros'
   menu_option '19' 'Install' 'Git Backup'
-# menu_option '20' 'Install' 'Fans Control Macros'
-# menu_option '21' 'Install' 'Improved Shapers Calibrations'
-# menu_option '22' 'Install' 'M600 Support'
+# menu_option '20' 'Install' 'placeholder entry'
+# menu_option '21' 'Install' 'placeholder entry'
+# menu_option '22' 'Install' 'placeholder entry'
   hr
   subtitle '•REMOTE ACCESS:'
     menu_option '23' 'Install' 'OctoEverywhere'
@@ -233,7 +233,7 @@ function install_menu_k1_2025_cfs_c() {
           echo -e "  Please install the DXC Filament Sensor (Option 13) first!"
           echo
         elif grep -q "^\[include Helper-Script/cfs_lll_safety.cfg\]" "$PRINTER_CFG" 2>/dev/null; then
-          error_msg "FLY-LLL Plus Safety System & Nexusp Auto-Switch is already active in printer.cfg!"
+          error_msg "FLY-LLL Plus Safety & Auto-Switch (PD7) is already active in printer.cfg!"
           echo
         else
           title "[ INSTALL: FLY-LLL PLUS SAFETYSYSTEM ]" "${yellow}"
@@ -268,7 +268,7 @@ function install_menu_k1_2025_cfs_c() {
           echo -e "Info: Restarting Klipper service..."
           restart_klipper
           install_menu_ui_k1_2025_cfs_c
-          ok_msg "FLY-LLL Plus Safety System & Nexusp Auto-Switch & Auto-Switch have been installed!"
+          ok_msg "FLY-LLL Plus Safety & Auto-Switch (PD7) & Auto-Switch have been installed!"
         fi;;
       17)
         if [ -f "$MOTOR_SOUND_TARGET_FILE" ]; then
@@ -297,36 +297,15 @@ function install_menu_k1_2025_cfs_c() {
       20)
         clear
         disabled_feature
-        continue
-        if [ -f "$FAN_CONTROLS_FILE" ]; then
-          error_msg "Fans Control Macros are already installed!"
-        else
-          run "install_fans_control_macros" "install_menu_ui_k1_2025_cfs_c"
-        fi;;
+        continue;;
       21)
         clear
         disabled_feature
-        continue
-        # C13 check: Uses global variable from paths.sh
-        if [ -d "$IMP_SHAPERS_FOLDER" ]; then
-          error_msg "Improved Shapers Calibrations (C13 Edition) are already installed!"
-          echo
-        elif [ -d "$GUPPY_SCREEN_FOLDER" ]; then
-          error_msg "Guppy Screen already has these features!"
-          echo
-        else
-          # Starts the cleaned, read-only-safe C13 installation routine
-          run "install_improved_shapers" "install_menu_ui_k1_2025_cfs_c"
-        fi;;
+        continue;;
       22)
         clear
         disabled_feature
-        continue
-        if [ -f "$M600_SUPPORT_FILE" ]; then
-          error_msg "M600 Support is already installed!"
-        else
-          run "install_m600_support" "install_menu_ui_k1_2025_cfs_c"
-        fi;;
+        continue;;
       23)
        if [ ! -d "$MOONRAKER_FOLDER" ]; then
          error_msg "Moonraker and Nginx are needed, please install them first!"

@@ -36,13 +36,13 @@ function remove_menu_ui_k1_2025_cfs_c() {
   menu_option '13' 'Remove' 'DXC Filament Sensor'
   menu_option '14' 'Remove' 'CFS-C Universal Purge Speed Fix'
   menu_option '15' 'Remove' 'CFS-C Purge Volume Fix (Prime Tower)'
-  menu_option '16' 'Remove' 'FLY-LLL Plus Safety System & Nexusp Auto-Switch'
+  menu_option '16' 'Remove' 'FLY-LLL Plus Safety & Auto-Switch (PD7)'
   menu_option '17' 'Remove' 'Motor Sound Support'
   menu_option '18' 'Remove' 'Useful Macros'
   menu_option '19' 'Remove' 'Git Backup'
-# menu_option '20' 'Remove' 'Fans Control Macros'
-# menu_option '21' 'Remove' 'Improved Shapers Calibrations'
-# menu_option '22' 'Remove' 'M600 Support'
+# menu_option '20' 'Remove' 'placeholder entry'
+# menu_option '21' 'Remove' 'placeholder entry'
+# menu_option '22' 'Remove' 'placeholder entry'
 
   hr
   subtitle '•REMOTE ACCESS:'
@@ -214,7 +214,7 @@ function remove_menu_k1_2025_cfs_c() {
 #        continue
         # 1. CHECK: Is the LLL Plus actually live and active?
         if ! grep -q "^\[include Helper-Script/cfs_lll_safety.cfg\]" "$PRINTER_CFG" 2>/dev/null; then
-            error_msg "FLY-LLL Plus Safety System & Nexusp Auto-Switch is not active in printer.cfg!"
+            error_msg "FLY-LLL Plus Safety & Auto-Switch (PD7) is not active in printer.cfg!"
             echo
         elif curl -s --max-time 2 "http://localhost:7126/printer/objects/query?filament_switch_sensor%20lll_plus_sensor" 2>/dev/null | grep -Eq '"filament_detected"[[:space:]]*:[[:space:]]*true'; then
             error_msg "REMOVE LOCKED: External filament is still inserted in FLY-LLL Plus (PD7)!"
@@ -251,7 +251,7 @@ function remove_menu_k1_2025_cfs_c() {
             echo -e "Info: Restarting Klipper service..."
             restart_klipper
             remove_menu_ui_k1_2025_cfs_c
-            ok_msg "FLY-LLL Plus Safety System & Nexusp Auto-Switch has been removed!"
+            ok_msg "FLY-LLL Plus Safety & Auto-Switch (PD7) has been removed!"
         fi;;
       17)
         if [ ! -f "$MOTOR_SOUND_TARGET_FILE" ]; then
@@ -274,31 +274,15 @@ function remove_menu_k1_2025_cfs_c() {
       20)
         clear
         disabled_feature
-        continue
-        if [ ! -f "$FAN_CONTROLS_FILE" ]; then
-          error_msg "Fans Control Macros are not installed!"
-        else
-          run "remove_fans_control_macros" "remove_menu_ui_k1_2025_cfs_c"
-        fi;;
+        continue;;
       21)
         clear
         disabled_feature
-        continue
-        if [ ! -d "$IMP_SHAPERS_FOLDER" ]; then
-          error_msg "Improved Shapers Calibrations (C13 Edition) are not active!"
-          echo
-        else
-          run "remove_improved_shapers" "remove_menu_ui_k1_2025_cfs_c"
-        fi;;
+        continue;;
       22)
         clear
         disabled_feature
-        continue
-        if [ ! -f "$M600_SUPPORT_FILE" ]; then
-          error_msg "M600 Support is not installed!"
-        else
-          run "remove_m600_support" "remove_menu_ui_k1_2025_cfs_c"
-        fi;;
+        continue;;
       23)
         if [ ! -d "$OCTOEVERYWHERE_FOLDER" ]; then
           error_msg "OctoEverywhere is not installed!"
