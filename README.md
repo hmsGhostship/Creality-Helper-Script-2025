@@ -203,7 +203,7 @@ When running a standard **`K1_2025`** (without CFS-C) and **`Retire Nexusp Backe
 * **M600 Filament Change Support (`Option 22`):** Provides a complete `M600` filament-change workflow with safe front-right parking, fan/heater state restoration, full compatibility with both the stock filament sensor and the **Phaetus DXC** extruder sensor (`dxc_sensor.cfg`), and an interactive Mainsail/Fluidd popup (`UNLOAD`, `LOAD`, `PURGE`, `RESUME`, `CANCEL`).
 * **Automatic Nexusp Restore Guard:** Running **Restore Nexusp Backend** automatically detects and cleanly uninstalls **Options 20, 21, 22**, and the **`BACKUP_OTA_STATE`** macro before switching back to Creality's `nexusp` service so stock firmware startup cannot crash.
 
-### 🔄 FLY-LLL Plus Safety System & Nexusp Auto-Switch (`Install / Remove Menu -> Option 16`)
+### 🔄 FLY-LLL Plus Safety & Auto-Switch (PD7) (`Install / Remove Menu -> Option 16`)
 
 Unified 1-click installation and removal for the **FLY-LLL Plus** external buffer/filament sensor (`^PD7`, requires **Phaetus DXC Extruder**):
 
