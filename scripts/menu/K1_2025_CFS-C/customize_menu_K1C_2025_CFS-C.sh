@@ -32,8 +32,6 @@ function customize_menu_ui_k1_2025_cfs_c() {
   hr
   menu_option '12' 'Remove' 'CFS-C recognition (back to K1_2025)'
   hr
-  menu_option '13' 'Install' 'FLY-LLL Plus Nexusp Auto-Switch (PD7)'
-  menu_option '14' 'Remove' 'FLY-LLL Plus Nexusp Auto-Switch (PD7)'
   hr
   inner_line
   hr
@@ -261,18 +259,6 @@ function customize_menu_k1_2025_cfs_c() {
         disable_cfsc_menu
         break
         ;;
-      13)
-        if [ -f "/usr/data/printer_data/config/Helper-Script/.lll_nexusp_guard_enabled" ]; then
-          error_msg "FLY-LLL Plus Nexusp Auto-Switch is already installed!"
-        else
-          run "install_lll_nexusp_guard" "customize_menu_ui_k1_2025_cfs_c"
-        fi;;
-      14)
-        if [ ! -f "/usr/data/printer_data/config/Helper-Script/.lll_nexusp_guard_enabled" ]; then
-          error_msg "FLY-LLL Plus Nexusp Auto-Switch is not installed!"
-        else
-          run "remove_lll_nexusp_guard" "customize_menu_ui_k1_2025_cfs_c"
-        fi;;
       B|b)
         clear
         main_menu

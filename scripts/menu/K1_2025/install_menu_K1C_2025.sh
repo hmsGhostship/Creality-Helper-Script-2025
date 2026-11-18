@@ -244,7 +244,12 @@ function install_menu_k1_2025() {
             echo
         # NATIVE INSTALL & RESTART
         else
-            title "[ INSTALL: FLY-LLL PLUS SAFETYSYSTEM ]" "${yellow}"
+            title "[ INSTALL: FLY-LLL PLUS BUFFER RUNOUT SENSOR ]" "${yellow}"
+            echo -e "  ${yellow}HARDWARE WIRING NOTICE (Phaetus DXC + FLY-LLL Plus):${white}"
+            echo -e "  1. Connect toolhead pin ${cyan}PD7${white} to the ${cyan}Signal / Out${white} pin of the FLY-LLL Plus sensor."
+            echo -e "  2. ${red}COMMON GROUND REQUIRED:${white} The FLY-LLL Plus power supply and printer"
+            echo -e "     mainboard/toolhead ${cyan}GND (-)${white} MUST share the same ground potential!"
+            echo
             echo -e "  Copying configuration files..."
             cp /usr/data/helper-script/files/cfs-lll-plus-safety/lll_plus_sensor_nocfs.cfg /usr/data/printer_data/config/Helper-Script/
 
