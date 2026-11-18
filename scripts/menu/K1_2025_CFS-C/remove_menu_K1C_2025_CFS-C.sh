@@ -212,21 +212,23 @@ function remove_menu_k1_2025_cfs_c() {
         clear
 #        disabled_feature
 #        continue
-        # 1. ANTI-UNLOCK: Block removal while FLY-LLL Plus Nexusp Auto-Switch (Customize Option 13) uses lll_plus_sensor!
-        if grep -q "^\[include Helper-Script/lll-plus-nexusp-switch.cfg\]" "$PRINTER_CFG" 2>/dev/null; then
-            error_msg "REMOVE LOCKED: FLY-LLL PLUS Safetysystem is blocked!"
-            echo -e "  Sensor lll_plus_sensor (PD7) is currently used by FLY-LLL Plus Nexusp Auto-Switch."
-            echo -e "  Please remove FLY-LLL Plus Nexusp Auto-Switch (Customize Menu Option 14) first!"
-            echo
-        # 2. CHECK: Is the LLL Plus actually live and active?
+        # 1. CHECK: Is the LLL Plus actually live and active?
         elif ! grep -q "^\[include Helper-Script/cfs_lll_safety.cfg\]" "$PRINTER_CFG" 2>/dev/null; then
             error_msg "FLY-LLL PLUS Safetysystem is not active in printer.cfg!"
             echo
         else
             title "[ REMOVE: FLY-LLL PLUS SAFETYSYSTEM ]" "${yellow}"
-            echo -e "  Removing configuration files..."
+            echo -e "  Removing configuration files & Nexusp Auto-Switch..."
             rm -f /usr/data/printer_data/config/Helper-Script/cfs_lll_safety.cfg
+            rm -f /usr/data/printer_data/config/Helper-Script/lll-plus-nexusp-switch.cfg
+            rm -f /usr/data/printer_data/config/Helper-Script/.lll_nexusp_guard_enabled
             sed -i '/cfs_lll_safety.cfg/d' /usr/data/printer_data/config/printer.cfg
+            sed -i '/lll-plus-nexusp-switch.cfg/d' /usr/data/printer_data/config/printer.cfg
+            if [ -f "/usr/data/helper-script/backups/CS56nexusp_service.orig" ]; then
+              cp -f "/usr/data/helper-script/backups/CS56nexusp_service.orig" "/usr/apps/etc/init.d/CS56nexusp_service"
+              chmod +x "/usr/apps/etc/init.d/CS56nexusp_service"
+            fi
+            ps -w | grep '/usr/apps/usr/bin/[n]exusp' >/dev/null 2>&1 || sh /usr/apps/etc/init.d/CS56nexusp_service start >/dev/null 2>&1 || true
 
             echo -e "Info: Restarting Klipper service..."
             restart_klipper

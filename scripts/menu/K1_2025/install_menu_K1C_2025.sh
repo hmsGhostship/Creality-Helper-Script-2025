@@ -239,17 +239,17 @@ function install_menu_k1_2025() {
             echo -e "  Please install the DXC Filament Sensor (Option 13) first!"
             echo
         # DUAL INSTALLATION PROTECTION
-        elif grep -q "^\[include Helper-Script/cfs_lll_safety.cfg\]" "$PRINTER_CFG" 2>/dev/null; then
+        elif grep -q "^\[include Helper-Script/lll_plus_sensor_nocfs.cfg\]" "$PRINTER_CFG" 2>/dev/null; then
             error_msg "FLY-LLL PLUS Safetysystem is already active in printer.cfg!"
             echo
         # NATIVE INSTALL & RESTART
         else
             title "[ INSTALL: FLY-LLL PLUS SAFETYSYSTEM ]" "${yellow}"
             echo -e "  Copying configuration files..."
-            cp /usr/data/helper-script/files/cfs-lll-plus-safety/cfs_lll_safety.cfg /usr/data/printer_data/config/Helper-Script/
+            cp /usr/data/helper-script/files/cfs-lll-plus-safety/lll_plus_sensor_nocfs.cfg /usr/data/printer_data/config/Helper-Script/
 
-            if ! grep -q "cfs_lll_safety.cfg" "$PRINTER_CFG" 2>/dev/null; then
-                echo -e "\n[include Helper-Script/cfs_lll_safety.cfg]" >> "$PRINTER_CFG"
+            if ! grep -q "lll_plus_sensor_nocfs.cfg" "$PRINTER_CFG" 2>/dev/null; then
+                echo -e "\n[include Helper-Script/lll_plus_sensor_nocfs.cfg]" >> "$PRINTER_CFG"
             fi
 
             echo

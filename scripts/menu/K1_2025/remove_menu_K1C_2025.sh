@@ -177,7 +177,7 @@ function remove_menu_k1_2025() {
       13)
         clear
         # 1. ANTI-UNLOCK: If LLL Plus is active in live mode, we immediately block any attempt to remove it!
-        if grep -q "^\[include Helper-Script/cfs_lll_safety.cfg\]" "$PRINTER_CFG" 2>/dev/null; then
+        if grep -q "^\[include Helper-Script/lll_plus_sensor_nocfs.cfg\]" "$PRINTER_CFG" 2>/dev/null; then
             error_msg "REMOVE LOCKED: DXC Filament Sensor is blocked!"
             echo -e "  Pin PD7 is currently actively used by FLY-LLL PLUS."
             echo -e "  Please remove the FLY-LLL PLUS Safety System (Option 16) first!"
@@ -217,14 +217,14 @@ function remove_menu_k1_2025() {
         disabled_feature
         continue
         # CHECK: Is the LLL Plus actually live and active?
-        if ! grep -q "^\[include Helper-Script/cfs_lll_safety.cfg\]" "$PRINTER_CFG" 2>/dev/null; then
+        if ! grep -q "^\[include Helper-Script/lll_plus_sensor_nocfs.cfg\]" "$PRINTER_CFG" 2>/dev/null; then
             error_msg "FLY-LLL PLUS Safetysystem is not active in printer.cfg!"
             echo
         else
             title "[ REMOVE: FLY-LLL PLUS SAFETYSYSTEM ]" "${yellow}"
             echo -e "  Removing configuration files..."
-            rm -f /usr/data/printer_data/config/Helper-Script/cfs_lll_safety.cfg
-            sed -i '/cfs_lll_safety.cfg/d' /usr/data/printer_data/config/printer.cfg
+            rm -f /usr/data/printer_data/config/Helper-Script/lll_plus_sensor_nocfs.cfg
+            sed -i '/lll_plus_sensor_nocfs.cfg/d' /usr/data/printer_data/config/printer.cfg
 
             echo
             echo -e "  ${green}✅ FLY-LLL PLUS successfully removed from the system!${white}"

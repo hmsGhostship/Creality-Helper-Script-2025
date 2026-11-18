@@ -247,10 +247,28 @@ function install_menu_k1_2025_cfs_c() {
             sed -i "1a [include Helper-Script/cfs_lll_safety.cfg]" "$PRINTER_CFG"
           fi
 
+          if [ -f "$KLIPPY_EXTRAS/gcode_shell_command.py" ] && [ -f "/usr/apps/etc/init.d/CS56nexusp_service" ]; then
+            echo -e "  Enabling FLY-LLL Plus Nexusp Auto-Switch..."
+            mkdir -p "/usr/data/helper-script/backups" "$HS_CONFIG_FOLDER"
+            [ -f "/usr/data/helper-script/backups/CS56nexusp_service.orig" ] || cp -f "/usr/apps/etc/init.d/CS56nexusp_service" "/usr/data/helper-script/backups/CS56nexusp_service.orig"
+            cp -f "/usr/data/helper-script/files/macros/lll-plus-nexusp-switch.cfg" "/usr/data/printer_data/config/Helper-Script/lll-plus-nexusp-switch.cfg"
+            touch "/usr/data/printer_data/config/Helper-Script/.lll_nexusp_guard_enabled"
+            sed -i "/\[include Helper-Script\/lll-plus-nexusp-switch\.cfg\]/d" "$PRINTER_CFG" 2>/dev/null || true
+            if grep -q "^[[:space:]]*#[[:space:]]*CreateDate:" "$PRINTER_CFG" 2>/dev/null; then
+              sed -i "/^[[:space:]]*#[[:space:]]*CreateDate:.*/a [include Helper-Script/lll-plus-nexusp-switch.cfg]" "$PRINTER_CFG"
+            else
+              sed -i "1a [include Helper-Script/lll-plus-nexusp-switch.cfg]" "$PRINTER_CFG"
+            fi
+            grep -q "lll_nexusp_guard.sh" "/usr/apps/etc/init.d/CS56nexusp_service" || sed -i '/^start() {/a \      if [ -f "/usr/data/printer_data/config/Helper-Script/.lll_nexusp_guard_enabled" ] && [ "${FORCE_NEXUSP:-0}" != "1" ]; then sh /usr/data/helper-script/scripts/lll_nexusp_guard.sh boot-guard \& return 0; fi' "/usr/apps/etc/init.d/CS56nexusp_service"
+            chmod +x "/usr/apps/etc/init.d/CS56nexusp_service"
+          else
+            echo -e "  Note: Install Klipper Gcode Shell Command to also enable automatic nexusp boot switching."
+          fi
+
           echo -e "Info: Restarting Klipper service..."
           restart_klipper
           install_menu_ui_k1_2025_cfs_c
-          ok_msg "FLY-LLL PLUS Safetysystem has been installed!"
+          ok_msg "FLY-LLL PLUS Safetysystem & Auto-Switch have been installed!"
         fi;;
       17)
         if [ -f "$MOTOR_SOUND_TARGET_FILE" ]; then
