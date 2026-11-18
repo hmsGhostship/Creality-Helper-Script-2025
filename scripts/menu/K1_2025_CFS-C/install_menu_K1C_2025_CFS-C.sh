@@ -43,7 +43,7 @@ function install_menu_ui_k1_2025_cfs_c() {
   menu_option '13' 'Install' 'DXC Filament Sensor'
   menu_option '14' 'Install' 'CFS-C Universal Purge Speed Fix'
   menu_option '15' 'Install' 'CFS-C Purge Volume Fix (Prime Tower)'
-  menu_option '16' 'Install' 'FLY-LLL PLUS Safetysystem (Einschalt-Sperre)'
+  menu_option '16' 'Install' 'FLY-LLL Plus Safety System & Nexusp Auto-Switch (PD7)'
   menu_option '17' 'Install' 'Motor Sound Support'
   menu_option '18' 'Install' 'Useful Macros'
   menu_option '19' 'Install' 'Git Backup'
@@ -233,7 +233,7 @@ function install_menu_k1_2025_cfs_c() {
           echo -e "  Please install the DXC Filament Sensor (Option 13) first!"
           echo
         elif grep -q "^\[include Helper-Script/cfs_lll_safety.cfg\]" "$PRINTER_CFG" 2>/dev/null; then
-          error_msg "FLY-LLL PLUS Safetysystem is already active in printer.cfg!"
+          error_msg "FLY-LLL Plus Safety System & Nexusp Auto-Switch is already active in printer.cfg!"
           echo
         else
           title "[ INSTALL: FLY-LLL PLUS SAFETYSYSTEM ]" "${yellow}"
@@ -268,7 +268,7 @@ function install_menu_k1_2025_cfs_c() {
           echo -e "Info: Restarting Klipper service..."
           restart_klipper
           install_menu_ui_k1_2025_cfs_c
-          ok_msg "FLY-LLL PLUS Safetysystem & Auto-Switch have been installed!"
+          ok_msg "FLY-LLL Plus Safety System & Nexusp Auto-Switch & Auto-Switch have been installed!"
         fi;;
       17)
         if [ -f "$MOTOR_SOUND_TARGET_FILE" ]; then

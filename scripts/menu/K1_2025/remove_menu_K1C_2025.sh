@@ -218,7 +218,7 @@ function remove_menu_k1_2025() {
         continue
         # CHECK: Is the LLL Plus actually live and active?
         if ! grep -q "^\[include Helper-Script/lll_plus_sensor_nocfs.cfg\]" "$PRINTER_CFG" 2>/dev/null; then
-            error_msg "FLY-LLL PLUS Safetysystem is not active in printer.cfg!"
+            error_msg "FLY-LLL Plus Safety System & Nexusp Auto-Switch is not active in printer.cfg!"
             echo
         else
             title "[ REMOVE: FLY-LLL PLUS SAFETYSYSTEM ]" "${yellow}"

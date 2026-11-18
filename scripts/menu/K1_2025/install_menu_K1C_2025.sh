@@ -240,7 +240,7 @@ function install_menu_k1_2025() {
             echo
         # DUAL INSTALLATION PROTECTION
         elif grep -q "^\[include Helper-Script/lll_plus_sensor_nocfs.cfg\]" "$PRINTER_CFG" 2>/dev/null; then
-            error_msg "FLY-LLL PLUS Safetysystem is already active in printer.cfg!"
+            error_msg "FLY-LLL Plus Safety System & Nexusp Auto-Switch is already active in printer.cfg!"
             echo
         # NATIVE INSTALL & RESTART
         else
