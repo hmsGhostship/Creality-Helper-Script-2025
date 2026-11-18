@@ -353,7 +353,7 @@ function nexusp_start_service() {
 #  local want="$1" other="$2" nginx_conf
 #  if [ -f "$MOONRAKER_CFG" ]; then
 #    echo -e "Info: Setting Moonraker port to ${want}..."
-#    # REPARIERT: Findet jetzt "port: 7125", "port=7125" und ignoriert Leerzeichen/Tabulatoren am Zeilenanfang
+#    # FIXED: Now matches "port: 7125", "port=7125" and ignores leading spaces/tabs
 #    if ! sed -i "s/^[[:space:]]*port[[:space:]]*[:=][[:space:]]*${other}\$/port: ${want}/" "$MOONRAKER_CFG"; then
 #      error_msg "Could not rewrite moonraker.conf - is /usr/data full?"
 #      return 1
@@ -362,7 +362,7 @@ function nexusp_start_service() {
 #  for nginx_conf in "$NGINX_CONF_FILE" /etc/nginx/nginx.conf; do
 #    if [ -f "$nginx_conf" ]; then
 #      echo -e "Info: Pointing Nginx Moonraker upstream to port ${want}..."
-#      # REPARIERT: Erlaubt beliebige Leerzeichen/Tabulatoren vor und nach "server 127.0.0.1:7125;"
+#      # FIXED: Allows arbitrary spaces/tabs before and after "server 127.0.0.1:7125;"
 #      if ! sed -i "s/[[:space:]]*server[[:space:]]*127\.0\.0\.1:${other};/      server 127.0.0.1:${want};/" "$nginx_conf"; then
 #        error_msg "Could not rewrite $nginx_conf!"
 #        return 1
@@ -377,7 +377,7 @@ function nexusp_set_moonraker_port() {
   
   if [ -f "$MOONRAKER_CFG" ]; then
     echo -e "Info: Setting Moonraker port to ${want}..."
-    # Findet "port: 7125" unabhängig von Leerzeichen am Anfang
+    # Matches "port: 7125" regardless of leading whitespace
     if ! sed -i "s/^[[:space:]]*port:[[:space:]]*${other}\$/port: ${want}/" "$MOONRAKER_CFG"; then
       error_msg "Could not rewrite moonraker.conf!"
       return 1
@@ -387,7 +387,7 @@ function nexusp_set_moonraker_port() {
   for nginx_conf in "$NGINX_CONF_FILE" /etc/nginx/nginx.conf; do
     if [ -f "$nginx_conf" ]; then
       echo -e "Info: Pointing Nginx Moonraker upstream to port ${want}..."
-      # REPARIERT: Findet "server 127.0.0.1:7125;" jetzt AUCH mit den 4 Leerzeichen davor!
+      # FIXED: Now ALSO matches "server 127.0.0.1:7125;" with leading 4 spaces!
       if ! sed -i "s/^[[:space:]]*server[[:space:]]*127\.0\.0\.1:${other};/    server 127.0.0.1:${want};/" "$nginx_conf"; then
         error_msg "Could not rewrite $nginx_conf!"
         return 1

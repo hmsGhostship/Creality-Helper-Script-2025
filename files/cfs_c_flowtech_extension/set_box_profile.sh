@@ -1,14 +1,14 @@
 #!/bin/sh
 PROFILE=$1
-# Der spezifische Pfad für die 2025er/2026er Creality-Architektur
+# Specific path for the 2025/2026 Creality architecture
 INITD_FOLDER="/usr/apps/etc/init.d"
 
-# 1. Prüfen, ob das angeforderte Profil existiert
+# 1. Check whether the requested profile exists
 if [ -f "/usr/data/creality/userdata/box/box_${PROFILE}.cfg" ]; then
-    # Atomar kopieren (Zieldatei überschreiben)
+    # Atomic copy (overwrite target file)
     cp "/usr/data/creality/userdata/box/box_${PROFILE}.cfg" "/usr/data/creality/userdata/box/box.cfg"
     
-    # 2. Originale Creality-Neustart-Logik für S12-Boards ausführen
+    # 2. Execute original Creality restart logic for S12 boards
     set +e
     if [ -f "$INITD_FOLDER/CS55klipper_service" ]; then
         "$INITD_FOLDER/CS55klipper_service" restart

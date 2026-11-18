@@ -190,7 +190,7 @@ function restore_ota_state(){
           esac
         done
 
-        # Immer zuerst die neuen Firmware-Configs sichern, bevor etwas angefasst wird
+        # Always back up new firmware configs first before touching anything
         if [ -d "$PRINTER_DATA_FOLDER/config" ]; then
           echo -e "Info: Backing up current firmware configs to ${OTA_BACKUP_DIR}/fw_new_config_before_restore.tar.gz..."
           tar -czf "$OTA_BACKUP_DIR/fw_new_config_before_restore.tar.gz" -C /usr/data printer_data/config
@@ -212,7 +212,7 @@ function restore_ota_state(){
               cp -af "$OTA_BACKUP_DIR/cfg_tmp/go2rtc/." /usr/data/go2rtc/
             fi
 
-            # Helper-Script-Ordner & eigene Konfigurationsdateien übernehmen (ohne printer.cfg / box.cfg zu überschreiben)
+            # Copy Helper-Script folder & custom config files (without overwriting printer.cfg / box.cfg)
             local src_cfg="$OTA_BACKUP_DIR/cfg_tmp/printer_data/config"
             local dst_cfg="$PRINTER_DATA_FOLDER/config"
             if [ -d "$src_cfg/Helper-Script" ]; then
@@ -231,7 +231,7 @@ function restore_ota_state(){
               esac
             done
 
-            # Fehlende [include Helper-Script/...] & [output_pin LED] in die neue printer.cfg einfügen
+            # Re-inject missing [include Helper-Script/...] & [output_pin LED] into new printer.cfg
             if [ -f "$src_cfg/printer.cfg" ] && [ -f "$dst_cfg/printer.cfg" ]; then
               echo -e "Info: Merging Helper-Script includes into new firmware printer.cfg..."
               grep '^\[include Helper-Script/' "$src_cfg/printer.cfg" | while IFS= read -r inc_line; do

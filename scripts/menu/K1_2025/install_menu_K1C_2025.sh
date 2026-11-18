@@ -285,7 +285,7 @@ function install_menu_k1_2025() {
         elif [ ! -f "$KLIPPER_SHELL_FILE" ]; then
           error_msg "Klipper Gcode Shell Command is needed, please install it first!"
         else
-          # Startet einfach nur deine Menü-Datei
+          # Simply launches the menu file
           run "install_git_backup" "install_menu_ui_k1_2025"
         fi;;
       20)
@@ -297,7 +297,7 @@ function install_menu_k1_2025() {
         fi;;
       21)
         clear
-        # C13-Check: Nutzt deine globale Variable aus der paths.sh
+        # C13 check: Uses global variable from paths.sh
         if [ -d "$IMP_SHAPERS_FOLDER" ]; then
           error_msg "Improved Shapers Calibrations (C13 Edition) are already installed!"
           echo
@@ -305,7 +305,7 @@ function install_menu_k1_2025() {
           error_msg "Guppy Screen already has these features!"
           echo
         else
-          # Startet die bereinigte, schreibfeste C13-Installationsroutine
+          # Starts the cleaned, read-only-safe C13 installation routine
           run "install_improved_shapers" "install_menu_ui_k1_2025"
         fi;;
       22)

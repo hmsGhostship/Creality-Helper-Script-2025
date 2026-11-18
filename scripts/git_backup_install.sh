@@ -24,8 +24,8 @@ function install_git_backup(){
       Y|y)
         echo -e "${white}"
         ensure_respond_module
-        # FIX: Das gefährliche 'rm -rf .git' wurde restlos gestrichen!
-        # Deine mühsam aufgebaute Historie und Identität bleiben absolut geschützt.
+        # FIX: The dangerous 'rm -rf .git' was completely removed!
+        # Your git history and repository identity remain completely protected.
         if [ -f "$HS_CONFIG_FOLDER"/git-backup.cfg ]; then rm -f "$HS_CONFIG_FOLDER"/git-backup.cfg; fi
         if [ -d "$HS_BACKUP_FOLDER"/git-backup ]; then rm -rf "$HS_BACKUP_FOLDER"/git-backup; fi
         if [ ! -d "$HS_CONFIG_FOLDER" ]; then mkdir -p "$HS_CONFIG_FOLDER"; fi
@@ -68,8 +68,8 @@ function remove_git_backup(){
           rm -f "$INITD_FOLDER"/disabled.S52Git-Backup
         fi
         
-        # FIX: Nur den Addon-spezifischen Unterordner entfernen.
-        # Kein blindes Löschen des Hauptordners oder der Git-Historie!
+        # FIX: Only remove the addon-specific subdirectory.
+        # No blind deletion of the main directory or Git history!
         rm -rf "$HS_BACKUP_FOLDER"/git-backup
         
         if grep -q "include Helper-Script/git-backup" "$PRINTER_CFG" ; then

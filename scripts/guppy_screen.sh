@@ -23,7 +23,7 @@ function install_guppyscreen(){
       Y|y)
         echo -e "${white}"
 
-        # 1. Echten Moonraker-Port dynamisch ermitteln (7126 mit CFS-C/nexusp, 7125 ohne nexusp)
+        # 1. Dynamically detect active Moonraker port (7126 with CFS-C/nexusp, 7125 without nexusp)
         local real_port=7126
         if [ -f "$MOONRAKER_CFG" ]; then
           local detected_port=$(grep -A 5 "^\[server\]" "$MOONRAKER_CFG" | grep "^port:" | awk '{print $2}' | tr -d '\r')
@@ -33,7 +33,7 @@ function install_guppyscreen(){
         fi
         echo -e "Info: Detected Moonraker port: $real_port"
 
-        # 2. Repository klonen oder aktualisieren
+        # 2. Clone or update repository
         echo -e "Info: Downloading specialized K1C-2025 GuppyScreen package..."
         git config --global http.sslVerify false
         if [ -d "$GUPPY_SCREEN_SOURCE/.git" ]; then
@@ -52,11 +52,11 @@ function install_guppyscreen(){
           sed -i "s/7125/$real_port/g" "$GUPPY_SCREEN_SOURCE/init/S57guppy_service"
         fi
 
-        # 4. Den offiziellen Fail-Safe-Installer aus dem Repository ausführen
+        # 4. Run the official fail-safe installer from the repository
         echo -e "Info: Running native fail-safe installer..."
         "$GUPPY_SCREEN_SOURCE/installer/install.sh"
 
-        # 5. Nach dem ersten Start angelegte guppyconfig.json sicherstellen & Port synchronisieren
+        # 5. Ensure guppyconfig.json exists after first start & synchronize port
         if [ ! -f "$GUPPY_SCREEN_FOLDER/guppyconfig.json" ] && [ -f "$USR_DATA/guppyconfig.json" ]; then
           mv "$USR_DATA/guppyconfig.json" "$GUPPY_SCREEN_FOLDER/guppyconfig.json"
         fi
@@ -134,7 +134,7 @@ function update_guppyscreen(){
     echo -e "${white}"
     case "${yn}" in
       Y|y)
-        # 1. Aktuellen Moonraker-Port auslesen (7126 oder 7125)
+        # 1. Read current Moonraker port (7126 or 7125)
         local real_port=7126
         if [ -f "$MOONRAKER_CFG" ]; then
           local detected_port=$(grep -A 5 "^\[server\]" "$MOONRAKER_CFG" | grep "^port:" | awk '{print $2}' | tr -d '\r')
@@ -143,7 +143,7 @@ function update_guppyscreen(){
           fi
         fi
 
-        # 2. Lokale sed-Änderungen zurücksetzen & neuestes Update ziehen
+        # 2. Reset local sed modifications & pull latest update
         echo -e "Info: Pulling latest updates from GuppyScreen repository..."
         git config --global http.sslVerify false
         if [ -d "$GUPPY_SCREEN_SOURCE/.git" ]; then
@@ -162,11 +162,11 @@ function update_guppyscreen(){
           sed -i "s/7125/$real_port/g" "$GUPPY_SCREEN_SOURCE/init/S57guppy_service"
         fi
 
-        # 4. Idempotenten Installer ausführen (aktualisiert nur geänderte Dateien & schont guppyconfig.json)
+        # 4. Run idempotent installer (updates only changed files & preserves guppyconfig.json)
         echo -e "Info: Applying update..."
         "$GUPPY_SCREEN_SOURCE/installer/install.sh"
 
-        # 5. Sicherstellen, dass der Port in guppyconfig.json erhalten bleibt
+        # 5. Ensure the port is preserved in guppyconfig.json
         if [ "$real_port" != "7125" ] && [ -f "$GUPPY_SCREEN_FOLDER/guppyconfig.json" ]; then
           if grep -q "7125" "$GUPPY_SCREEN_FOLDER/guppyconfig.json"; then
             sed -i "s/7125/$real_port/g" "$GUPPY_SCREEN_FOLDER/guppyconfig.json"

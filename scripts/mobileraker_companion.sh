@@ -30,7 +30,7 @@ function install_mobileraker_companion(){
         echo -e "${white}"
         if ! check_ram_requirement "Mobileraker Companion" 22; then return; fi
 
-        # 1. Dynamische Moonraker-Python-Umgebung ermitteln (wie bei Obico & OctoEverywhere)
+        # 1. Detect dynamic Moonraker Python environment (same as Obico & OctoEverywhere)
         echo -e "Info: Detecting Moonraker Python Environment..."
         local active_python=$(ps w | grep moonraker | grep -v grep | awk '{print $5}')
         if [ -z "$active_python" ] || [ ! -f "$active_python" ]; then
@@ -42,7 +42,7 @@ function install_mobileraker_companion(){
         fi
         echo -e "Info: Nutze Python-Umgebung: $active_python"
 
-        # 2. RAM freimachen & schwergewichtige Dienste temporär stoppen
+        # 2. Free RAM & temporarily stop heavy services
         echo -e "Info: Freeing up physical RAM..."
         killall -9 go2rtc_linux_mipsel >/dev/null 2>&1 || true
         killall -9 alchemistp >/dev/null 2>&1 || true
@@ -60,7 +60,7 @@ function install_mobileraker_companion(){
         fi
         git clone --depth 1 "$MOBILERAKER_COMPANION_URL" "$MOBILERAKER_COMPANION_FOLDER"
 
-        # 3. Abhängigkeiten RAM-schonend in die Moonraker-Python-Umgebung installieren
+        # 3. Install dependencies into Moonraker Python environment with low RAM footprint
         echo -e "Info: Installing Mobileraker dependencies..."
         local TMP_REQ="/tmp/mobileraker-requirements.txt"
         if [ -f "$MOBILERAKER_COMPANION_FOLDER/scripts/mobileraker-requirements.txt" ]; then
@@ -92,7 +92,7 @@ moonraker_uri = ws://127.0.0.1:$real_port/websocket
 moonraker_api_key = False
 EOF
 
-        # 5. Persistentes Startskript mit Boot-Verzögerung und $active_python schreiben
+        # 5. Write persistent init script with boot delay and $active_python
         echo -e "Info: Writing persistent startup script..."
         cat << EOF > "$MOBILERAKER_INIT_SCRIPT"
 #!/bin/sh

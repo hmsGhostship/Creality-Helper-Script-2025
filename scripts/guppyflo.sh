@@ -73,7 +73,7 @@ EOF
         echo -e "Info: Starting GuppyFLO service..."
         "$INITD_FOLDER"/S99guppyflo start > /dev/null 2>&1 || true
         
-        # -> DER NEUE, VOLLSTÄNDIGE INFO-BLOCK FÜR DEINEN REPOSITORY-STANDARD:
+        # -> NEW COMPLETE INFO BLOCK MATCHING REPOSITORY STANDARD:
         ok_msg "GuppyFLO has been installed successfully!"
         echo -e "   ----------------------------------------------------------------"
         echo -e "   Local Access:  ${yellow}http://\$(check_ipaddress):9873${white}"

@@ -86,7 +86,7 @@ function main_menu() {
          elif [ "$model" = "K1_2025_CFS-C" ]; then 
            install_menu_k1_2025_cfs_c
          fi
-         clear; main_menu_ui ;; # Zeigt das Menü nach der Aktion wieder an
+         clear; main_menu_ui ;; # Re-displays the menu after the action
       2) 
          clear
          if [ "$model" = "K1_2025" ]; then
@@ -114,7 +114,7 @@ function main_menu() {
          elif [ "$model" = "K1_2025_CFS-C" ]; then 
            tools_menu_k1_2025_cfs_c
          fi
-         clear; main_menu_ui ;; # Hinweis: "main_ui" wurde hier zu "main_menu_ui" korrigiert
+         clear; main_menu_ui ;; # Note: "main_ui" was corrected to "main_menu_ui" here
       6) 
          clear
          if [ "$model" = "K1_2025" ]; then

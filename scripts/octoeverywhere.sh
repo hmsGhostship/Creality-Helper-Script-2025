@@ -30,7 +30,7 @@ function install_octoeverywhere(){
       Y|y)
         echo -e "${white}"
 
-        # 0. RAM-Wächter prüfen (35 MB Dauerbedarf + 15 MB Reserve)
+        # 0. Check RAM guard (35 MB steady usage + 15 MB reserve)
         if ! check_ram_requirement "OctoEverywhere" 35; then return; fi
 
         # 1. Dynamische Moonraker-Python-Umgebung ermitteln
@@ -46,7 +46,7 @@ function install_octoeverywhere(){
         local active_venv=$(dirname "$(dirname "$active_python")")
         echo -e "Info: Nutze Python-Umgebung: $active_python"
 
-        # 2. RAM freimachen & Klipper temporär stoppen (für pip-Installation)
+        # 2. Free RAM & temporarily stop Klipper (for pip installation)
         echo -e "Info: Stopping Klipper and Creality services to secure CPU & RAM..."
         if [ -f "/usr/apps/etc/init.d/CS55klipper_service" ]; then
           /usr/apps/etc/init.d/CS55klipper_service stop >/dev/null 2>&1 || true
@@ -65,7 +65,7 @@ function install_octoeverywhere(){
         git config --global http.sslVerify false
         git clone --depth 1 "$OCTOEVERYWHERE_URL" "$OCTOEVERYWHERE_FOLDER"
 
-        # 4. Abhängigkeiten RAM-schonend in die Moonraker-Python-Umgebung installieren
+        # 4. Install dependencies into Moonraker Python environment with low RAM footprint
         echo -e "Info: Installing OctoEverywhere dependencies..."
         local TMP_REQ="/tmp/octo-req.txt"
         if [ -f "$OCTOEVERYWHERE_FOLDER/requirements.txt" ]; then
@@ -144,12 +144,12 @@ rotate = 0
 moonraker_api_key =
 EOF
 
-        # 6. Moonraker-Konfiguration bereinigen (kein veralteter [octoeverywhere]-Header nötig)
+        # 6. Clean up Moonraker configuration (no legacy [octoeverywhere] header needed)
         if [ -f "$MOONRAKER_CFG" ]; then
           sed -i '/^\[octoeverywhere\]$/d' "$MOONRAKER_CFG" 2>/dev/null || true
         fi
 
-        # 7. Persistentes Startskript mit Base64-JSON-Konfiguration & Boot-Verzögerung
+        # 7. Write persistent init script with Base64 JSON config & boot delay
         echo -e "Info: Writing persistent startup script..."
         local OCTO_INIT_SCRIPT="${INITD_FOLDER}/S99octoeverywhere"
         local B64_ARGS

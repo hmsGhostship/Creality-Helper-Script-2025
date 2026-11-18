@@ -21,7 +21,7 @@ function install_backup_macros(){
     case "${yn}" in
       Y|y)
         echo -e "${white}"
-        # Löscht alte Reste, falls vorhanden
+        # Remove old leftovers if present
         if [ -f "$BACKUP_MACROS_TARGET_FILE" ]; then
           rm -f "$BACKUP_MACROS_TARGET_FILE"
         fi
@@ -29,10 +29,10 @@ function install_backup_macros(){
           mkdir -p "$HS_CONFIG_FOLDER"
         fi
         echo -e "Info: Linking file..."
-        # Verknüpft direkt deine sichere, lokale Backup-Datei ohne 3V3/K1-Online-Weichen
+        # Directly copies safe local backup macro file without 3V3/K1 online branches
         ln -sf "$BACKUP_MACROS_SORCE_FILE" "$BACKUP_MACROS_TARGET_FILE"
         
-        # Holt den reinen Dateinamen (backup-macros.cfg) für das printer.cfg include
+        # Extract plain filename (backup-macros.cfg) for printer.cfg include
         local cfg_filename=$(basename "$BACKUP_MACROS_TARGET_FILE")
         
         if grep -q "include Helper-Script/$cfg_filename" "$PRINTER_CFG" ; then

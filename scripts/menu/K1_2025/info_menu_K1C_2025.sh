@@ -131,11 +131,11 @@ function check_content_k1_2025() {
 }
 
 function check_camera_capabilities_k1_2025() {
-  # 1. Wir prüfen im RAM, welcher mjpg_streamer-Port aktiv atmet
+  # 1. Check in RAM which mjpg_streamer port is actively running
   if ps -w | grep '[m]jpg_streamer' | grep -q "video2"; then
-    return 0 # USB-Fix läuft aktiv
+    return 0 # USB fix is actively running
   elif ps -w | grep '[m]jpg_streamer' | grep -q "video0"; then
-    return 0 # Chassis-Fix läuft aktiv
+    return 0 # Chassis fix is actively running
   fi
 
   # 2. Fallback: If no fix works, we’ll perform a quick hardware scan

@@ -36,7 +36,7 @@ function install_nozzle_cleaning_fan_control(){
           mkdir -p "$HS_CONFIG_FOLDER"
         fi
         
-        # Makro-Konfiguration physisch in den Config-Ordner kopieren
+        # Physically copy macro configuration into the config folder
         cp -f "$HS_FILES/macros/nozzle-cleaning-fan-control.cfg" "$HS_CONFIG_FOLDER"/nozzle-cleaning-fan-control.cfg
         if grep -q "include Helper-Script/nozzle-cleaning-fan-control" "$PRINTER_CFG" ; then
           echo -e "Info: Nozzle Cleaning Fan Control configurations are already enabled in printer.cfg file..."

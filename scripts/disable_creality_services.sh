@@ -92,7 +92,7 @@ function creality_services_absent() {
   return 0
 }
 
-# Eigene Menü-Prüfungen für mDNS
+# Custom menu checks for mDNS
 function creality_mdns_absent() {
   if [ -f "$CREALITY_MDNS_SERVICE" ] || [ -f "$(creality_service_disabled_path "$CREALITY_MDNS_SERVICE")" ]; then
     return 1
@@ -386,7 +386,7 @@ function restore_creality_services(){
           return
         fi
 
-        # 1. Built-in Camera Fix auf /dev/video0 prüfen
+        # 1. Check Built-in Camera Fix on /dev/video0
         if creality_builtin_camera_fix_installed; then
           if [ -f "$(creality_service_disabled_path "$CREALITY_CLOUD_WEBRTC_SERVICE")" ] || [ -f "$(creality_service_disabled_path "$CREALITY_LOCAL_WEBRTC_SERVICE")" ]; then
             echo -e " ${yellow}Warning: the Built-in Camera Fix is currently installed!${white}"
@@ -413,7 +413,7 @@ function restore_creality_services(){
           fi
         fi
 
-        # 2. Go2rtc im chassis-Modus auf /dev/video0 prüfen
+        # 2. Check Go2rtc in chassis mode on /dev/video0
         if [ "$(get_go2rtc_mode_k1_2025 2>/dev/null)" = "chassis" ]; then
           if [ -f "$(creality_service_disabled_path "$CREALITY_CLOUD_WEBRTC_SERVICE")" ] || [ -f "$(creality_service_disabled_path "$CREALITY_LOCAL_WEBRTC_SERVICE")" ]; then
             echo -e " ${yellow}Warning: Go2rtc is currently using the built-in chassis camera!${white}"

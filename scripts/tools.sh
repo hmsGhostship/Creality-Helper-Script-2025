@@ -437,7 +437,7 @@ function ensure_respond_module(){
   fi
 }
 
-# Liefert den aktuell verfügbaren Arbeitsspeicher in MB (inkl. freigebbarem Cache)
+# Returns currently available RAM in MB (including reclaimable cache)
 function get_available_ram_mb() {
   local avail_kb
   avail_kb=$(awk '/^MemAvailable:/ {print $2}' /proc/meminfo 2>/dev/null)

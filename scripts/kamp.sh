@@ -25,14 +25,14 @@ function install_kamp(){
       Y|y)
         echo -e "${white}"
         
-        # Sicherheits-Check: Existiert der KAMP-Quellordner im Repository?
+        # Safety check: Does the KAMP source folder exist in the repository?
         local kamp_source_dir="$HS_FILES/KAMP"
         if [ ! -d "$kamp_source_dir" ]; then
           error_msg "Error: KAMP source directory not found at $kamp_source_dir!"
           return 1
         fi
 
-        # Falls ein alter KAMP-Ordner existiert, sauber entfernen
+        # If an old KAMP folder exists, remove it cleanly
         if [ -d "$HS_CONFIG_FOLDER"/KAMP ]; then
           rm -rf "$HS_CONFIG_FOLDER"/KAMP
         fi
@@ -98,8 +98,8 @@ function remove_kamp(){
       Y|y)
         echo -e "${white}"
         
-        # Löscht gezielt NUR den KAMP-Unterordner im Helper-Script-Verzeichnis!
-        # Deine anderen Makros (wie das Git-Backup) im Hauptordner bleiben absolut sicher!
+        # Targeted removal of ONLY the KAMP subfolder inside Helper-Script!
+        # All other macros (such as Git-Backup) in the main directory remain completely safe!
         echo -e "Info: Removing KAMP files..." 
         rm -rf "$HS_CONFIG_FOLDER"/KAMP
         

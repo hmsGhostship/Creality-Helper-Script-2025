@@ -23,7 +23,7 @@ function install_gcode_shell_command(){
       Y|y)
         echo -e "${white}"
         
-        # Sicherheits-Check: Existiert die lokale Quelldatei am definierten Pfad?
+        # Safety check: Does the local source file exist at the defined path?
         if [ ! -f "$KLIPPER_SHELL_URL" ]; then
           error_msg "Error: Source file not found at $KLIPPER_SHELL_URL!"
           return 1

@@ -269,7 +269,7 @@ function install_usb_camera(){
         echo -e "Info: Starting service..."
         "$USB_CAMERA_FILE" start
         
-        # ZENTRALER FIRMWARE RESTART TRIGERÜBERGABE FÜR SYNCHRONISIERUNG:
+        # CENTRAL FIRMWARE RESTART TRIGGER HANDOFF FOR SYNCHRONIZATION:
         trigger_klipper_firmware_restart
         
         ok_msg "USB Camera Support has been installed successfully!"
@@ -330,7 +330,7 @@ function install_builtin_camera(){
         echo -e "Info: Starting service..."
         "$BUILTIN_CAMERA_FILE" start
         
-        # ZENTRALER FIRMWARE RESTART TRIGERÜBERGABE FÜR SYNCHRONISIERUNG:
+        # CENTRAL FIRMWARE RESTART TRIGGER HANDOFF FOR SYNCHRONIZATION:
         trigger_klipper_firmware_restart
         
         ok_msg "Built-in Camera Fix has been installed successfully!"
@@ -396,7 +396,7 @@ function remove_builtin_camera(){
         fi
         # ====================================================================
 
-        # ZENTRALER FIRMWARE RESTART TRIGERÜBERGABE FÜR SYNCHRONISIERUNG:
+        # CENTRAL FIRMWARE RESTART TRIGGER HANDOFF FOR SYNCHRONIZATION:
         trigger_klipper_firmware_restart
 
         ok_msg "Built-in Camera Fix has been removed successfully!"
@@ -459,7 +459,7 @@ function remove_usb_camera(){
         # ====================================================================
 
         # ====================================================================
-        # ERST JETZT GANZ AM ENDE WERDEN DIE DATEIEN RESTLOS GELÖSCHT!
+        # ONLY NOW AT THE VERY END ARE THE FILES COMPLETELY REMOVED!
         # ====================================================================
         echo -e "Info: Removing file..."
         rm -f "$USB_CAMERA_FILE"
@@ -468,7 +468,7 @@ function remove_usb_camera(){
         sync_octoeverywhere_camera_k1_2025
         # ====================================================================
 
-        # ZENTRALER FIRMWARE RESTART TRIGERÜBERGABE FÜR SYNCHRONISIERUNG:
+        # CENTRAL FIRMWARE RESTART TRIGGER HANDOFF FOR SYNCHRONIZATION:
         trigger_klipper_firmware_restart
 
         ok_msg "USB Camera Support has been removed successfully!"

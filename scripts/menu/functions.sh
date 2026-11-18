@@ -67,14 +67,14 @@ function unavailable_menu_option() {
   local menu_text2="$3"
   local reason="$4"
 
-  # Zeile 1: Ausgegrauter Menüpunkt mit automatischer Breitenberechnung
+  # Line 1: Greyed-out menu item with automatic width calculation
   local max_length=62
   local total_text_length=$(( ${#menu_text1} + ${#menu_text2} + ${#menu_number} + 4 ))
   local padding=$((max_length - total_text_length))
   [ "$padding" -lt 1 ] && padding=1
   printf " │   ${darkgrey}${menu_number}) ${menu_text1} ${menu_text2}%-${padding}s${white}│\n" ''
 
-  # Zeile 2: Optionaler roter Hinweis darunter (z. B. DISABLED: ...)
+  # Line 2: Optional red notice underneath (e.g. DISABLED: ...)
   if [ -n "$reason" ]; then
     local reason_prefix="      └─ "
     local reason_max=64

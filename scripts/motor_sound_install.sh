@@ -21,13 +21,13 @@ function install_motor_sound(){
       Y|y)
         echo -e "${white}"
         
-        # Sicherheits-Check: Existiert die Quelldatei überhaupt?
+        # Safety check: Does the source file exist?
         if [ ! -f "$MOTOR_SOUND_SORCE_FILE" ]; then
           error_msg "Error: Source macro not found at $MOTOR_SOUND_SORCE_FILE!"
           return 1
         fi
 
-        # Sicherstellen, dass das Zielverzeichnis physisch existiert
+        # Ensure target directory physically exists
         if [ ! -d "$HS_CONFIG_FOLDER" ]; then
           mkdir -p "$HS_CONFIG_FOLDER"
         fi
@@ -36,7 +36,7 @@ function install_motor_sound(){
         echo -e "Info: Copying macro file to configuration directory..."
         cp -f "$MOTOR_SOUND_SORCE_FILE" "$MOTOR_SOUND_TARGET_FILE"
         
-        # Holt den reinen Dateinamen (z.B. motor-sound.cfg) für das printer.cfg include
+        # Extract plain filename (e.g. motor-sound.cfg) for printer.cfg include
         local cfg_filename=$(basename "$MOTOR_SOUND_TARGET_FILE")
         
         if grep -q "include Helper-Script/$cfg_filename" "$PRINTER_CFG" ; then
@@ -69,7 +69,7 @@ function remove_motor_sound(){
       Y|y)
         echo -e "${white}"
         
-        # Physisches Löschen der kopierten Konfigurationsdatei
+        # Physically delete the copied configuration file
         echo -e "Info: Removing macro file..."
         rm -f "$MOTOR_SOUND_TARGET_FILE"
         
@@ -82,7 +82,7 @@ function remove_motor_sound(){
           echo -e "Info: Motor Sound configurations are already removed in printer.cfg file..."
         fi
         
-        # Ordner aufräumen, falls er nach dem Löschen komplett leer sein sollte
+        # Clean up folder if completely empty after deletion
         if [ -d "$HS_CONFIG_FOLDER" ] && [ ! -n "$(ls -A "$HS_CONFIG_FOLDER")" ]; then
           rm -rf "$HS_CONFIG_FOLDER"
         fi

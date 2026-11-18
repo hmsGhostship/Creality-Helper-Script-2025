@@ -14,12 +14,12 @@ else
   exit 1
 fi
 
-# == NEU: Wir definieren die Funktion detect_model zuerst hier oben ==
+# == NEW: Define the detect_model function up here first ==
 function detect_model() {
   if (command -v get_sn_mac.sh > /dev/null); then
     get_model=$( get_sn_mac.sh model 2>&1 || echo "")
     
-    # Automatische CFS-C Erkennung über die printer.cfg
+    # Automatic CFS-C detection via printer.cfg
     if [ -z "$get_model" ] && get_sn_mac.sh model_str 2>&1 | grep -iq 'K1' && grep -q 'mb-料盒' /usr/data/printer_data/config/printer.cfg; then
       model="K1_2025_CFS-C"
     
@@ -34,11 +34,11 @@ function detect_model() {
   echo "Detected model: $model"
 }
 
-# == JETZT rufen wir beide Funktionen auf ==
+# == NOW call both functions ==
 detect_model
 set_paths
 
-# == ERST HIER folgt die Schleife für deine Skripte ==
+# == ONLY HERE follows the sourcing loop for scripts ==
 for script in "${HELPER_SCRIPT_FOLDER}/scripts/"*.sh; do . "${script}"; done
 # ===================================================
 

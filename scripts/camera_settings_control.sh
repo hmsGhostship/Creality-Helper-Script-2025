@@ -22,11 +22,11 @@ function install_camera_settings_control(){
       Y|y)
         echo -e "${white}"
         
-        # INTELLIGENTE HARDWARE-ERKENNUNG VOR DER INSTALLATION
+        # INTELLIGENT HARDWARE DETECTION BEFORE INSTALLATION
         echo -e "Info: Scanning hardware for compatible camera registers..."
         local REG_FOUND=0
         
-        # Wir prüfen kurz, ob video0 oder video2 auf v4l2-ctl antworten
+        # Briefly check whether video0 or video2 responds to v4l2-ctl
         if v4l2-ctl -d /dev/video0 --list-ctrls 2>/dev/null | grep -q "brightness" || \
            v4l2-ctl -d /dev/video2 --list-ctrls 2>/dev/null | grep -q "brightness"; then
           REG_FOUND=1
@@ -50,7 +50,7 @@ function install_camera_settings_control(){
         if [ "$model" = "K1_2025" ] || [ "$model" = "K1_2025_CFS-C" ]; then
           cp "$CAMERA_SETTINGS_K1_2025_URL" "$HS_CONFIG_FOLDER"/camera-settings.cfg
         else
-          # Universeller Zukunfts-Fallback für nachfolgende Modelle (K2, etc.)
+          # Universal future fallback for subsequent models (K2, etc.)
           cp "$CAMERA_SETTINGS_K1_2025_URL" "$HS_CONFIG_FOLDER"/camera-settings.cfg
         fi
         local v0_flag="False"

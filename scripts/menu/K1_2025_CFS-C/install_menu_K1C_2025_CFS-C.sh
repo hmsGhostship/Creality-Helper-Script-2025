@@ -307,7 +307,7 @@ function install_menu_k1_2025_cfs_c() {
         clear
         disabled_feature
         continue
-        # C13-Check: Nutzt deine globale Variable aus der paths.sh
+        # C13 check: Uses global variable from paths.sh
         if [ -d "$IMP_SHAPERS_FOLDER" ]; then
           error_msg "Improved Shapers Calibrations (C13 Edition) are already installed!"
           echo
@@ -315,7 +315,7 @@ function install_menu_k1_2025_cfs_c() {
           error_msg "Guppy Screen already has these features!"
           echo
         else
-          # Startet die bereinigte, schreibfeste C13-Installationsroutine
+          # Starts the cleaned, read-only-safe C13 installation routine
           run "install_improved_shapers" "install_menu_ui_k1_2025_cfs_c"
         fi;;
       22)

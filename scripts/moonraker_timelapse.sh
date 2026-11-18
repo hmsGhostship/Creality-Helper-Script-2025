@@ -108,7 +108,7 @@ function install_moonraker_timelapse(){
           echo -e "snapshoturl: ${SNAP_URL}" >> "$MOONRAKER_CFG"
         fi
         
-        # -> AUTOMATISCHES ENTWARE-FFMPEG SETUP FÜR NATIVEN CODER-SUPPORT
+        # -> AUTOMATIC ENTWARE-FFMPEG SETUP FOR NATIVE ENCODER SUPPORT
         if [ -f "/opt/bin/ffmpeg" ]; then
           echo -e "Info: Full-featured Entware ffmpeg detected. Ready for web-native streaming."
         else

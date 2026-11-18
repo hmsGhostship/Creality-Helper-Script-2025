@@ -82,7 +82,7 @@ elif [ "$INSTALL" = 1 ]; then
         fi
     fi
     # ==============================================================================
-    # DATEN-KOPIEREN AN DEN ANFANG GEZOGEN (Damit 'remove' bei Abbruch immer funktioniert)
+    # MOVED FILE COPY TO THE BEGINNING (So 'remove' always works if aborted)
     # ==============================================================================
     TARGET="$PRINTER_DATA_FOLDER"/config
     
@@ -97,14 +97,14 @@ elif [ "$INSTALL" = 1 ]; then
         echo "Info: Git Backup configurations are already enabled..."
     else
         echo "Info: Adding Git Backup configurations safely to printer.cfg..."
-        # SAUBERER FIX: Kein riskantes Überschreiben der Datei mehr! 
-        # Wir hängen das Include einfach zerstörungsfrei ans Ende an.
+        # CLEAN FIX: No risky overwriting of the file anymore! 
+        # Append the include non-destructively at the end.
         echo -e "\n[include Helper-Script/git-backup.cfg]" >> "$PRINTER_CFG"
     fi
 
     # ==============================================================================
 
-    # Erst JETZT starten die interaktiven Abfragen
+    # Interactive prompts start ONLY NOW
     echo "${white}"
     read -p " Please enter your ${green}GitHub username${white}: " USER_NAME
     while [ -z "$USER_NAME" ]; do read -p " Username: " USER_NAME; done
@@ -137,7 +137,7 @@ elif [ "$INSTALL" = 1 ]; then
     PROT_PREFIX="https://"
     git remote add origin "${PROT_PREFIX}${USER_NAME}:${GITHUB_TOKEN}@${GITH_URL}/${USER_NAME}/${REPO_NAME}.git" 2>/dev/null || true
     
-    # SAUBERE BRANCH-WEICHE: Verhindert doppeltes Anlegen und Abstürze
+    # CLEAN BRANCH SWITCH: Prevents duplicate creation and crashes
     if git show-ref --verify --quiet "refs/heads/$REPO_BRANCH"; then
         echo "Info: Branch $REPO_BRANCH already exists, switching to it..."
         git checkout "$REPO_BRANCH"
@@ -165,14 +165,14 @@ elif [ "$INSTALL" = 1 ]; then
     echo "BRANCH=$REPO_BRANCH" >> "$ENV"
     echo "USER=$USER_NAME" >> "$ENV"
     
-    # Umgebungsvariablen in die S52Git-Backup eintragen
+    # Write environment variables into S52Git-Backup
     sed -i "2i source $ENV" "$INITD_FOLDER"/S52Git-Backup
     
     echo "Info: Starting Git Backup service..."
     chmod +x "$INITD_FOLDER"/S52Git-Backup
     "$INITD_FOLDER"/S52Git-Backup start >/dev/null 2>&1
     
-    # NEU: Signalisiert dem Hauptmenü den echten Installations-Erfolg
+    # NEW: Signals actual installation success to the main menu
     touch /tmp/git_backup_success
     
     echo "${white}${green} ✓ Git Backup has been installed successfully!${white}"
@@ -204,7 +204,7 @@ else
   PUSH_CMD=""
 fi
 
-# BACKGROUND DAEMON LOOP - Aktiviert das automatische Live-Backup im Hintergrund
+# BACKGROUND DAEMON LOOP - Enables automatic live backup in the background
 timeout() { sleep "5" & timeout_pid=$! ; trap 'kill $timeout_pid 2>/dev/null' EXIT; wait $timeout_pid 2>/dev/null; }
 
 while true; do
