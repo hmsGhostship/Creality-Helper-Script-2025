@@ -39,8 +39,14 @@ wait_for_cfs_retract_done() {
   echo "Warning: Timed out waiting for CFS-C retract verification - pausing nexusp anyway."
 }
 
+is_cfs_slot_loaded() {
+  local db_resp
+  db_resp=$("$CURL_BIN" -s --max-time 2 "http://localhost:7125/server/database/item?namespace=color_box&key=box_info" 2>/dev/null)
+  echo "$db_resp" | grep -Eq '"filament"[[:space:]]*:[[:space:]]*"[^"]+"' && ! echo "$db_resp" | grep -Eq '"filament"[[:space:]]*:[[:space:]]*("None"|"null"|"")'
+}
+
 start_nexusp_now() {
-  if query_sensor_true "lll_plus_sensor"; then
+  if [ "${BYPASS_LLL_SENSOR:-0}" != "1" ] && query_sensor_true "lll_plus_sensor"; then
     echo "BLOCKED: Filament is still inserted in FLY-LLL Plus (PD7)! Remove external filament first."
     return 1
   fi
@@ -75,7 +81,10 @@ boot_check_and_start() {
   while [ "$i" -lt 60 ]; do
     [ -f /tmp/lll_boot_locked ] && exit 0
     if [ -f /tmp/lll_boot_decided ]; then FORCE_NEXUSP=1 sh "$NEXUSP_SVC" start >/dev/null 2>&1; exit 0; fi
-    if query_sensor_true "lll_plus_sensor"; then touch /tmp/lll_boot_locked; exit 0; fi
+    if query_sensor_true "lll_plus_sensor"; then
+      if is_cfs_slot_loaded; then touch /tmp/lll_boot_decided; FORCE_NEXUSP=1 sh "$NEXUSP_SVC" start >/dev/null 2>&1; exit 0; fi
+      touch /tmp/lll_boot_locked; exit 0
+    fi
     if query_sensor_false "lll_plus_sensor"; then touch /tmp/lll_boot_decided; FORCE_NEXUSP=1 sh "$NEXUSP_SVC" start >/dev/null 2>&1; exit 0; fi
     sleep 1; i=$((i + 1))
   done
@@ -131,7 +140,7 @@ function remove_lll_nexusp_guard() {
 case "$1" in
   boot-guard) boot_check_and_start ;;
   boot-lock) touch /tmp/lll_boot_locked; stop_nexusp_now ;;
-  boot-release) touch /tmp/lll_boot_decided; start_nexusp_now ;;
+  boot-release) touch /tmp/lll_boot_decided; BYPASS_LLL_SENSOR=1 start_nexusp_now ;;
   on) start_nexusp_now ;;
   off) stop_nexusp_now ;;
   off-after-retract) WAIT_RETRACT=1 stop_nexusp_now ;;
