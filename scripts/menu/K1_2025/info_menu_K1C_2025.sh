@@ -207,7 +207,7 @@ function info_menu_ui_k1_2025() {
   info_line "$(check_live_status_k1_2025 "^\[include Helper-Script/dxc_sensor.cfg\]")" 'DXC Filament Sensor'
   info_line "$(check_file_k1_2025 "$HS_BACKUP_FOLDER/box_control.pyc.orig")" 'CFS-C Universal Purge Speed Fix'
   info_line "$(check_file_k1_2025 "$HS_BACKUP_FOLDER/box.cfg.orig")" 'CFS-C Purge Volume Fix (Prime Tower)'
-  info_line "$(check_live_status_k1_2025 "^\[include Helper-Script/lll_plus_sensor_nocfs.cfg\]")" 'FLY-LLL PLUS Safetysystem'
+#  info_line "$(check_live_status_k1_2025 "^\[include Helper-Script/lll_plus_sensor_nocfs.cfg\]")" 'FLY-LLL PLUS Safetysystem'
   hr
   subtitle '•TOOLS & CALIBRATION:'
   info_line "$(check_file_k1_2025 "$KLIPPER_SERVICE_DISABLED")" 'Prevent updating Klipper configuration files'
