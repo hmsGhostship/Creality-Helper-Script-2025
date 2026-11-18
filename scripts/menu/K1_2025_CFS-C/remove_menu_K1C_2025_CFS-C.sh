@@ -216,8 +216,26 @@ function remove_menu_k1_2025_cfs_c() {
         if ! grep -q "^\[include Helper-Script/cfs_lll_safety.cfg\]" "$PRINTER_CFG" 2>/dev/null; then
             error_msg "FLY-LLL Plus Safety System & Nexusp Auto-Switch is not active in printer.cfg!"
             echo
+        elif curl -s --max-time 2 "http://localhost:7126/printer/objects/query?filament_switch_sensor%20lll_plus_sensor" 2>/dev/null | grep -Eq '"filament_detected"[[:space:]]*:[[:space:]]*true'; then
+            error_msg "REMOVE LOCKED: External filament is still inserted in FLY-LLL Plus (PD7)!"
+            echo -e "  ${yellow}Please remove the external filament from the FLY-LLL Plus & extruder path first,${white}"
+            echo -e "  ${yellow}otherwise reactivating nexusp / CFS-C could cause a filament collision!${white}"
+            echo
         else
-            title "[ REMOVE: FLY-LLL PLUS SAFETYSYSTEM ]" "${yellow}"
+            title "[ REMOVE: FLY-LLL PLUS SAFETY & AUTO-SWITCH ]" "${yellow}"
+            echo -e "  ${yellow}WARNING:${white} Uninstalling will immediately reactivate ${cyan}nexusp / CFS-C${white}."
+            echo -e "  Please ensure ${red}NO filament${white} is inserted in the FLY-LLL Plus or external feed path!"
+            echo
+            printf "  Confirm external spool path is completely empty to continue [y/N]: "
+            read -r confirm_lll_empty
+            case "$confirm_lll_empty" in
+              Y|y) ;;
+              *)
+                error_msg "Removal canceled! Please verify external filament path is empty first."
+                echo
+                continue
+                ;;
+            esac
             echo -e "  Removing configuration files & Nexusp Auto-Switch..."
             rm -f /usr/data/printer_data/config/Helper-Script/cfs_lll_safety.cfg
             rm -f /usr/data/printer_data/config/Helper-Script/lll-plus-nexusp-switch.cfg
