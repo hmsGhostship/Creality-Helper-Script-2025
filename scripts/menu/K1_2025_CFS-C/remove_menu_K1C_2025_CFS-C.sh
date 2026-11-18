@@ -213,7 +213,7 @@ function remove_menu_k1_2025_cfs_c() {
 #        disabled_feature
 #        continue
         # 1. CHECK: Is the LLL Plus actually live and active?
-        elif ! grep -q "^\[include Helper-Script/cfs_lll_safety.cfg\]" "$PRINTER_CFG" 2>/dev/null; then
+        if ! grep -q "^\[include Helper-Script/cfs_lll_safety.cfg\]" "$PRINTER_CFG" 2>/dev/null; then
             error_msg "FLY-LLL PLUS Safetysystem is not active in printer.cfg!"
             echo
         else
