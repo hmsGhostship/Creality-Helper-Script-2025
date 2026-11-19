@@ -26,7 +26,7 @@
 <body>
   <div class="card">
     <h1>FLY-LLL Plus Configurator <span id="st" class="status">Disconnected</span></h1>
-    <p class="sub">Configure Bowden lengths, feed speed, and startup mode over USB-C and save permanently to STM32 Flash (Chrome / Edge).</p>
+    <p class="sub">Configure your Bowden tube lengths, speed, and startup mode over USB-C and save permanently to STM32 Flash (Chrome / Edge via file:///...). <b>Important:</b> Disconnect the 4-pin 24V printer cable before plugging in USB-C.</p>
     <div class="btns">
       <button id="btnConn">Connect USB</button>
       <button id="btnRead" class="sec" disabled>Read Current</button>
@@ -37,9 +37,9 @@
 
   <div class="card">
     <div class="row"><label>Feed &amp; Retract Speed (mm/s)<small>Default: 55 mm/s</small></label><input id="speed" type="number" step="1" min="5" max="150" value="55"></div>
-    <div class="row"><label>Y-Splitter Distance (mm)<small>Switch &rarr; Y-splitter junction (e.g. 300 mm)</small></label><input id="y_dist" type="number" step="5" min="0" max="5000" value="300"></div>
-    <div class="row"><label>Collision Threshold (mm)<small>Must be between Y-splitter and extruder (0 = disabled)</small></label><input id="min_feed_dist" type="number" step="5" min="0" max="5000" value="450"></div>
-    <div class="row"><label>Full Retract Distance (mm)<small>Switch &rarr; Extruder drive gears (e.g. 1000 mm)</small></label><input id="full_dist" type="number" step="5" min="10" max="5000" value="1000"></div>
+    <div class="row"><label>Y-Splitter Distance (mm)<small>Measure from the internal filament switch inside the FLY-LLL Plus along the PTFE tube to the Y-splitter junction (e.g. 300 mm). Set to 0 if no Y-splitter is installed.</small></label><input id="y_dist" type="number" step="5" min="0" max="5000" value="300"></div>
+    <div class="row"><label>Collision Threshold (mm)<small>Measure from the FLY-LLL Plus filament switch to ~150 mm past the Y-splitter, before the extruder (e.g. 450 mm). Resistance before this point triggers auto-retract. Set to 0 to disable.</small></label><input id="min_feed_dist" type="number" step="5" min="0" max="5000" value="450"></div>
+    <div class="row"><label>Full Retract Distance (mm)<small>Total PTFE path measured from the FLY-LLL Plus filament switch all the way to the extruder drive gears (e.g. 1000 mm). Enter actual measured length; tolerances below are added automatically.</small></label><input id="full_dist" type="number" step="5" min="10" max="5000" value="1000"></div>
     <div class="row"><label>Slip Compensation (mm)<small>Extra distance buffer for gear slip (Default: 20 mm)</small></label><input id="slip_comp" type="number" step="1" min="0" max="500" value="20"></div>
     <div class="row"><label>Motor Ramp Offset (ms)<small>Acceleration time compensation (Default: 500 ms)</small></label><input id="ramp_ms" type="number" step="50" min="0" max="5000" value="500"></div>
     <div class="row"><label>Power-On Insert Mode<small>Manual Insert waits for 1-click Forward</small></label>
