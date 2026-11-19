@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>FLY-LLL Plus USB Configurator</title>
+<style>
+  body { font-family: system-ui, sans-serif; background: #14161a; color: #e5e7eb; max-width: 640px; margin: 32px auto; padding: 0 16px; }
+  .card { background: #1f2329; border: 1px solid #2e343d; border-radius: 10px; padding: 20px; margin-bottom: 16px; }
+  h1 { font-size: 1.35rem; margin: 0 0 8px; }
+  p.sub { color: #9ca3af; font-size: 0.9rem; margin: 0 0 16px; }
+  .row { display: grid; grid-template-columns: 1fr 140px; gap: 12px; align-items: center; margin-bottom: 12px; }
+  label { font-size: 0.92rem; }
+  small { display: block; color: #9ca3af; font-size: 0.78rem; }
+  input[type="number"], select { background: #111317; border: 1px solid #374151; color: #fff; padding: 7px 10px; border-radius: 6px; font-size: 0.95rem; width: 100%; box-sizing: border-box; }
+  .btns { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+  button { background: #2563eb; color: #fff; border: none; padding: 9px 14px; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 0.9rem; }
+  button:disabled { opacity: 0.45; cursor: not-allowed; }
+  button.sec { background: #374151; }
+  button.ok { background: #059669; }
+  button.warn { background: #b45309; }
+  #log { background: #0d0f12; border: 1px solid #2e343d; border-radius: 6px; padding: 10px; font-family: monospace; font-size: 0.8rem; height: 120px; overflow-y: auto; white-space: pre-wrap; color: #93c5fd; }
+  .status { display: inline-block; padding: 3px 8px; border-radius: 99px; font-size: 0.8rem; background: #374151; margin-left: 8px; }
+  .status.on { background: #065f46; color: #6ee7b7; }
+</style>
+</head>
+<body>
+  <div class="card">
+    <h1>FLY-LLL Plus Configurator <span id="st" class="status">Disconnected</span></h1>
+    <p class="sub">Configure Bowden lengths, feed speed, and startup mode over USB-C and save permanently to STM32 Flash (Chrome / Edge).</p>
+    <div class="btns">
+      <button id="btnConn">Connect USB</button>
+      <button id="btnRead" class="sec" disabled>Read Current</button>
+      <button id="btnPreCfs" class="sec">Preset: CFS-C + Y-Splitter</button>
+      <button id="btnPreSingle" class="sec">Preset: Single Spool (No Y)</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="row"><label>Feed &amp; Retract Speed (mm/s)<small>Default: 55 mm/s</small></label><input id="speed" type="number" step="1" min="5" max="150" value="55"></div>
+    <div class="row"><label>Y-Splitter Distance (mm)<small>Switch &rarr; Y-splitter junction (e.g. 300 mm)</small></label><input id="y_dist" type="number" step="5" min="0" max="5000" value="300"></div>
+    <div class="row"><label>Collision Threshold (mm)<small>Must be between Y-splitter and extruder (0 = disabled)</small></label><input id="min_feed_dist" type="number" step="5" min="0" max="5000" value="450"></div>
+    <div class="row"><label>Full Retract Distance (mm)<small>Switch &rarr; Extruder drive gears (e.g. 1000 mm)</small></label><input id="full_dist" type="number" step="5" min="10" max="5000" value="1000"></div>
+    <div class="row"><label>Slip Compensation (mm)<small>Extra distance buffer for gear slip (Default: 20 mm)</small></label><input id="slip_comp" type="number" step="1" min="0" max="500" value="20"></div>
+    <div class="row"><label>Motor Ramp Offset (ms)<small>Acceleration time compensation (Default: 500 ms)</small></label><input id="ramp_ms" type="number" step="50" min="0" max="5000" value="500"></div>
+    <div class="row"><label>Power-On Insert Mode<small>Manual Insert waits for 1-click Forward</small></label>
+      <select id="auto_insert"><option value="0">0 - Manual Insert (Safe Default)</option><option value="1">1 - Auto Insert on Feed</option></select>
+    </div>
+    <div class="btns">
+      <button id="btnSave" class="ok" disabled>Save to Flash</button>
+      <button id="btnDef" class="sec" disabled>Factory Defaults</button>
+      <button id="btnDfu" class="warn" disabled>Reboot to DFU</button>
+    </div>
+  </div>
+
+  <div class="card"><div id="log">Ready. Click "Connect USB" and select FlyBufferF072...</div></div>
+
+<script>
+let port, writer, reader, buf = "";
+const $ = id => document.getElementById(id);
+const log = msg => { const el = $("log"); el.textContent += "\n" + msg; el.scrollTop = el.scrollHeight; };
+
+function setConnected(on) {
+  $("st").textContent = on ? "Connected" : "Disconnected";
+  $("st").className = "status" + (on ? " on" : "");
+  $("btnConn").textContent = on ? "Disconnect" : "Connect USB";
+  ["btnRead", "btnSave", "btnDef", "btnDfu"].forEach(id => $(id).disabled = !on);
+}
+
+async function sendCmd(cmd) {
+  if (!writer) return;
+  log("> " + cmd);
+  await writer.write(new TextEncoder().encode(cmd + "\n"));
+  await new Promise(r => setTimeout(r, 60));
+}
+
+function handleLine(line) {
+  line = line.trim();
+  if (!line) return;
+  log("< " + line);
+  const [k, v] = line.split("=");
+  if (v === undefined) return;
+  if (k === "speed") $("speed").value = parseFloat(v).toFixed(1);
+  if (k === "y_dist") $("y_dist").value = Math.round(parseFloat(v));
+  if (k === "min_feed_dist") $("min_feed_dist").value = Math.round(parseFloat(v));
+  if (k === "full_dist") $("full_dist").value = Math.round(parseFloat(v));
+  if (k === "slip_comp") $("slip_comp").value = Math.round(parseFloat(v));
+  if (k === "ramp_ms") $("ramp_ms").value = parseInt(v, 10);
+  if (k === "auto_insert") $("auto_insert").value = parseInt(v, 10) ? "1" : "0";
+}
+
+async function readLoop() {
+  const dec = new TextDecoder();
+  try {
+    while (port && port.readable) {
+      const { value, done } = await reader.read();
+      if (done) break;
+      buf += dec.decode(value, { stream: true });
+      let idx;
+      while ((idx = buf.indexOf("\n")) >= 0) {
+        handleLine(buf.slice(0, idx));
+        buf = buf.slice(idx + 1);
+      }
+    }
+  } catch (e) {}
+  setConnected(false);
+}
+
+$("btnConn").onclick = async () => {
+  if (port) {
+    try { await reader.cancel(); writer.releaseLock(); await port.close(); } catch (e) {}
+    port = writer = reader = null;
+    setConnected(false);
+    return;
+  }
+  try {
+    port = await navigator.serial.requestPort();
+    await port.open({ baudRate: 115200 });
+    await port.setSignals({ dataTerminalReady: true, requestToSend: true });
+    writer = port.writable.getWriter();
+    reader = port.readable.getReader();
+    setConnected(true);
+    readLoop();
+    await sendCmd("query");
+  } catch (e) { log("Error: " + e.message); }
+};
+
+$("btnRead").onclick = () => sendCmd("query");
+$("btnPreCfs").onclick = () => { $("y_dist").value = 300; $("min_feed_dist").value = 450; $("full_dist").value = 1000; $("speed").value = 55; log("Loaded CFS-C + Y-Splitter preset (click Save to Flash)."); };
+$("btnPreSingle").onclick = () => { $("y_dist").value = 0; $("min_feed_dist").value = 0; $("full_dist").value = 1000; $("speed").value = 55; log("Loaded Single-Spool preset (click Save to Flash)."); };
+$("btnSave").onclick = async () => {
+  await sendCmd("set_speed " + $("speed").value);
+  await sendCmd("set_y_dist " + $("y_dist").value);
+  await sendCmd("set_min_feed_dist " + $("min_feed_dist").value);
+  await sendCmd("set_full_dist " + $("full_dist").value);
+  await sendCmd("set_slip_comp " + $("slip_comp").value);
+  await sendCmd("set_ramp_ms " + $("ramp_ms").value);
+  await sendCmd("set_auto_insert " + $("auto_insert").value);
+  await sendCmd("save");
+};
+$("btnDef").onclick = () => sendCmd("defaults");
+$("btnDfu").onclick = () => { if (confirm("Reboot FLY-LLL Plus into DFU bootloader mode?")) sendCmd("dfu"); };
+</script>
+</body>
+</html>

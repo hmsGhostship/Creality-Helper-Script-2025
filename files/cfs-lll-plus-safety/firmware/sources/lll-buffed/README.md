@@ -21,12 +21,38 @@ When feeding an external spool through a **Y-splitter** shared with a **CFS-C**,
 - **2-Button Mode Toggle (`Forward + Retract` held 1 s):** Toggles between **Manual Insert** (`1x` long LED flash) and **Auto Insert** (`3x` fast LED flashes).
 - **Automatic Y-Splitter Collision Guard:** If resistance (`optical2`) occurs before `MIN_FEED_TO_EXTRUDER_DIST_MM`, the buffer detects that the Y-splitter is blocked by CFS-C filament and automatically retracts by `Y_SPLITTER_RETRACT_DIST_MM`.
 
+### Configuring via USB-C & Persistent STM32 Flash Storage (No Recompile Required)
+
+All Bowden lengths, speed settings, and the startup insert mode are stored permanently in the STM32F072 internal flash (`0x0800F800`) and survive power cycles. You can configure them anytime over USB-C without recompiling the firmware:
+
+#### Option A: Browser Configurator (`configurator.html` — Recommended)
+1. Download `configurator.html` to your computer and open it locally (`file:///...`) in **Google Chrome** or **Microsoft Edge** *(Firefox/Safari do not support WebSerial, and the file must be opened locally rather than over a plain HTTP LAN URL)*.
+2. Connect the **FLY-LLL Plus** via USB-C and click **Connect USB** (select `FlyBufferF072`).
+3. Adjust your measured lengths or pick one of the one-click presets (**CFS-C + Y-Splitter** or **Single Spool / No Y-Splitter**), then click **Save to Flash**.
+4. You can also reboot the buffer directly into bootloader mode via **Reboot to DFU** without opening the case.
+
+#### Option B: Serial Terminal (`115200` baud, `DTR = 1`)
+Connect with any serial terminal (PlatformIO Monitor, PuTTY, Tera Term, HTerm) at `115200` baud with **DTR enabled** and send plain-text commands:
+- `query` (`q`): Show all current values stored in flash.
+- `set_speed <MM/S>`: Feed & retract speed (default `55`).
+- `set_y_dist <MM>`: Distance from LLL Plus switch to Y-splitter (`300`, or `0` without splitter).
+- `set_min_feed_dist <MM>`: Collision threshold past Y-splitter (`450`, or `0` to disable check).
+- `set_full_dist <MM>`: Full retract distance from switch to extruder gears (`1000`).
+- `set_slip_comp <MM>` / `set_ramp_ms <MS>`: Slip buffer (`20`) and motor ramp offset (`500`).
+- `set_auto_insert <0|1>`: Startup mode (`0` = Manual Insert, `1` = Auto Insert; 2-button toggle on the device also auto-saves to flash).
+- `save`: Persist current settings to STM32 flash.
+- `defaults`: Restore factory defaults and save to flash.
+- `dfu`: Reboot directly into STM32 DFU bootloader mode.
+
+---
+
 ### Measuring & Configuring Your Bowden Lengths (`lib/buffer/buffer_logic.hpp`)
 Measure along your PTFE path with a tape measure and enter your **actual distances in millimeters** (tolerances for gear slip and motor ramp are added automatically by `calcMoveTimeMs()`):
 
 1. **`Y_SPLITTER_RETRACT_DIST_MM` (`300.0F`):** LLL Plus input switch $\rightarrow$ Y-splitter junction.
 2. **`FULL_RETRACT_DIST_MM` (`1000.0F`):** LLL Plus input switch $\rightarrow$ extruder drive gears.
 3. **`MIN_FEED_TO_EXTRUDER_DIST_MM` (`450.0F`):** Threshold safely past the Y-splitter (`300 mm`) and before the extruder (`1000 mm`).
+   - *Note for Single-Spool / Non-CFS-C setups (no Y-splitter):* Set `MIN_FEED_TO_EXTRUDER_DIST_MM = 0.0F` if your direct PTFE tube to the extruder is shorter than `500 mm`, and enter your measured tube length in `FULL_RETRACT_DIST_MM`.
 
 ```cpp
 constexpr uint32_t SHORT_PRESS_MS = 400;

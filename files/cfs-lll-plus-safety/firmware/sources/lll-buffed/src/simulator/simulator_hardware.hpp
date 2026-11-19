@@ -270,6 +270,8 @@ public:
   }
 #endif
 
+  static bool readFlashBlob(void *, size_t) { return false; }
+  static bool writeFlashBlob(const void *, size_t) { return false; }
   static uint32_t timeMs() { return millis(); }
 
 private:

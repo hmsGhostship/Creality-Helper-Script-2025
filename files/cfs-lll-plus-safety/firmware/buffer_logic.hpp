@@ -31,10 +31,20 @@ constexpr float FULL_RETRACT_DIST_MM = 1000.0F;
 constexpr float SLIP_COMPENSATION_MM = 20.0F;
 constexpr uint32_t RAMP_COMPENSATION_MS = 500;
 
-constexpr uint32_t calcMoveTimeMs(float distanceMm, float speedMmS) {
-  return (speedMmS > 0.0F)
-             ? (static_cast<uint32_t>(((distanceMm + SLIP_COMPENSATION_MM) * 1000.0F) / speedMmS) + RAMP_COMPENSATION_MS)
-             : 0;
+struct FlashConfig {
+  uint32_t magic; float speedMmS; float minFeedDistMm; float ySplitterDistMm;
+  float fullRetractDistMm; float slipCompMm; uint32_t rampCompMs;
+  uint8_t autoInsert; uint8_t reserved; uint32_t checksum;
+};
+constexpr uint32_t FLASH_CONFIG_MAGIC = 0x4C4C4C32UL;
+constexpr uint32_t calcFlashChecksum(const FlashConfig &c) {
+  uint32_t h = 2166136261UL;
+  const auto *ptr = reinterpret_cast<const uint8_t *>(&c);
+  for (size_t i = 0; i < sizeof(FlashConfig) - sizeof(uint32_t); ++i) { h ^= ptr[i]; h *= 16777619UL; }
+  return h;
+}
+constexpr uint32_t calcMoveTimeMs(float d, float s, float slip = SLIP_COMPENSATION_MM, uint32_t ramp = RAMP_COMPENSATION_MS) {
+  return (s > 0.0F && d > 0.0F) ? (static_cast<uint32_t>(((d + slip) * 1000.0F) / s) + ramp) : 0;
 }
 
 constexpr size_t UART_CMD_BUF_SIZE = 64;
@@ -126,7 +136,37 @@ private:
   uint32_t moveStart{ 0 };
   uint32_t holdStart{ 0 };
   uint32_t continuousStart{ 0 };
+  float minFeedDistMm{ MIN_FEED_TO_EXTRUDER_DIST_MM };
+  float ySplitterDistMm{ Y_SPLITTER_RETRACT_DIST_MM };
+  float fullRetractDistMm{ FULL_RETRACT_DIST_MM };
+  float slipCompMm{ SLIP_COMPENSATION_MM };
+  uint32_t rampCompMs{ RAMP_COMPENSATION_MS };
   uint32_t retractLimitMs{ calcMoveTimeMs(FULL_RETRACT_DIST_MM, DEFAULT_SPEED_MM_S) };
+
+  void applyDefaults() {
+    speedMmS = DEFAULT_SPEED_MM_S; minFeedDistMm = MIN_FEED_TO_EXTRUDER_DIST_MM;
+    ySplitterDistMm = Y_SPLITTER_RETRACT_DIST_MM; fullRetractDistMm = FULL_RETRACT_DIST_MM;
+    slipCompMm = SLIP_COMPENSATION_MM; rampCompMs = RAMP_COMPENSATION_MS; autoInsert = false;
+    retractLimitMs = calcMoveTimeMs(fullRetractDistMm, speedMmS, slipCompMm, rampCompMs);
+  }
+  void loadConfigFromFlash() {
+    FlashConfig cfg{};
+    if (hw.readFlashBlob(&cfg, sizeof(cfg)) && cfg.magic == FLASH_CONFIG_MAGIC && cfg.checksum == calcFlashChecksum(cfg)) {
+      if (cfg.speedMmS >= 5.0F && cfg.speedMmS <= 150.0F) speedMmS = cfg.speedMmS;
+      if (cfg.minFeedDistMm >= 0.0F && cfg.minFeedDistMm <= 5000.0F) minFeedDistMm = cfg.minFeedDistMm;
+      if (cfg.ySplitterDistMm >= 0.0F && cfg.ySplitterDistMm <= 5000.0F) ySplitterDistMm = cfg.ySplitterDistMm;
+      if (cfg.fullRetractDistMm >= 10.0F && cfg.fullRetractDistMm <= 5000.0F) fullRetractDistMm = cfg.fullRetractDistMm;
+      if (cfg.slipCompMm >= 0.0F && cfg.slipCompMm <= 500.0F) slipCompMm = cfg.slipCompMm;
+      if (cfg.rampCompMs <= 10000) rampCompMs = cfg.rampCompMs;
+      autoInsert = (cfg.autoInsert != 0);
+      retractLimitMs = calcMoveTimeMs(fullRetractDistMm, speedMmS, slipCompMm, rampCompMs);
+    }
+  }
+  bool saveConfigToFlash() {
+    FlashConfig cfg{FLASH_CONFIG_MAGIC, speedMmS, minFeedDistMm, ySplitterDistMm, fullRetractDistMm, slipCompMm, rampCompMs, static_cast<uint8_t>(autoInsert ? 1 : 0), 0, 0};
+    cfg.checksum = calcFlashChecksum(cfg);
+    return hw.writeFlashBlob(&cfg, sizeof(cfg));
+  }
   uint32_t emptyingStart{ 0 };
   uint32_t emptyingPushStart{ 0 };
 
@@ -147,6 +187,7 @@ public:
 
   void init() {
     hw.initHardware();
+    loadConfigFromFlash();
     filamentPresent = hw.filamentPresent();
     lastFilament = filamentPresent;
     setMode(Mode::Hold);
@@ -311,6 +352,30 @@ private:
       speedMmS = tiny::strtof(arg);
     } else if ((arg = startsWith(cmd, "set_", "emptying_", "timeout", " ", nullptr))) {
       emptyingPushTimeoutMs = tiny::strtoul(arg);
+    } else if ((arg = startsWith(cmd, "set_", "y_", "dist", " ", nullptr))) {
+      ySplitterDistMm = tiny::strtof(arg);
+    } else if ((arg = startsWith(cmd, "set_", "full_", "dist", " ", nullptr))) {
+      fullRetractDistMm = tiny::strtof(arg);
+      retractLimitMs = calcMoveTimeMs(fullRetractDistMm, speedMmS, slipCompMm, rampCompMs);
+    } else if ((arg = startsWith(cmd, "set_", "min_feed_", "dist", " ", nullptr))) {
+      minFeedDistMm = tiny::strtof(arg);
+    } else if ((arg = startsWith(cmd, "set_", "slip_", "comp", " ", nullptr))) {
+      slipCompMm = tiny::strtof(arg);
+      retractLimitMs = calcMoveTimeMs(fullRetractDistMm, speedMmS, slipCompMm, rampCompMs);
+    } else if ((arg = startsWith(cmd, "set_", "ramp_", "ms", " ", nullptr))) {
+      rampCompMs = tiny::strtoul(arg);
+      retractLimitMs = calcMoveTimeMs(fullRetractDistMm, speedMmS, slipCompMm, rampCompMs);
+    } else if ((arg = startsWith(cmd, "set_", "auto_", "insert", " ", nullptr))) {
+      autoInsert = tiny::strtoul(arg) != 0;
+    } else if (startsWith(cmd, "save", nullptr)) {
+      hw.writeLineF("saved=%d", saveConfigToFlash() ? 1 : 0);
+    } else if (startsWith(cmd, "defaults", nullptr)) {
+      applyDefaults();
+      hw.writeLineF("defaults=%d", saveConfigToFlash() ? 1 : 0);
+      updateStatus(true);
+    } else if (startsWith(cmd, "dfu", nullptr)) {
+      hw.writeLineF("mode=dfu");
+      HW::rebootDFU();
     }
     updateStatus();
   }
@@ -502,7 +567,7 @@ private:
     }
     if (dur <= SHORT_PRESS_MS) {
       if (hw.filamentPresent()) {
-        retractLimitMs = calcMoveTimeMs(FULL_RETRACT_DIST_MM, speedMmS);
+        retractLimitMs = calcMoveTimeMs(fullRetractDistMm, speedMmS, slipCompMm, rampCompMs);
         setMode(Mode::Continuous);
         setMotor(dir);
       } else {
@@ -532,6 +597,7 @@ private:
       } else if (!bothButtonsHandled && (now - bothButtonsStart >= 1000)) {
         bothButtonsHandled = true;
         autoInsert = !autoInsert;
+        saveConfigToFlash();
         btnFwd.pressed = false;
         btnBack.pressed = false;
         setMode(Mode::Hold);
@@ -662,10 +728,10 @@ private:
   // Check extruder arrival vs. early Y-splitter blockage
   if (motor == Motor::Push && hw.optical2()) {
     const uint32_t elapsed = hw.timeMs() - continuousStart;
-    if (elapsed < calcMoveTimeMs(MIN_FEED_TO_EXTRUDER_DIST_MM, speedMmS)) {
+    if (elapsed < (minFeedDistMm > 0.0F ? calcMoveTimeMs(minFeedDistMm, speedMmS, slipCompMm, rampCompMs) : 0)) {
       // Hit obstruction too early (Y-splitter blocked by CFS-C filament) -> auto-retract!
       continuousStart = hw.timeMs();
-      retractLimitMs = calcMoveTimeMs(Y_SPLITTER_RETRACT_DIST_MM, speedMmS);
+      retractLimitMs = calcMoveTimeMs(ySplitterDistMm, speedMmS, slipCompMm, rampCompMs);
       setMotor(Motor::Retract);
       return;
     }
@@ -772,6 +838,14 @@ private:
     if (lastEmptyingPushTimeoutMs != emptyingPushTimeoutMs || force) {
       hw.writeLineF("%s%s=%u", "emptying_", "timeout", emptyingPushTimeoutMs);
       lastEmptyingPushTimeoutMs = emptyingPushTimeoutMs;
+    }
+    if (force) {
+      hw.writeLineF("y_dist=%f", ySplitterDistMm);
+      hw.writeLineF("full_dist=%f", fullRetractDistMm);
+      hw.writeLineF("min_feed_dist=%f", minFeedDistMm);
+      hw.writeLineF("slip_comp=%f", slipCompMm);
+      hw.writeLineF("ramp_ms=%u", rampCompMs);
+      hw.writeLineF("auto_insert=%d", autoInsert ? 1 : 0);
     }
 #endif
 #ifdef ENABLE_I2C_PROTOCOL

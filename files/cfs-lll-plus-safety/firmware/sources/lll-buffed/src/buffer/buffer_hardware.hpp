@@ -237,6 +237,31 @@ public:
   }
 #endif
 
+  static constexpr uint32_t CONFIG_FLASH_ADDR = 0x0800F800UL;
+  static bool readFlashBlob(void *dst, const size_t len) {
+    if (len > 1024) return false;
+    const auto *src = reinterpret_cast<const uint8_t *>(CONFIG_FLASH_ADDR);
+    for (size_t i = 0; i < len; ++i) static_cast<uint8_t *>(dst)[i] = src[i];
+    return true;
+  }
+  static bool writeFlashBlob(const void *src, const size_t len) {
+    if (len > 1024) return false;
+    scoped_irq_lock lock;
+    if (HAL_FLASH_Unlock() != HAL_OK) return false;
+    FLASH_EraseInitTypeDef e{};
+    e.TypeErase = FLASH_TYPEERASE_PAGES;
+    e.PageAddress = CONFIG_FLASH_ADDR;
+    e.NbPages = 1;
+    uint32_t err = 0;
+    if (HAL_FLASHEx_Erase(&e, &err) != HAL_OK) { HAL_FLASH_Lock(); return false; }
+    const auto *b = static_cast<const uint8_t *>(src);
+    for (size_t i = 0; i < len; i += 2) {
+      uint16_t hw16 = b[i] | (i + 1 < len ? (static_cast<uint16_t>(b[i + 1]) << 8) : 0xFF00U);
+      if (HAL_FLASH_Program(FLASH_TYPEPROGRAM_HALFWORD, CONFIG_FLASH_ADDR + i, hw16) != HAL_OK) { HAL_FLASH_Lock(); return false; }
+    }
+    HAL_FLASH_Lock();
+    return true;
+  }
   static uint32_t timeMs() { return millis(); }
 
 private:
