@@ -27,6 +27,7 @@ Measure along your PTFE path with a tape measure and enter your **actual distanc
 1. **`Y_SPLITTER_RETRACT_DIST_MM` (`300.0F`):** LLL Plus input switch $\rightarrow$ Y-splitter junction.
 2. **`FULL_RETRACT_DIST_MM` (`1000.0F`):** LLL Plus input switch $\rightarrow$ extruder drive gears.
 3. **`MIN_FEED_TO_EXTRUDER_DIST_MM` (`450.0F`):** Threshold safely past the Y-splitter (`300 mm`) and before the extruder (`1000 mm`).
+   - *Note for Single-Spool / Non-CFS-C setups (no Y-splitter):* Set `MIN_FEED_TO_EXTRUDER_DIST_MM = 0.0F` if your direct PTFE tube to the extruder is shorter than `500 mm`, and enter your measured tube length in `FULL_RETRACT_DIST_MM`.
 
 ```cpp
 constexpr uint32_t SHORT_PRESS_MS = 400;
