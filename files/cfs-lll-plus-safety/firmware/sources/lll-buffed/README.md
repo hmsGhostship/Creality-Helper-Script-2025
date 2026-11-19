@@ -241,3 +241,18 @@ The **Interrupt Line (INT)** is asserted (pulled LOW) by the buffer whenever its
 To trigger a move:
 
 1. Master writes `[0x01] [Float Byte 0] [Float Byte 1] [Float Byte 2] [Float Byte 3]`.
+
+---
+
+### Toolhead Filament Sensor Alternatives (Without Phaetus DXC Extruder)
+
+To use the FLY-LLL Plus on pin `PD7` without losing toolhead filament detection (required for auto-stop on feed and the **Spool Holder** `Loaded` status in Mainsail/Fluidd), any compact switch sensor mounted directly at the extruder inlet and wired to the **Nozzle PCB** can replace the Phaetus DXC integrated sensor:
+
+* **Option 1 — Printable Extruder-Top Microswitch Housing (Recommended):**
+  * Mount a compact printed inline housing (keep height ≤ 20 mm to clear the K1C glass lid) directly on top of the stock extruder PTFE collet using a standard **Omron D2F-L** (or **KW11**) microswitch and a 5.5 mm steel ball.
+  * Search terms on Printables / MakerWorld: *"K1 / K1C Extruder Filament Runout Sensor"*, *"K1 Toolhead Filament Sensor"*, or *"Voron Inline Filament Sensor D2F-L"*.
+* **Option 2 — Commercial Mini Inline Sensors or Stock Sensor Relocation:**
+  * Compact 3-pin inline microswitch sensors (e.g., *Trianglelab / Mellow / Fysetc Mini Inline Filament Sensor* with ECAS04/PC4-M6 fittings) or relocating the stock Creality runout sensor directly above the extruder with a printed toolhead bracket.
+* **Nozzle PCB Wiring & Switch Polarity (`^` vs `^!`):**
+  * Connect `GND` and `Signal` to the free 3-pin filament sensor header on the K1C Nozzle PCB.
+  * Depending on whether your switch is wired Normally Open (`NO`) or Normally Closed (`NC`), adjust the `!` prefix on the sensor pin in `Helper-Script/dxc_sensor.cfg` so Klipper reports `filament_detected = True` when filament reaches the extruder gears.
