@@ -36,12 +36,12 @@
   </div>
 
   <div class="card">
-    <div class="row"><label>Feed &amp; Retract Speed (mm/s)<small>Default: 55 mm/s</small></label><input id="speed" type="number" placeholder="55" step="1" min="5" max="150"></div>
-    <div class="row"><label>Y-Splitter Distance (mm)<small>Measure from the internal filament switch inside the FLY-LLL Plus along the PTFE tube to the Y-splitter junction (e.g. 300 mm). Set to 0 if no Y-splitter is installed.</small></label><input id="y_dist" type="number" placeholder="300" step="5" min="0" max="5000"></div>
-    <div class="row"><label>Collision Threshold (mm)<small>Measure from the FLY-LLL Plus filament switch to ~150 mm past the Y-splitter, before the extruder (e.g. 450 mm). Resistance before this point triggers auto-retract. Set to 0 to disable.</small></label><input id="min_feed_dist" type="number" placeholder="450" step="5" min="0" max="5000"></div>
-    <div class="row"><label>Full Retract Distance (mm)<small>Total PTFE path measured from the FLY-LLL Plus filament switch all the way to the extruder drive gears (e.g. 1000 mm). Enter actual measured length; tolerances below are added automatically.</small></label><input id="full_dist" type="number" placeholder="1000" step="5" min="10" max="5000"></div>
-    <div class="row"><label>Slip Compensation (mm)<small>Extra distance buffer for gear slip (Default: 20 mm)</small></label><input id="slip_comp" type="number" placeholder="20" step="1" min="0" max="500"></div>
-    <div class="row"><label>Motor Ramp Offset (ms)<small>Acceleration time compensation (Default: 500 ms)</small></label><input id="ramp_ms" type="number" placeholder="500" step="50" min="0" max="5000"></div>
+    <div class="row"><label>Feed &amp; Retract Speed (mm/s)<small>Default: 55 mm/s</small></label><input id="speed" type="number" step="1" min="5" max="150"></div>
+    <div class="row"><label>Y-Splitter Distance (mm)<small>Measure from the internal filament switch inside the FLY-LLL Plus along the PTFE tube to the Y-splitter junction (e.g. 300 mm). Set to 0 if no Y-splitter is installed.</small></label><input id="y_dist" type="number" step="5" min="0" max="5000"></div>
+    <div class="row"><label>Collision Threshold (mm)<small>Measure from the FLY-LLL Plus filament switch to ~150 mm past the Y-splitter, before the extruder (e.g. 450 mm). Resistance before this point triggers auto-retract. Set to 0 to disable.</small></label><input id="min_feed_dist" type="number" step="5" min="0" max="5000"></div>
+    <div class="row"><label>Full Retract Distance (mm)<small>Total PTFE path measured from the FLY-LLL Plus filament switch all the way to the extruder drive gears (e.g. 1000 mm). Enter actual measured length; tolerances below are added automatically.</small></label><input id="full_dist" type="number" step="5" min="10" max="5000"></div>
+    <div class="row"><label>Slip Compensation (mm)<small>Extra distance buffer for gear slip (Default: 20 mm)</small></label><input id="slip_comp" type="number" step="1" min="0" max="500"></div>
+    <div class="row"><label>Motor Ramp Offset (ms)<small>Acceleration time compensation (Default: 500 ms)</small></label><input id="ramp_ms" type="number" step="50" min="0" max="5000"></div>
     <div class="row"><label>Power-On Insert Mode<small>Manual Insert waits for 1-click Forward</small></label>
       <select id="auto_insert"><option value="" selected disabled>-- Connect USB to read --</option><option value="0">0 - Manual Insert (Safe Default)</option><option value="1">1 - Auto Insert on Feed</option></select>
     </div>
