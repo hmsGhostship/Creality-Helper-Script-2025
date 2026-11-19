@@ -42,6 +42,20 @@
     <div class="row"><label>Full Retract Distance (mm)<small>Total PTFE path measured from the FLY-LLL Plus filament switch all the way to the extruder drive gears (e.g. 1000 mm). Enter actual measured length; tolerances below are added automatically.</small></label><input id="full_dist" type="number" step="5" min="10" max="5000"></div>
     <div class="row"><label>Slip Compensation (mm)<small>Extra distance buffer for gear slip (Default: 20 mm)</small></label><input id="slip_comp" type="number" step="1" min="0" max="500"></div>
     <div class="row"><label>Motor Ramp Offset (ms)<small>Acceleration time compensation (Default: 500 ms)</small></label><input id="ramp_ms" type="number" step="50" min="0" max="5000"></div>
+    <div class="row">
+      <label>1-Click Short Press Threshold (ms)
+        <small>Presses shorter than this trigger 1-click continuous feed/retract; longer presses stop on release. Default: <b>600 ms</b>.</small>
+      </label>
+      <input id="short_press_ms" type="number" step="50" min="100" max="2000">
+    </div>
+
+    <div class="row">
+      <label>Stepper Motor Current (mA)
+        <small>TMC2209 RMS motor current (200–1200 mA). Increase slightly for very long PTFE tubes; decrease if soft TPU gets crushed. Default: <b>600 mA</b>.</small>
+      </label>
+      <input id="current" type="number" step="50" min="200" max="1200">
+    </div>
+
     <div class="row"><label>Power-On Insert Mode<small>Manual Insert waits for 1-click Forward</small></label>
       <select id="auto_insert"><option value="" selected disabled>-- Connect USB to read --</option><option value="0">0 - Manual Insert (Safe Default)</option><option value="1">1 - Auto Insert on Feed</option></select>
     </div>
@@ -49,6 +63,15 @@
       <button id="btnSave" class="ok" disabled>Save to Flash</button>
       <button id="btnDef" class="sec" disabled>Factory Defaults</button>
       <button id="btnDfu" class="warn" disabled>Reboot to DFU</button>
+    </div>
+  </div>
+
+    <div class="card">
+    <h1 style="font-size:1.1rem;">Firmware Update (WebDFU via USB-C)</h1>
+    <p class="sub">Flash <code>firmware.bin</code> directly in Chrome/Edge without STM32CubeProgrammer. Click <b>Reboot to DFU</b> above (or hold the <b>BOOT</b> button on the PCB while plugging in USB-C), select <code>firmware.bin</code> and click <b>Flash Firmware</b>. <i>(Windows note: requires WinUSB driver via Zadig for STM32 BOOTLOADER)</i>.</p>
+    <div class="btns">
+      <input id="fwFile" type="file" accept=".bin" style="color:#e5e7eb;font-size:0.88rem;">
+      <button id="btnFlashDfu" class="warn">Flash Firmware (WebDFU)</button>
     </div>
   </div>
 
@@ -85,6 +108,8 @@ function handleLine(line) {
   if (k === "full_dist") $("full_dist").value = Math.round(parseFloat(v));
   if (k === "slip_comp") $("slip_comp").value = Math.round(parseFloat(v));
   if (k === "ramp_ms") $("ramp_ms").value = parseInt(v, 10);
+  if (k === "short_press_ms") $("short_press_ms").value = parseInt(v, 10);
+  if (k === "current") $("current").value = parseInt(v, 10);
   if (k === "auto_insert") $("auto_insert").value = parseInt(v, 10) ? "1" : "0";
 }
 
@@ -125,8 +150,8 @@ $("btnConn").onclick = async () => {
 };
 
 $("btnRead").onclick = () => sendCmd("query");
-$("btnPreCfs").onclick = () => { $("y_dist").value = 300; $("min_feed_dist").value = 450; $("full_dist").value = 1000; $("speed").value = 55; log("Loaded CFS-C + Y-Splitter preset (click Save to Flash)."); };
-$("btnPreSingle").onclick = () => { $("y_dist").value = 0; $("min_feed_dist").value = 0; $("full_dist").value = 1000; $("speed").value = 55; log("Loaded Single-Spool preset (click Save to Flash)."); };
+$("btnPreCfs").onclick = () => { $("y_dist").value = 300; $("min_feed_dist").value = 450; $("full_dist").value = 1000; $("speed").value = 55; $("short_press_ms").value = 600; $("current").value = 600; log("Loaded CFS-C + Y-Splitter preset (click Save to Flash)."); };
+$("btnPreSingle").onclick = () => { $("y_dist").value = 0; $("min_feed_dist").value = 0; $("full_dist").value = 1000; $("speed").value = 55; $("short_press_ms").value = 600; $("current").value = 600; log("Loaded Single-Spool preset (click Save to Flash)."); };
 $("btnSave").onclick = async () => {
   await sendCmd("set_speed " + $("speed").value);
   await sendCmd("set_y_dist " + $("y_dist").value);
@@ -134,11 +159,65 @@ $("btnSave").onclick = async () => {
   await sendCmd("set_full_dist " + $("full_dist").value);
   await sendCmd("set_slip_comp " + $("slip_comp").value);
   await sendCmd("set_ramp_ms " + $("ramp_ms").value);
+  if ($("short_press_ms").value) await sendCmd("set_short_press_ms " + $("short_press_ms").value);
+  if ($("current").value) await sendCmd("set_current " + $("current").value);
   await sendCmd("set_auto_insert " + $("auto_insert").value);
   await sendCmd("save");
 };
 $("btnDef").onclick = () => sendCmd("defaults");
 $("btnDfu").onclick = () => { if (confirm("Reboot FLY-LLL Plus into DFU bootloader mode?")) sendCmd("dfu"); };
+
+$("btnFlashDfu").onclick = async () => {
+  const file = $("fwFile").files[0];
+  if (!file) { log("Please select firmware.bin first."); return; }
+  const fw = new Uint8Array(await file.arrayBuffer());
+  let dev;
+  try {
+    dev = await navigator.usb.requestDevice({ filters: [{ vendorId: 0x0483, productId: 0xdf11 }] });
+    await dev.open();
+    if (dev.configuration === null) await dev.selectConfiguration(1);
+    await dev.claimInterface(0);
+    const abortClr = async () => { await dev.controlTransferOut({ requestType: "class", recipient: "interface", request: 4, value: 0, index: 0 }); };
+    const waitIdle = async () => {
+      for (let i = 0; i < 200; i++) {
+        const r = await dev.controlTransferIn({ requestType: "class", recipient: "interface", request: 3, value: 0, index: 0 }, 6);
+        const st = r.data.getUint8(4);
+        const poll = r.data.getUint8(1) | (r.data.getUint8(2) << 8) | (r.data.getUint8(3) << 16);
+        if (st === 5 || st === 2) return st;
+        if (st === 10) { await abortClr(); continue; }
+        await new Promise(res => setTimeout(res, Math.max(poll, 20)));
+      }
+      throw new Error("DFU timeout");
+    };
+    await abortClr();
+    await waitIdle();
+    log("Mass erasing STM32 flash...");
+    await dev.controlTransferOut({ requestType: "class", recipient: "interface", request: 1, value: 0, index: 0 }, new Uint8Array([0x41]));
+    await waitIdle();
+    const setAddr = async (addr) => {
+      await dev.controlTransferOut({ requestType: "class", recipient: "interface", request: 1, value: 0, index: 0 }, new Uint8Array([0x21, addr & 0xff, (addr >> 8) & 0xff, (addr >> 16) & 0xff, (addr >> 24) & 0xff]));
+      await waitIdle();
+    };
+    await setAddr(0x08000000);
+    const blkSize = 2048;
+    let blkNum = 2;
+    for (let off = 0; off < fw.length; off += blkSize) {
+      const chunk = fw.slice(off, off + blkSize);
+      await dev.controlTransferOut({ requestType: "class", recipient: "interface", request: 1, value: blkNum++, index: 0 }, chunk);
+      await waitIdle();
+      log("Flashing... " + Math.min(100, Math.round(((off + chunk.length) / fw.length) * 100)) + "%");
+    }
+    log("Flashing 100% complete! Jumping to application...");
+    await setAddr(0x08000000);
+    await dev.controlTransferOut({ requestType: "class", recipient: "interface", request: 1, value: 0, index: 0 }, new Uint8Array(0));
+    try { await waitIdle(); } catch (e) {}
+    log("Done! FLY-LLL Plus rebooted with new firmware.");
+  } catch (e) {
+    log("WebDFU Error: " + e.message);
+  } finally {
+    try { if (dev) await dev.close(); } catch (e) {}
+  }
+};
 </script>
 </body>
 </html>

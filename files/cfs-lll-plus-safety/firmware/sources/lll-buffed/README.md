@@ -31,6 +31,13 @@ All Bowden lengths, speed settings, and the startup insert mode are stored perma
 3. Adjust your measured lengths or pick one of the one-click presets (**CFS-C + Y-Splitter** or **Single Spool / No Y-Splitter**), then click **Save to Flash**.
 4. You can also reboot the buffer directly into bootloader mode via **Reboot to DFU** without opening the case.
 
+
+#### Option C: Flashing `firmware.bin` Directly in the Browser (WebDFU)
+You can also flash `firmware.bin` directly inside `configurator.html` (Chrome / Edge) without installing STM32CubeProgrammer:
+1. **First-time flash from stock firmware:** Hold down the physical **BOOT** button on the FLY-LLL Plus PCB while plugging in the USB-C cable, then release it. *(If your custom firmware is already installed, simply click **Reboot to DFU** in `configurator.html` without opening the case).*
+2. *(Windows only)* Ensure the **WinUSB** driver is assigned to `STM32 BOOTLOADER` using **Zadig** (one-time setup).
+3. Select `firmware.bin` in the **Firmware Update (WebDFU via USB-C)** section of `configurator.html` and click **Flash Firmware (WebDFU)**.
+
 #### Option B: Serial Terminal (`115200` baud, `DTR = 1`)
 Connect with any serial terminal (PlatformIO Monitor, PuTTY, Tera Term, HTerm) at `115200` baud with **DTR enabled** and send plain-text commands:
 - `query` (`q`): Show all current values stored in flash.

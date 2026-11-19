@@ -16,7 +16,8 @@
 #endif
 
 constexpr uint32_t CMD_TIMEOUT = 3000;
-constexpr uint32_t SHORT_PRESS_MS = 400;
+constexpr uint32_t SHORT_PRESS_MS = 600;
+constexpr uint16_t DEFAULT_MOTOR_CURRENT_MA = 600;
 constexpr uint32_t MULTI_PRESS_MIN_MS = 50;
 constexpr uint32_t MULTI_PRESS_MAX_MS = 500;
 
@@ -34,9 +35,9 @@ constexpr uint32_t RAMP_COMPENSATION_MS = 500;
 struct FlashConfig {
   uint32_t magic; float speedMmS; float minFeedDistMm; float ySplitterDistMm;
   float fullRetractDistMm; float slipCompMm; uint32_t rampCompMs;
-  uint8_t autoInsert; uint8_t reserved; uint32_t checksum;
+  uint8_t autoInsert; uint8_t reserved; uint32_t shortPressMs; uint16_t motorCurrentMa; uint16_t pad2; uint32_t checksum;
 };
-constexpr uint32_t FLASH_CONFIG_MAGIC = 0x4C4C4C32UL;
+constexpr uint32_t FLASH_CONFIG_MAGIC = 0x4C4C4C33UL;
 constexpr uint32_t calcFlashChecksum(const FlashConfig &c) {
   uint32_t h = 2166136261UL;
   const auto *ptr = reinterpret_cast<const uint8_t *>(&c);
@@ -141,12 +142,15 @@ private:
   float fullRetractDistMm{ FULL_RETRACT_DIST_MM };
   float slipCompMm{ SLIP_COMPENSATION_MM };
   uint32_t rampCompMs{ RAMP_COMPENSATION_MS };
+  uint32_t shortPressMs{ SHORT_PRESS_MS };
+  uint16_t motorCurrentMa{ DEFAULT_MOTOR_CURRENT_MA };
   uint32_t retractLimitMs{ calcMoveTimeMs(FULL_RETRACT_DIST_MM, DEFAULT_SPEED_MM_S) };
 
   void applyDefaults() {
     speedMmS = DEFAULT_SPEED_MM_S; minFeedDistMm = MIN_FEED_TO_EXTRUDER_DIST_MM;
     ySplitterDistMm = Y_SPLITTER_RETRACT_DIST_MM; fullRetractDistMm = FULL_RETRACT_DIST_MM;
-    slipCompMm = SLIP_COMPENSATION_MM; rampCompMs = RAMP_COMPENSATION_MS; autoInsert = false;
+    slipCompMm = SLIP_COMPENSATION_MM; rampCompMs = RAMP_COMPENSATION_MS; autoInsert = false; shortPressMs = SHORT_PRESS_MS; motorCurrentMa = DEFAULT_MOTOR_CURRENT_MA;
+    hw.setMotorCurrent(motorCurrentMa);
     retractLimitMs = calcMoveTimeMs(fullRetractDistMm, speedMmS, slipCompMm, rampCompMs);
   }
   void loadConfigFromFlash() {
@@ -159,11 +163,14 @@ private:
       if (cfg.slipCompMm >= 0.0F && cfg.slipCompMm <= 500.0F) slipCompMm = cfg.slipCompMm;
       if (cfg.rampCompMs <= 10000) rampCompMs = cfg.rampCompMs;
       autoInsert = (cfg.autoInsert != 0);
+      if (cfg.shortPressMs >= 100 && cfg.shortPressMs <= 2000) shortPressMs = cfg.shortPressMs;
+      if (cfg.motorCurrentMa >= 200 && cfg.motorCurrentMa <= 1200) motorCurrentMa = cfg.motorCurrentMa;
+      hw.setMotorCurrent(motorCurrentMa);
       retractLimitMs = calcMoveTimeMs(fullRetractDistMm, speedMmS, slipCompMm, rampCompMs);
     }
   }
   bool saveConfigToFlash() {
-    FlashConfig cfg{FLASH_CONFIG_MAGIC, speedMmS, minFeedDistMm, ySplitterDistMm, fullRetractDistMm, slipCompMm, rampCompMs, static_cast<uint8_t>(autoInsert ? 1 : 0), 0, 0};
+    FlashConfig cfg{FLASH_CONFIG_MAGIC, speedMmS, minFeedDistMm, ySplitterDistMm, fullRetractDistMm, slipCompMm, rampCompMs, static_cast<uint8_t>(autoInsert ? 1 : 0), 0, shortPressMs, motorCurrentMa, 0, 0};
     cfg.checksum = calcFlashChecksum(cfg);
     return hw.writeFlashBlob(&cfg, sizeof(cfg));
   }
@@ -367,6 +374,11 @@ private:
       retractLimitMs = calcMoveTimeMs(fullRetractDistMm, speedMmS, slipCompMm, rampCompMs);
     } else if ((arg = startsWith(cmd, "set_", "auto_", "insert", " ", nullptr))) {
       autoInsert = tiny::strtoul(arg) != 0;
+    } else if ((arg = startsWith(cmd, "set_", "short_press_", "ms", " ", nullptr))) {
+      shortPressMs = tiny::strtoul(arg);
+    } else if ((arg = startsWith(cmd, "set_", "current", " ", nullptr))) {
+      motorCurrentMa = static_cast<uint16_t>(tiny::strtoul(arg));
+      hw.setMotorCurrent(motorCurrentMa);
     } else if (startsWith(cmd, "save", nullptr)) {
       hw.writeLineF("saved=%d", saveConfigToFlash() ? 1 : 0);
     } else if (startsWith(cmd, "defaults", nullptr)) {
@@ -565,7 +577,7 @@ private:
       s.count = 0;
       return;
     }
-    if (dur <= SHORT_PRESS_MS) {
+    if (dur <= shortPressMs) {
       if (hw.filamentPresent()) {
         retractLimitMs = calcMoveTimeMs(fullRetractDistMm, speedMmS, slipCompMm, rampCompMs);
         setMode(Mode::Continuous);
@@ -846,6 +858,8 @@ private:
       hw.writeLineF("slip_comp=%f", slipCompMm);
       hw.writeLineF("ramp_ms=%u", rampCompMs);
       hw.writeLineF("auto_insert=%d", autoInsert ? 1 : 0);
+      hw.writeLineF("short_press_ms=%u", shortPressMs);
+      hw.writeLineF("current=%u", motorCurrentMa);
     }
 #endif
 #ifdef ENABLE_I2C_PROTOCOL

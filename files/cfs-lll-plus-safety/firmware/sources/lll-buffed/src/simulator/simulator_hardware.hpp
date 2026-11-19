@@ -193,6 +193,7 @@ public:
   static void setPresenceLed(const bool on) { digitalWrite(PRESENCE_LED, on ? HIGH : LOW); }
   static void setPresenceOutput(const bool on) { digitalWrite(PRESENCE_OUTPUT, on ? HIGH : LOW); }
 
+  void setMotorCurrent(uint16_t) {}
   void stepperPush(const float speed) { runStepper(true, speed); }
   void stepperRetract(const float speed) { runStepper(false, speed); }
 
