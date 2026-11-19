@@ -28,10 +28,10 @@ function tools_menu_ui_k1_2025() {
   subtitle '•Bed Leveling & Calibration:'
   menu_option '12' 'Enable' 'Creality Calibration Toolbox (BED MESH)'
   menu_option '13' 'Disable' 'Creality Calibration Toolbox (BED MESH)'
-#  hr
-#  subtitle '•CFS-C Mainsail/Fluidd integration:'
-#  menu_option '14' 'Install' 'CFS-C Web Addon (Mainsail / Fluidd)'
-#  menu_option '15' 'Remove' 'CFS-C Web Addon (Mainsail / Fluidd)'
+  hr
+  subtitle '•Spool Holder Mainsail/Fluidd integration:'
+  menu_option '14' 'Install' 'Spool Holder Web Addon (Mainsail / Fluidd)'
+  menu_option '15' 'Remove' 'Spool Holder Web Addon (Mainsail / Fluidd)'
   hr
   subtitle '•System Recovery:'
   menu_option '16' 'Install' 'Recovery Console (reccon)'
@@ -170,7 +170,7 @@ function tools_menu_k1_2025() {
       14)
         clear
         if [ -f "${MAINSAIL_FOLDER}/k1c-cfs-panel.js" ] || [ -f "${FLUIDD_FOLDER}/k1c-cfs-panel.js" ]; then
-          error_msg "CFS-C Web Addon is already installed!"
+          error_msg "Spool Holder Web Addon is already installed!"
           echo
         else
           run "install_cfs_integration" "tools_menu_ui_k1_2025"
@@ -179,7 +179,7 @@ function tools_menu_k1_2025() {
       15)
         clear
         if [ ! -f "${MAINSAIL_FOLDER}/k1c-cfs-panel.js" ] && [ ! -f "${FLUIDD_FOLDER}/k1c-cfs-panel.js" ]; then
-          error_msg "CFS-C Web Addon is not installed!"
+          error_msg "Spool Holder Web Addon is not installed!"
           echo
         else
           run "remove_cfs_integration" "tools_menu_ui_k1_2025"
