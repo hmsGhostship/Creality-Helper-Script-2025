@@ -33,10 +33,10 @@ function remove_menu_ui_k1_2025() {
   subtitle '•IMPROVEMENTS:'
   menu_option '11' 'Remove' 'Restore Input Shapers'
   menu_option '12' 'Remove' 'Extended Gcode Params'
-  menu_option '13' 'Remove' 'DXC Filament Sensor'
+  menu_option '13' 'Remove' 'Toolhead Filament Sensor (DXC / Extruder)'
 # menu_option '14' 'Remove' 'CFS-C Universal Purge Speed Fix'
 # menu_option '15' 'Remove' 'CFS-C Purge Volume Fix (Prime Tower)'
-  menu_option '16' 'Remove' 'FLY-LLL Plus Buffer Sensor (DXC Req.)'
+  menu_option '16' 'Remove' 'FLY-LLL Plus Buffer Sensor (Toolhead Sensor Req.)'
   menu_option '17' 'Remove' 'Motor Sound Support'
   menu_option '18' 'Remove' 'Useful Macros'
   menu_option '19' 'Remove' 'Git Backup'
@@ -178,13 +178,13 @@ function remove_menu_k1_2025() {
         clear
         # 1. ANTI-UNLOCK: If LLL Plus is active in live mode, we immediately block any attempt to remove it!
         if grep -q "^\[include Helper-Script/lll_plus_sensor_nocfs.cfg\]" "$PRINTER_CFG" 2>/dev/null; then
-            error_msg "REMOVE LOCKED: DXC Filament Sensor is blocked!"
+            error_msg "REMOVE LOCKED: Toolhead Filament Sensor (DXC / Extruder) is blocked!"
             echo -e "  Pin PD7 is currently actively used by FLY-LLL PLUS."
             echo -e "  Please remove the FLY-LLL PLUS Safety System (Option 16) first!"
             echo
-        # 2. LIVE CHECK: Is the DXC sensor actually actively integrated?
+        # 2. LIVE CHECK: Is the Toolhead sensor actually actively integrated?
         elif ! grep -q "^\[include Helper-Script/dxc_sensor.cfg\]" "$PRINTER_CFG" 2>/dev/null; then
-            error_msg "DXC Filament Sensor is not active in printer.cfg!"
+            error_msg "Toolhead Filament Sensor (DXC / Extruder) is not active in printer.cfg!"
             echo
         else
             # Launches your new dxc_sensor.sh with dynamic backup restoration

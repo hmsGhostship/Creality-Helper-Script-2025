@@ -40,10 +40,10 @@ function install_menu_ui_k1_2025() {
   subtitle '•IMPROVEMENTS:'
   menu_option '11' 'Install' 'Restore Input Shapers'
   menu_option '12' 'Install' 'Extended Gcode Params'
-  menu_option '13' 'Install' 'DXC Filament Sensor'
+  menu_option '13' 'Install' 'Toolhead Filament Sensor (DXC / Extruder)'
 # menu_option '14' 'Install' 'CFS-C Universal Purge Speed Fix'
 # menu_option '15' 'Install' 'CFS-C Purge Volume Fix (Prime Tower)'
-  menu_option '16' 'Install' 'FLY-LLL Plus Buffer Sensor (DXC Req.)'
+  menu_option '16' 'Install' 'FLY-LLL Plus Buffer Sensor (Toolhead Sensor Req.)'
   menu_option '17' 'Install' 'Motor Sound Support'
   menu_option '18' 'Install' 'Useful Macros'
   menu_option '19' 'Install' 'Git Backup'
@@ -202,7 +202,7 @@ function install_menu_k1_2025() {
       13)
         clear
         if grep -q "^\[include Helper-Script/dxc_sensor.cfg\]" "$PRINTER_CFG" 2>/dev/null; then
-          error_msg "DXC Filament Sensor is already active in printer.cfg!"
+          error_msg "Toolhead Filament Sensor (DXC / Extruder) is already active in printer.cfg!"
           echo
         else
           run "install_dxc_sensor" "install_menu_ui_k1_2025"
@@ -232,11 +232,11 @@ function install_menu_k1_2025() {
         clear
         disabled_feature
         continue
-        # THE INTELLIGENT TEST LOCK: Keeps a fixed watch on the live status of the DXC sensor!
+        # THE INTELLIGENT TEST LOCK: Keeps a fixed watch on the live status of the Toolhead sensor!
         if ! grep -q "^\[include Helper-Script/dxc_sensor.cfg\]" "$PRINTER_CFG" 2>/dev/null; then
-            error_msg "INSTALL LOCKED: DXC Filament Sensor is not active!"
+            error_msg "INSTALL LOCKED: Toolhead Filament Sensor (DXC / Extruder) is not active!"
             echo -e "  The original filament sensor currently still occupies pin PD7."
-            echo -e "  Please install the DXC Filament Sensor (Option 13) first!"
+            echo -e "  Please install the Toolhead Filament Sensor (DXC / Extruder) (Option 13) first!"
             echo
         # DUAL INSTALLATION PROTECTION
         elif grep -q "^\[include Helper-Script/lll_plus_sensor_nocfs.cfg\]" "$PRINTER_CFG" 2>/dev/null; then
@@ -245,7 +245,7 @@ function install_menu_k1_2025() {
         # NATIVE INSTALL & RESTART
         else
             title "[ INSTALL: FLY-LLL PLUS BUFFER RUNOUT SENSOR ]" "${yellow}"
-            echo -e "  ${yellow}HARDWARE WIRING NOTICE (Phaetus DXC + FLY-LLL Plus):${white}"
+            echo -e "  ${yellow}HARDWARE WIRING NOTICE (Toolhead Sensor + FLY-LLL Plus):${white}"
             echo -e "  1. Connect toolhead pin ${cyan}PD7${white} to the ${cyan}Signal / Out${white} pin of the FLY-LLL Plus sensor."
             echo -e "  2. ${red}COMMON GROUND REQUIRED:${white} The FLY-LLL Plus power supply and printer"
             echo -e "     mainboard/toolhead ${cyan}GND (-)${white} MUST share the same ground potential!"
