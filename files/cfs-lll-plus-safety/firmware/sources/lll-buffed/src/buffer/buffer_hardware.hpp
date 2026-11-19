@@ -1,0 +1,250 @@
+#pragma once
+
+#include <Arduino.h>
+#include <TMCStepper.h>
+#include <USBSerial.h>
+#include <cstdarg>
+#include <cstdio>
+
+#include "dfu.hpp"
+#include "tiny_printf.hpp"
+
+#ifdef ENABLE_I2C_PROTOCOL
+#include <Wire.h>
+#endif
+
+inline constexpr uint32_t OPTICAL_SENSOR_1 = PB4;
+inline constexpr uint32_t OPTICAL_SENSOR_2 = PB3;
+inline constexpr uint32_t OPTICAL_SENSOR_3 = PB2;
+inline constexpr uint32_t PRESENCE_SWITCH = PB7;
+inline constexpr uint32_t PRESENCE_LED = PA8;
+inline constexpr uint32_t PRESENCE_OUTPUT = PB15;
+inline constexpr uint32_t ERROR_LED = PA15;
+inline constexpr uint32_t BTN_BACKWARD = PB13;
+inline constexpr uint32_t BTN_FORWARD = PB12;
+inline constexpr uint32_t STEPPER_EN = PA6;
+inline constexpr uint32_t STEPPER_DIR = PA7;
+inline constexpr uint32_t STEPPER_STEP = PC13;
+inline constexpr uint32_t STEPPER_UART = PB1;
+inline constexpr uint8_t STEPPER_ADDR = 0b00;
+inline constexpr float STEPPER_R_SENSE = 0.11f;
+inline constexpr int32_t STEPPER_MICROSTEPS = 64;
+constexpr float SPEED_RPM_FACTOR = 9.1463414634f;
+constexpr float STEPS_PER_REV = 200.0f;
+constexpr float SCREW_PITCH = 0.715f;
+
+#ifdef ENABLE_I2C_PROTOCOL
+inline constexpr uint32_t I2C_INT_PIN = PA5;
+inline constexpr uint32_t I2C_SDA_PIN = PB11;
+inline constexpr uint32_t I2C_SCL_PIN = PB10;
+#endif
+
+class scoped_irq_lock {
+public:
+  scoped_irq_lock() { __disable_irq(); }
+  ~scoped_irq_lock() { __enable_irq(); }
+};
+
+class BufferHardware {
+  TMC2209Stepper driver{ STEPPER_UART, STEPPER_UART, STEPPER_R_SENSE, STEPPER_ADDR };
+
+#ifdef ENABLE_I2C_PROTOCOL
+  static inline void *i2cContext = nullptr;
+  static inline size_t (*onI2CRead)(void *ctx, uint8_t reg) = nullptr;
+  static inline void (*onI2CWrite)(void *ctx, uint8_t reg, size_t size, const uint8_t *data) = nullptr;
+  static inline volatile uint8_t pendingReadRegister = 0xFF;
+  static inline volatile unsigned int incomingI2CBytes = 0;
+  static inline uint8_t i2cRxBuffer[64]{};
+
+  static void onI2CRequest() {
+    if (onI2CRead)
+      pendingReadRegister += onI2CRead(i2cContext, pendingReadRegister);
+  }
+
+  static void onI2CReceive(const int numBytes) {
+    if (numBytes == 1) {
+      pendingReadRegister = i2cRxBuffer[0];
+    } else if (numBytes > 1) {
+      constexpr int bufSize = sizeof(i2cRxBuffer);
+      for (int i = 0; i < numBytes && i < bufSize; ++i)
+        i2cRxBuffer[i] = static_cast<uint8_t>(Wire.read());
+      incomingI2CBytes = numBytes;
+    }
+  }
+
+  static void handleI2CReceive() {
+    if (incomingI2CBytes <= 0)
+      return;
+
+    size_t count;
+    {
+      scoped_irq_lock lock;
+      count = incomingI2CBytes;
+      incomingI2CBytes = 0;
+    }
+
+    const uint8_t reg = i2cRxBuffer[0];
+    if (onI2CWrite)
+      onI2CWrite(i2cContext, reg, count - 1, &i2cRxBuffer[1]);
+  }
+#endif
+
+public:
+  static void loop() {
+#ifdef ENABLE_I2C_PROTOCOL
+    handleI2CReceive();
+#endif
+  }
+
+  void initHardware() {
+#ifdef ENABLE_UART_PROTOCOL
+    SerialUSB.begin(115200);
+    Serial2.begin(115200);
+#endif
+#ifdef ENABLE_I2C_PROTOCOL
+    pinMode(I2C_INT_PIN, OUTPUT);
+    digitalWrite(I2C_INT_PIN, HIGH); // Inactive (Open Drain high-z emulation via input mode or explicit OD)
+    // STM32 pinMode OUTPUT is push-pull by default. For Open Drain we need OUTPUT_OPEN_DRAIN if supported,
+    // or emulate valid OD by switching between INPUT (High-Z) and OUTPUT LOW.
+    // Arduino STM32 usually supports OUTPUT_OPEN_DRAIN.
+    pinMode(I2C_INT_PIN, OUTPUT_OPEN_DRAIN);
+    digitalWrite(I2C_INT_PIN, HIGH);
+
+    Wire.setSDA(I2C_SDA_PIN);
+    Wire.setSCL(I2C_SCL_PIN);
+    Wire.begin(I2C_ADDR);
+    Wire.onRequest(onI2CRequest);
+    Wire.onReceive(onI2CReceive);
+#endif
+
+    pinMode(OPTICAL_SENSOR_1, INPUT);
+    pinMode(OPTICAL_SENSOR_2, INPUT);
+    pinMode(OPTICAL_SENSOR_3, INPUT);
+    pinMode(PRESENCE_SWITCH, INPUT);
+    pinMode(BTN_BACKWARD, INPUT);
+    pinMode(BTN_FORWARD, INPUT);
+    pinMode(PRESENCE_OUTPUT, OUTPUT);
+    pinMode(ERROR_LED, OUTPUT);
+    pinMode(PRESENCE_LED, OUTPUT);
+
+    pinMode(STEPPER_EN, OUTPUT);
+    pinMode(STEPPER_STEP, OUTPUT);
+    pinMode(STEPPER_DIR, OUTPUT);
+    digitalWrite(STEPPER_EN, LOW);
+    driver.begin();
+    driver.beginSerial(9600);
+    driver.I_scale_analog(false);
+    driver.toff(5);
+    driver.rms_current(600);
+    driver.microsteps(STEPPER_MICROSTEPS);
+    driver.VACTUAL(0);
+    driver.en_spreadCycle(true);
+    driver.pwm_autoscale(true);
+  }
+
+  static constexpr int getBufferID() { return BUFFER_ID; }
+
+  static bool optical1() { return digitalRead(OPTICAL_SENSOR_1) != 0; }
+  static bool optical2() { return digitalRead(OPTICAL_SENSOR_2) != 0; }
+  static bool optical3() { return digitalRead(OPTICAL_SENSOR_3) != 0; }
+  static bool filamentPresent() { return digitalRead(PRESENCE_SWITCH) == 0; }
+  static bool buttonForward() { return digitalRead(BTN_FORWARD) == LOW; }
+  static bool buttonBackward() { return digitalRead(BTN_BACKWARD) == LOW; }
+  static void setErrorLed(const bool on) { digitalWrite(ERROR_LED, on ? HIGH : LOW); }
+  static void setPresenceLed(const bool on) { digitalWrite(PRESENCE_LED, on ? HIGH : LOW); }
+  static void setPresenceOutput(const bool on) { digitalWrite(PRESENCE_OUTPUT, on ? HIGH : LOW); }
+
+  void stepperPush(const float speed) { runStepper(true, speed); }
+  void stepperRetract(const float speed) { runStepper(false, speed); }
+
+  void stepperHold() {
+    digitalWrite(STEPPER_EN, LOW);
+    driver.VACTUAL(0);
+  }
+
+  void stepperOff() {
+    digitalWrite(STEPPER_EN, HIGH);
+    driver.VACTUAL(0);
+  }
+
+  [[noreturn]] static void rebootDFU() {
+    SerialUSB.end();
+    reboot_to_dfu();
+  }
+
+#ifdef ENABLE_UART_PROTOCOL
+  static void writeLine(const char *l) {
+    SerialUSB.write(l);
+    SerialUSB.write('\n');
+    Serial2.write(l);
+    Serial2.write('\n');
+    SerialUSB.flush();
+    Serial2.flush();
+  }
+
+  template<size_t BufSize = 64>
+  [[gnu::format(printf, 1, 2)]]
+  static void writeLineF(const char *fmt, ...) {
+    char buf[BufSize + 1];
+    va_list args;
+    va_start(args, fmt);
+    tiny::vsnprintf(buf, BufSize, fmt, args);
+    va_end(args);
+    writeLine(buf);
+  }
+
+  static bool readChar(char &c) {
+    if (SerialUSB.available()) {
+      c = static_cast<char>(SerialUSB.read());
+      return true;
+    }
+    if (Serial2.available()) {
+      c = static_cast<char>(Serial2.read());
+      return true;
+    }
+    return false;
+  }
+#endif
+
+#ifdef ENABLE_I2C_PROTOCOL
+  static void setI2CCallbacks(void *ctx,
+                              size_t (*onRead)(void *ctx, uint8_t reg),
+                              void (*onWrite)(void *ctx, uint8_t reg, size_t size, const uint8_t *data)) {
+    i2cContext = ctx;
+    onI2CRead = onRead;
+    onI2CWrite = onWrite;
+  }
+
+  static void setInterrupt(const bool active) { digitalWrite(I2C_INT_PIN, active ? LOW : HIGH); }
+
+  static size_t i2cWrite(const uint8_t data) {
+    if (Wire.write(data) == 0)
+      return 1;
+    return 0;
+  }
+
+  static size_t i2cWrite(const uint8_t *data, const size_t len) {
+    if (Wire.write(data, len) == 0)
+      return len;
+    return 0;
+  }
+
+  template<typename T>
+  static size_t i2cWriteValue(const T &value) {
+    if (i2cWrite(reinterpret_cast<const uint8_t *>(&value), sizeof(T)) == 0)
+      return sizeof(T);
+    return 0;
+  }
+#endif
+
+  static uint32_t timeMs() { return millis(); }
+
+private:
+  void runStepper(const bool forward, const float speed) {
+    digitalWrite(STEPPER_EN, LOW);
+    driver.shaft(forward);
+    const float rpm = speed * SPEED_RPM_FACTOR;
+    const auto v = static_cast<uint32_t>(rpm * STEPPER_MICROSTEPS * STEPS_PER_REV / 60.0f / SCREW_PITCH);
+    driver.VACTUAL(v);
+  }
+};
