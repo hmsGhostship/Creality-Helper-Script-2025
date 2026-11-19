@@ -205,7 +205,7 @@ When running a standard **`K1_2025`** (without CFS-C) and **`Retire Nexusp Backe
 
 ### 🔄 FLY-LLL Plus Safety & Auto-Switch (PD7) (`Install / Remove Menu -> Option 16`)
 
-Unified 1-click installation and removal for the **FLY-LLL Plus** external buffer/filament sensor (`^PD7`, requires **Phaetus DXC Extruder**):
+Unified 1-click installation and removal for the **FLY-LLL Plus** external buffer/filament sensor (`^PD7`, requires a **Toolhead Filament Sensor** such as the **Phaetus DXC Extruder** or an extruder-top inline microswitch on the Nozzle PCB — see `files/cfs-lll-plus-safety/firmware/README.md` for alternatives):
 
 * **Hardware Wiring & Common Ground Requirement:** Connect the freed toolhead **`PD7`** signal line to the **Signal / Out** pin of the FLY-LLL Plus filament sensor. **Important:** The FLY-LLL Plus power supply and the printer mainboard/toolhead **`GND (-)`** **must share a common ground (same reference potential)** to prevent floating signals or hardware damage.
 * **Smart Fail-Safe Boot Detection (`K1_2025_CFS-C`):** At power-on, `_LLL_BOOT_NEXUSP_EVAL` & `lll_nexusp_guard.sh` check `lll_plus_sensor` (`^PD7`). If filament is already inserted in the FLY-LLL Plus, `nexusp` remains paused (preventing the CFS-C from feeding its slots) and plays a distinctive **4-tone startup fanfare** (`LLL_EXTERNAL_SPOOL_READY_SOUND`). When the FLY-LLL Plus is empty at boot, `nexusp` starts normally for CFS-C operation.
