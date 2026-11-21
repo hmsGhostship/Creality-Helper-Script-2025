@@ -21,6 +21,54 @@ function get_profile_filename(){
   fi
 }
 
+function write_options_profile_silent(){
+  local variant fname out_file
+  variant="$(detect_active_profile_variant)"
+  fname="$(get_profile_filename "$variant")"
+  mkdir -p "$OPT_PROFILE_DIR"
+  out_file="$OPT_PROFILE_DIR/$fname"
+  {
+    echo "# Helper-Script Installed Options Profile"
+    echo "PROFILE_VARIANT=\"${variant}\""
+    echo "CREATED_AT=\"$(date '+%Y-%m-%d %H:%M:%S')\""
+    echo "OPT_MOONRAKER=$([ -d "$MOONRAKER_FOLDER" ] && echo 1 || echo 0)"
+    echo "OPT_FLUIDD=$([ -d "$FLUIDD_FOLDER" ] && echo 1 || echo 0)"
+    echo "OPT_MAINSAIL=$([ -d "$MAINSAIL_FOLDER" ] && echo 1 || echo 0)"
+    echo "OPT_ENTWARE=$([ -f "$ENTWARE_FILE" ] && echo 1 || echo 0)"
+    echo "OPT_GCODE_SHELL=$([ -f "$KLIPPER_SHELL_FILE" ] && echo 1 || echo 0)"
+    echo "OPT_RECCON=$([ -f "$RECCON_BIN_FILE" ] && echo 1 || echo 0)"
+    echo "OPT_INPUT_SHAPER=$(grep -q '^\[input_shaper\]' "$PRINTER_CFG" 2>/dev/null && echo 1 || echo 0)"
+    echo "OPT_EXTENDED_GCODE=$(grep -q '^\[extended_gcode_params\]' "$PRINTER_CFG" 2>/dev/null && echo 1 || echo 0)"
+    echo "OPT_DXC_SENSOR=$(grep -q '^\[include Helper-Script/dxc_sensor.cfg\]' "$PRINTER_CFG" 2>/dev/null && echo 1 || echo 0)"
+    if [ "$variant" = "CFS-C" ]; then
+      echo "OPT_CFS_SPEED_FIX=$([ -f "$HS_BACKUP_FOLDER/box_control.pyc.orig" ] && echo 1 || echo 0)"
+      echo "OPT_CFS_VOL_FIX=$([ -f "$HS_BACKUP_FOLDER/box.cfg.orig" ] && echo 1 || echo 0)"
+      echo "OPT_FLY_LLL=$(grep -q '^\[include Helper-Script/cfs_lll_safety.cfg\]' "$PRINTER_CFG" 2>/dev/null && echo 1 || echo 0)"
+    else
+      echo "OPT_CFS_SPEED_FIX=0"
+      echo "OPT_CFS_VOL_FIX=0"
+      echo "OPT_FLY_LLL=$(grep -q '^\[include Helper-Script/lll_plus_sensor_nocfs.cfg\]' "$PRINTER_CFG" 2>/dev/null && echo 1 || echo 0)"
+    fi
+    echo "OPT_CHASSIS_LIGHT=$(grep -q '^\[output_pin LED\]' "$PRINTER_CFG" 2>/dev/null && echo 1 || echo 0)"
+    echo "OPT_CAM_MOONRAKER=$(grep -q '^\[webcam chassis\]\|^\[webcam usb\]' "$MOONRAKER_CFG" 2>/dev/null && echo 1 || echo 0)"
+    echo "OPT_CAM_CONTROL=$([ -f "$CAMERA_SETTINGS_FILE" ] && echo 1 || echo 0)"
+    echo "OPT_TIMELAPSE=$([ -f "$TIMELAPSE_FILE" ] && echo 1 || echo 0)"
+    echo "OPT_CALIB_TOOLBOX=$(grep -q '^\[include Helper-Script/calib_tool_box.cfg\]' "$PRINTER_CFG" 2>/dev/null && echo 1 || echo 0)"
+    echo "OPT_CFS_WEB_ADDON=$([ -f "${MAINSAIL_FOLDER}/k1c-cfs-panel.js" ] || [ -f "${FLUIDD_FOLDER}/k1c-cfs-panel.js" ] && echo 1 || echo 0)"
+    echo "OPT_MOTOR_SOUND=$([ -f "$MOTOR_SOUND_TARGET_FILE" ] && echo 1 || echo 0)"
+    echo "OPT_USEFUL_MACROS=$([ -f "$USEFUL_MACROS_FILE" ] && echo 1 || echo 0)"
+    echo "OPT_GIT_BACKUP=$([ -f "$GIT_BACKUP_FILE" ] && echo 1 || echo 0)"
+    echo "OPT_OCTOEVERYWHERE=$([ -d "$OCTOEVERYWHERE_FOLDER" ] && echo 1 || echo 0)"
+    echo "OPT_OBICO=$([ -d "$MOONRAKER_OBICO_FOLDER" ] && echo 1 || echo 0)"
+    echo "OPT_GUPPYFLO=$([ -d "$GUPPYFLO_FOLDER" ] && echo 1 || echo 0)"
+    echo "OPT_MOBILERAKER=$([ -d "$MOBILERAKER_COMPANION_FOLDER" ] && echo 1 || echo 0)"
+    echo "OPT_OCTOAPP=$([ -d "$OCTOAPP_COMPANION_FOLDER" ] && echo 1 || echo 0)"
+    echo "OPT_SIMPLYPRINT=$(grep -q '^\[simplyprint\]' "$MOONRAKER_CFG" 2>/dev/null && echo 1 || echo 0)"
+    echo "OPT_PREVENT_CFG_UPDATE=$([ -f "$KLIPPER_SERVICE_DISABLED" ] && echo 1 || echo 0)"
+  } > "$out_file"
+  echo -e "Info: Updated Installed Options Profile (${variant}): ${out_file}"
+}
+
 function backup_installed_options_profile(){
   top_line
   title 'Backup Installed Options Profile' "${yellow}"
@@ -376,6 +424,22 @@ function restore_installed_options_profile(){
         OPT_CFS_SPEED_FIX=1
         OPT_CFS_VOL_FIX=1
         echo -e " ${green}Profile upgraded to CFS-C mode!${white}"
+        ;;
+    esac
+  fi
+
+  if [ "$PROFILE_VARIANT" = "CFS-C" ] && [ "$current_hw" = "STANDARD" ]; then
+    echo
+    echo -e " ${yellow}Cross-Variant Restore detected:${white} Saved profile is ${cyan}CFS-C${white}, active printer is ${green}STANDARD (Non-CFS)${white}."
+    local adapt_yn
+    read -p " ${white}Adapt profile to ${green}STANDARD (Non-CFS)${white} (skips CFS-C purge fixes, uses Spool Holder Addon & Non-CFS FLY-LLL)? (${yellow}y${white}/${yellow}n${white}): ${yellow}" adapt_yn
+    echo -e "${white}"
+    case "$adapt_yn" in
+      Y|y)
+        PROFILE_VARIANT="STANDARD"
+        OPT_CFS_SPEED_FIX=0
+        OPT_CFS_VOL_FIX=0
+        echo -e " ${green}Profile adapted to STANDARD (Non-CFS) mode!${white}"
         ;;
     esac
   fi
