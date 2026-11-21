@@ -20,6 +20,9 @@ function backup_restore_menu_ui() {
   menu_option '7' 'Install' 'OTA State Backup Macro'
   menu_option '8' 'Remove' 'OTA State Backup Macro'
   hr
+  menu_option '9' 'Backup' 'Installed Options Profile (CFS-C / Standard)'
+  menu_option '10' 'Restore' 'Installed Options Profile (Select & Reinstall)'
+  hr
   inner_line
   hr
   bottom_menu_option 'b' 'Back to [Main Menu]' "${yellow}"
@@ -72,6 +75,10 @@ function backup_restore_menu() {
         else
           run "remove_ota_backup_macro" "backup_restore_menu_ui"
         fi;;
+      9)
+        run "backup_installed_options_profile" "backup_restore_menu_ui";;
+      10)
+        run "restore_installed_options_profile" "backup_restore_menu_ui";;
       B|b)
         clear; main_menu; break;;
       Q|q)
