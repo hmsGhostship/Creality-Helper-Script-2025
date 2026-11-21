@@ -4,6 +4,39 @@ set -e
 
 OTA_BACKUP_DIR="/usr/data/helper-script-ota-backup"
 
+function prompt_plug_usb_if_missing(){
+  local usb_mnt
+  usb_mnt="$(prompt_plug_usb_if_missing || true)"
+  usb_mnt="$(echo "$usb_mnt" | tail -n 1 | grep "^/" || true)"
+  if [ -n "$usb_mnt" ]; then
+    echo "$usb_mnt"
+    return 0
+  fi
+  local plug_yn
+  while true; do
+    read -p " ${yellow}No USB drive detected.${white} Do you want to plug in a USB drive now? (${yellow}y${white}/${yellow}n${white}): ${yellow}" plug_yn
+    echo -e "${white}"
+    case "${plug_yn}" in
+      Y|y)
+        read -p " ${cyan}Plug in the USB drive, wait 2 seconds, then press Enter...${white}" _dummy
+        sleep 1
+        usb_mnt="$(detect_usb_mount 2>/dev/null || true)"
+        if [ -n "$usb_mnt" ]; then
+          echo -e " ${green}USB drive detected:${white} ${usb_mnt}"
+          echo "$usb_mnt"
+          return 0
+        else
+          error_msg "Still no USB drive detected!"
+        fi
+        ;;
+      N|n)
+        return 1;;
+      *)
+        error_msg "Please select y or n!";;
+    esac
+  done
+}
+
 function backup_ota_state_message(){
   top_line
   title 'Backup Helper-Script State (OTA Safe)' "${yellow}"
@@ -12,6 +45,14 @@ function backup_ota_state_message(){
   echo -e " │ ${cyan}Saves all Helper-Script configs, Moonraker DB, init scripts,   ${white}│"
   echo -e " │ ${cyan}and disabled Creality service states to /usr/data so you can   ${white}│"
   echo -e " │ ${cyan}restore your exact setup after a Creality firmware update.     ${white}│"
+  inner_line
+  local _u
+  _u="$(detect_usb_mount 2>/dev/null || true)"
+  if [ -n "$_u" ]; then
+    printf " │ ${green}USB Drive:${white} %-51s │\n" "Detected (${_u})"
+  else
+    printf " │ ${yellow}USB Drive:${white} %-51s │\n" "Not detected (optional for USB backup)"
+  fi
   hr
   bottom_line
 }
@@ -24,6 +65,14 @@ function restore_ota_state_message(){
   echo -e " │ ${cyan}Restores your saved Helper-Script configs, init scripts,       ${white}│"
   echo -e " │ ${cyan}camera routing, and disabled Creality stock services after     ${white}│"
   echo -e " │ ${cyan}a Creality firmware update.                                    ${white}│"
+  inner_line
+  local _u
+  _u="$(detect_usb_mount 2>/dev/null || true)"
+  if [ -n "$_u" ]; then
+    printf " │ ${green}USB Drive:${white} %-51s │\n" "Detected (${_u})"
+  else
+    printf " │ ${yellow}USB Drive:${white} %-51s │\n" "Not detected (optional for USB restore)"
+  fi
   hr
   bottom_line
 }
@@ -166,7 +215,8 @@ function backup_ota_state(){
       Y|y)
         echo -e "${white}"
         local usb_mnt target_mode="data" saved_msg="${OTA_BACKUP_DIR}"
-        usb_mnt="$(detect_usb_mount 2>/dev/null || true)"
+        usb_mnt="$(prompt_plug_usb_if_missing || true)"
+        usb_mnt="$(echo "$usb_mnt" | tail -n 1 | grep "^/" || true)"
         if [ -n "$usb_mnt" ]; then
           echo -e " ${cyan}USB drive detected:${white} ${usb_mnt}"
           echo -e " Where do you want to save the backup?"
