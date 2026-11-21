@@ -4,10 +4,25 @@ set -e
 
 OTA_BACKUP_DIR="/usr/data/helper-script-ota-backup"
 
+function detect_usb_mount(){
+  local mnt
+  for mnt in /media/creality/sda1 /media/creality/sdb1 /media/creality/sda /tmp/udisk/sda1 /tmp/udisk/sdb1 /mnt/UDISK /media/usb0; do
+    if [ -d "$mnt" ] && grep -q " ${mnt} " /proc/mounts 2>/dev/null; then
+      if grep " ${mnt} " /proc/mounts 2>/dev/null | grep -q " ro,"; then
+        mount -o remount,rw "$mnt" 2>/dev/null || true
+      fi
+      if grep " ${mnt} " /proc/mounts 2>/dev/null | grep -q " rw," && [ -w "$mnt" ]; then
+        echo "$mnt"
+        return 0
+      fi
+    fi
+  done
+  return 1
+}
+
 function prompt_plug_usb_if_missing(){
   local usb_mnt
-  usb_mnt="$(prompt_plug_usb_if_missing || true)"
-  usb_mnt="$(echo "$usb_mnt" | tail -n 1 | grep "^/" || true)"
+  usb_mnt="$(detect_usb_mount 2>/dev/null || true)"
   if [ -n "$usb_mnt" ]; then
     echo "$usb_mnt"
     return 0
