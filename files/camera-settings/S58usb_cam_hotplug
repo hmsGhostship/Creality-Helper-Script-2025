@@ -1,8 +1,46 @@
 #!/bin/sh
+# Lightweight USB camera hotplug watcher daemon for K1 2025
+
+PID_FILE="/var/run/usb_cam_hotplug.pid"
+
 case "$1" in
-  start|restart|reload)
-    if [ -f /etc/mdev.conf ] && ! grep -q "usb_cam_hotplug.sh" /etc/mdev.conf; then
-      sed -i "s|^video\[0-9\]\*.*|video[0-9]*             root:root 666 */usr/data/helper-script/scripts/usb_cam_hotplug.sh|" /etc/mdev.conf
+  start)
+    if [ -f "$PID_FILE" ] && kill -0 "$(cat "$PID_FILE")" 2>/dev/null; then
+      exit 0
     fi
+    (
+      LAST_STATE="$(ls -1 /dev/video* 2>/dev/null | tr '\n' ' ')"
+      while true; do
+        sleep 3
+        CUR_STATE="$(ls -1 /dev/video* 2>/dev/null | tr '\n' ' ')"
+        if [ "$CUR_STATE" != "$LAST_STATE" ]; then
+          LAST_STATE="$CUR_STATE"
+          sleep 1
+          if [ -x /usr/apps/etc/init.d/S58usb_camera ]; then
+            /usr/apps/etc/init.d/S58usb_camera restart >/dev/null 2>&1 || true
+          fi
+          GO2RTC_CFG="/usr/data/go2rtc/go2rtc.yaml"
+          if [ -f "$GO2RTC_CFG" ] && grep -q "^  usb:" "$GO2RTC_CFG" 2>/dev/null; then
+            USB_DEV="$(v4l2-ctl --list-devices 2>/dev/null | grep -A2 -i "usb" | sed 's/^[[:space:]]*//g' | grep '^/dev/video' | grep -v '^/dev/video0$' | head -n 1)"
+            [ -n "$USB_DEV" ] && sed -i "s|/dev/video[1-9][0-9]*|${USB_DEV}|g" "$GO2RTC_CFG" 2>/dev/null || true
+            for svc in /usr/apps/etc/init.d/S*go2rtc* /etc/init.d/S*go2rtc*; do
+              [ -x "$svc" ] && "$svc" restart >/dev/null 2>&1 || true
+            done
+          fi
+        fi
+      done
+    ) >/dev/null 2>&1 &
+    echo $! > "$PID_FILE"
+    ;;
+  stop)
+    if [ -f "$PID_FILE" ]; then
+      kill "$(cat "$PID_FILE")" 2>/dev/null || true
+      rm -f "$PID_FILE"
+    fi
+    ;;
+  restart|reload)
+    "$0" stop
+    sleep 1
+    "$0" start
     ;;
 esac
