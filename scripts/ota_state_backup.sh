@@ -209,10 +209,8 @@ function run_ota_state_backup_core(){
   [ -d "/usr/apps/overlay" ] && sys_items="$sys_items usr/apps/overlay"
   local ub
   for ub in /usr/bin/* /usr/local/bin/*; do
-    [ -e "$ub" ] || [ -L "$ub" ] || continue
-    if [ -L "$ub" ] && readlink "$ub" 2>/dev/null | grep -q "^/usr/data/"; then
-      sys_items="$sys_items ${ub#/}"
-    elif [ -f "$ub" ] && [ "$ub" -nt "/bin/sh" ]; then
+    [ -L "$ub" ] || continue
+    if readlink "$ub" 2>/dev/null | grep -q "^/usr/data/"; then
       sys_items="$sys_items ${ub#/}"
     fi
   done

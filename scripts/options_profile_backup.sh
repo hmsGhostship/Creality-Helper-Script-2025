@@ -1,7 +1,5 @@
 #!/bin/sh
 
-set -e
-
 OPT_PROFILE_DIR="/usr/data/helper-script-ota-backup"
 
 function detect_active_profile_variant(){
