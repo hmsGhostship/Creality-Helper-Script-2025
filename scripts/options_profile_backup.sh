@@ -88,9 +88,34 @@ function backup_installed_options_profile(){
   echo -e "  ${cyan}${out_file}${white}"
 
   local usb_mnt=""
-  if command -v prompt_plug_usb_if_missing >/dev/null 2>&1; then
-    usb_mnt="$(prompt_plug_usb_if_missing || true)"
-    usb_mnt="$(echo "$usb_mnt" | tail -n 1 | grep "^/" || true)"
+  if command -v detect_usb_mount >/dev/null 2>&1; then
+    usb_mnt="$(detect_usb_mount 2>/dev/null || true)"
+  fi
+  if [ -z "$usb_mnt" ]; then
+    local plug_yn
+    while true; do
+      read -p " ${yellow}No USB drive detected.${white} Do you want to plug in a USB drive now? (${yellow}y${white}/${yellow}n${white}): ${yellow}" plug_yn
+      echo -e "${white}"
+      case "$plug_yn" in
+        Y|y)
+          read -p " ${cyan}Plug in the USB drive, wait 2 seconds, then press Enter...${white}" _dummy
+          sleep 1
+          usb_mnt="$(detect_usb_mount 2>/dev/null || true)"
+          if [ -n "$usb_mnt" ]; then
+            echo -e " ${green}USB drive detected:${white} ${usb_mnt}"
+            break
+          else
+            error_msg "Still no USB drive detected!"
+          fi
+          ;;
+        N|n|"")
+          break
+          ;;
+        *)
+          error_msg "Please select y or n!"
+          ;;
+      esac
+    done
   fi
   if [ -n "$usb_mnt" ]; then
     mkdir -p "$usb_mnt/helper-script-ota-backup"
