@@ -1394,10 +1394,15 @@
         ? (Number(st["gcode_macro _LLL_WATCHER_STATE"].nexusp_paused) === 1)
         : true;
       if (hasLll !== lllSensorInstalled || lllDet !== lllFilamentDetected || extDet !== extFilamentDetected || nPaused !== nexuspPaused) {
+        const wasPaused = nexuspPaused;
         lllSensorInstalled = hasLll;
         lllFilamentDetected = lllDet;
         extFilamentDetected = extDet;
         nexuspPaused = nPaused;
+        if (wasPaused && !nexuspPaused && selectedSlot === "HOLDER") {
+          const firstCfs = latestSlots.find(function (x) { return !x.is_holder && x.present; }) || latestSlots.find(function (x) { return !x.is_holder; });
+          if (firstCfs) selectedSlot = firstCfs.slot;
+        }
         let cachedHolder = null;
         try { cachedHolder = JSON.parse(window.localStorage.getItem("k1c_cfs_holder_cache") || "null"); } catch (e) {}
         const cType = String((cachedHolder && cachedHolder.type) || "").trim().toUpperCase();
