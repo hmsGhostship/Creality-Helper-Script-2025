@@ -26,16 +26,29 @@ function backup_installed_options_profile(){
   title 'Backup Installed Options Profile' "${yellow}"
   inner_line
   hr
-  echo -e " │ ${cyan}Scans all active Helper-Script modules from the Info Menu    ${white}│"
-  echo -e " │ ${cyan}and saves a reproducible profile (separate for CFS-C / Std)  ${white}│"
-  echo -e " │ ${cyan}to reinstall selected modules in proper dependency order.    ${white}│"
+  echo -e " │ ${cyan}Scans all active Helper-Script modules from the Info Menu      ${white}│"
+  echo -e " │ ${cyan}and saves a reproducible profile (separate for CFS-C / Std)    ${white}│"
+  echo -e " │ ${cyan}to reinstall selected modules in proper dependency order.      ${white}│"
   hr
   bottom_line
 
-  local variant
+  local variant yn
   variant="$(detect_active_profile_variant)"
   echo
   echo -e " Active menu / hardware mode detected: ${green}${variant}${white}"
+  while true; do
+    read -p " ${white}Do you want to backup ${green}Installed Options Profile (${variant})${white}? (${yellow}y${white}/${yellow}n${white}): ${yellow}" yn
+    echo -e "${white}"
+    case "${yn}" in
+      Y|y)
+        break;;
+      N|n)
+        error_msg "Backup canceled!"
+        return;;
+      *)
+        error_msg "Please select a correct choice!";;
+    esac
+  done
 
   local fname out_file
   fname="$(get_profile_filename "$variant")"
