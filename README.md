@@ -6,6 +6,8 @@ This script is intended only for Creality K1 (2025 Series) printers and allows y
 
 Additional support for K1 2025 CFS-C by @hmsGhostship.
 
+> **⚠️ Firmware Compatibility Note:** All features, patches, and CFS-C options in this repository have currently only been tested on **Creality Firmware Version `1.1.0.27`**. Newer Creality firmware updates may change internal files, services, or Klipper bytecode—always create an **OTA-Safe State Backup** (option `5` in the Backup & Restore menu or via the `BACKUP_OTA_STATE` macro, ideally with a USB drive attached) before updating.
+
 
 ## 📋 / ✅ Prerequisites and installation
 
