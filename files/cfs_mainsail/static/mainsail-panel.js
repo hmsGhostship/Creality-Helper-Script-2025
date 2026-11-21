@@ -1349,10 +1349,13 @@
     });
     const isLoaded = !!(selectedSlotData && selectedSlotData.selected);
     const isPresent = !!(selectedSlotData && selectedSlotData.present);
-    const holderExtEmptyLock = !!(selectedSlotData && selectedSlotData.is_holder && nexuspPaused && !extFilamentDetected);
+    const isHolderSelected = !!(selectedSlotData && selectedSlotData.is_holder);
+    const col1CollisionLock = !!(!nexuspPaused && lllFilamentDetected && !extFilamentDetected);
+    const holderReady = !!(isHolderSelected && nexuspPaused && lllFilamentDetected && extFilamentDetected);
+    const matrixBlock = isHolderSelected ? !holderReady : col1CollisionLock;
     if (feedBtnEl) {
-      const allowHolderFeed = !!(selectedSlotData && selectedSlotData.is_holder && isPresent && !holderExtEmptyLock);
-      feedBtnEl.disabled = actionLocked || !!actionSlot || holderExtEmptyLock || (!allowHolderFeed && isLoaded) || !isPresent;
+      const allowHolderFeed = holderReady;
+      feedBtnEl.disabled = actionLocked || !!actionSlot || matrixBlock || (!allowHolderFeed && isLoaded) || !isPresent;
       var feedIconEl = feedBtnEl.querySelector("svg");
       var feedTextEl = feedBtnEl.querySelector("span");
       var externalFeedPending = !!pendingAction
@@ -1369,7 +1372,7 @@
       }
     }
     if (configBtnEl) configBtnEl.disabled = actionLocked;
-    if (retractBtnEl) retractBtnEl.disabled = actionLocked || !!actionSlot || holderExtEmptyLock || !isPresent;
+    if (retractBtnEl) retractBtnEl.disabled = actionLocked || !!actionSlot || matrixBlock || !isPresent;
 
     updateStatus(connected);
     updateHumidity(latestHumidity, latestTemp);
