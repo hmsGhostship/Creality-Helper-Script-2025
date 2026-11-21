@@ -610,8 +610,15 @@
       if (buttonEl) buttonEl.disabled = true;
       render(latestSlots, latestConnected);
       try {
-        const preset = findPresetByTypeAndName(slot.type, slot.name) || MATERIAL_PRESETS[String(slot.type || "").toUpperCase()] || null;
-        const targetTemp = Number(slot.temp_max || slot.temp_min || (preset && preset.temp_max) || 240) || 240;
+        const matKey = String(slot.type || "").trim().toUpperCase();
+        const preset = findPresetByTypeAndName(slot.type, slot.name) || MATERIAL_PRESETS[matKey] || null;
+        let purgeTemp = 0;
+        try {
+          const pData = await queryKlipperObject("cfs_material_db=purge_temps");
+          const pTemps = (pData && pData.result && pData.result.status && pData.result.status.cfs_material_db && pData.result.status.cfs_material_db.purge_temps) || {};
+          purgeTemp = Number(pTemps[matKey] || pTemps[String(slot.type || "").trim()] || 0) || 0;
+        } catch (e) {}
+        const targetTemp = purgeTemp || Number(slot.temp_max || slot.temp_min || (preset && preset.temp_max) || 240) || 240;
         if (action === "feed") {
           const gcode = [
             "RESPOND MSG=\"Spool Holder: Heating nozzle to " + targetTemp + "C & extruding 60mm...\"",
