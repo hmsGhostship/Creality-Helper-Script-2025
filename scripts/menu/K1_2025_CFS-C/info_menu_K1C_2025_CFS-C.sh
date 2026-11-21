@@ -209,6 +209,9 @@ function info_menu_ui_k1_2025_cfs_c() {
   info_line "$(check_file_k1_2025 "$HS_BACKUP_FOLDER/box.cfg.orig")" 'CFS-C Purge Volume Fix (Prime Tower)'
   info_line "$(check_live_status_k1_2025 "^\[include Helper-Script/cfs_lll_safety.cfg\]")" 'FLY-LLL Plus Safety System (PD7)'
   info_line "$(check_live_status_k1_2025 "^\[include Helper-Script/lll-plus-nexusp-switch.cfg\]")" 'FLY-LLL Plus Nexusp Auto-Switch'
+  info_line "$(check_file_k1_2025 "$MOTOR_SOUND_TARGET_FILE")" 'Motor Sound Support'
+  info_line "$(check_file_k1_2025 "$USEFUL_MACROS_FILE")" 'Useful Macros'
+  info_line "$(check_file_k1_2025 "$GIT_BACKUP_FILE")" 'Git Backup'
   hr
   subtitle '•TOOLS & CALIBRATION:'
   info_line "$(check_file_k1_2025 "$KLIPPER_SERVICE_DISABLED")" 'Prevent updating Klipper configuration files'
@@ -216,9 +219,6 @@ function info_menu_ui_k1_2025_cfs_c() {
   info_line "$(check_live_status_k1_2025 "^\[include Helper-Script/calib_tool_box.cfg\]")" 'Creality Calibration Toolbox (BED MESH)'
   info_line "$(check_file_k1_2025 "${MAINSAIL_FOLDER}/k1c-cfs-panel.js")" 'CFS-C Mainsail Addon'
   info_line "$(check_file_k1_2025 "${FLUIDD_FOLDER}/k1c-cfs-panel.js")" 'CFS-C Fluidd Addon'
-  info_line "$(check_file_k1_2025 "$MOTOR_SOUND_TARGET_FILE")" 'Motor Sound Support'
-  info_line "$(check_file_k1_2025 "$USEFUL_MACROS_FILE")" 'Useful Macros'
-  info_line "$(check_file_k1_2025 "$GIT_BACKUP_FILE")" 'Git Backup'
   hr
   subtitle '•CAMERA:'
   info_line "$(check_file_k1_2025 "$CAMERA_SETTINGS_FILE")" 'Camera Settings Control Module'

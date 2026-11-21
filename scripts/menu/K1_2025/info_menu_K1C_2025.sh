@@ -208,6 +208,9 @@ function info_menu_ui_k1_2025() {
 # info_line "$(check_file_k1_2025 "$HS_BACKUP_FOLDER/box_control.pyc.orig")" 'CFS-C Universal Purge Speed Fix'
 # info_line "$(check_file_k1_2025 "$HS_BACKUP_FOLDER/box.cfg.orig")" 'CFS-C Purge Volume Fix (Prime Tower)'
   info_line "$(check_live_status_k1_2025 "^\[include Helper-Script/lll_plus_sensor_nocfs.cfg\]")" 'FLY-LLL Plus Buffer Sensor (Toolhead Sensor Req.)'
+  info_line "$(check_file_k1_2025 "$MOTOR_SOUND_TARGET_FILE")" 'Motor Sound Support'
+  info_line "$(check_file_k1_2025 "$USEFUL_MACROS_FILE")" 'Useful Macros'
+  info_line "$(check_file_k1_2025 "$GIT_BACKUP_FILE")" 'Git Backup'
   hr
   subtitle '•TOOLS & CALIBRATION:'
   info_line "$(check_file_k1_2025 "$KLIPPER_SERVICE_DISABLED")" 'Prevent updating Klipper configuration files'
@@ -215,9 +218,6 @@ function info_menu_ui_k1_2025() {
   info_line "$(check_live_status_k1_2025 "^\[include Helper-Script/calib_tool_box.cfg\]")" 'Creality Calibration Toolbox (BED MESH)'
   info_line "$(check_file_k1_2025 "${MAINSAIL_FOLDER}/k1c-cfs-panel.js")" 'Spool Holder Mainsail Addon'
   info_line "$(check_file_k1_2025 "${FLUIDD_FOLDER}/k1c-cfs-panel.js")" 'Spool Holder Fluidd Addon'
-  info_line "$(check_file_k1_2025 "$MOTOR_SOUND_TARGET_FILE")" 'Motor Sound Support'
-  info_line "$(check_file_k1_2025 "$USEFUL_MACROS_FILE")" 'Useful Macros'
-  info_line "$(check_file_k1_2025 "$GIT_BACKUP_FILE")" 'Git Backup'
   printf " │   ${yellow}%-61s${white}│\n" "Requires retired Nexusp (native Moonraker on 7125):"
   info_line "$(check_file_k1_2025 "$FAN_CONTROLS_FILE")" 'Fans Control Macros'
   info_line "$(check_folder_k1_2025 "$IMP_SHAPERS_FOLDER")" 'Improved Shapers Calibrations'
