@@ -32,21 +32,10 @@ function backup_installed_options_profile(){
   hr
   bottom_line
 
-  local auto_var choice_var variant
-  auto_var="$(detect_active_profile_variant)"
+  local variant
+  variant="$(detect_active_profile_variant)"
   echo
-  echo -e " Detected printer profile variant: ${green}${auto_var}${white}"
-  echo -e "  ${yellow}1)${white} Save as ${cyan}CFS-C${white} profile"
-  echo -e "  ${yellow}2)${white} Save as ${cyan}STANDARD (Non-CFS)${white} profile"
-  echo -e "  ${yellow}Enter)${white} Use detected (${green}${auto_var}${white})"
-  echo
-  read -p " ${white}Select profile type (${yellow}1${white}/${yellow}2${white}/Enter): ${yellow}" choice_var
-  echo -e "${white}"
-  case "$choice_var" in
-    1) variant="CFS-C" ;;
-    2) variant="STANDARD" ;;
-    *) variant="$auto_var" ;;
-  esac
+  echo -e " Active menu / hardware mode detected: ${green}${variant}${white}"
 
   local fname out_file
   fname="$(get_profile_filename "$variant")"
@@ -162,6 +151,11 @@ function install_fly_lll_for_profile(){
 function execute_option_installer(){
   local key="$1"
   local var="$2"
+  if [ "$var" = "CFS-C" ]; then
+    model="K1_2025_CFS-C"
+  else
+    model="K1_2025"
+  fi
   case "$key" in
     OPT_MOONRAKER) install_moonraker_nginx ;;
     OPT_FLUIDD) install_fluidd ;;
@@ -328,6 +322,24 @@ function restore_installed_options_profile(){
 
   # Load profile flags
   . "$selected_file"
+
+  local current_hw
+  current_hw="$(detect_active_profile_variant)"
+  if [ "$PROFILE_VARIANT" = "STANDARD" ] && [ "$current_hw" = "CFS-C" ]; then
+    echo
+    echo -e " ${yellow}Upgrade-Merge detected:${white} Saved profile is ${cyan}STANDARD (Non-CFS)${white}, active printer is ${green}CFS-C${white}."
+    local upg_yn
+    read -p " ${white}Upgrade & merge profile to ${green}CFS-C${white} (CFS-C Web Addon, FLY-LLL Safety & Purge Fixes)? (${yellow}y${white}/${yellow}n${white}): ${yellow}" upg_yn
+    echo -e "${white}"
+    case "$upg_yn" in
+      Y|y)
+        PROFILE_VARIANT="CFS-C"
+        OPT_CFS_SPEED_FIX=1
+        OPT_CFS_VOL_FIX=1
+        echo -e " ${green}Profile upgraded to CFS-C mode!${white}"
+        ;;
+    esac
+  fi
 
   # Strict dependency order list
   local ORDERED_KEYS="OPT_MOONRAKER OPT_FLUIDD OPT_MAINSAIL OPT_ENTWARE OPT_GCODE_SHELL OPT_RECCON OPT_INPUT_SHAPER OPT_EXTENDED_GCODE OPT_DXC_SENSOR OPT_CFS_SPEED_FIX OPT_CFS_VOL_FIX OPT_FLY_LLL OPT_CHASSIS_LIGHT OPT_CAM_MOONRAKER OPT_CAM_CONTROL OPT_TIMELAPSE OPT_CALIB_TOOLBOX OPT_CFS_WEB_ADDON OPT_MOTOR_SOUND OPT_USEFUL_MACROS OPT_GIT_BACKUP OPT_OCTOEVERYWHERE OPT_OBICO OPT_GUPPYFLO OPT_MOBILERAKER OPT_OCTOAPP OPT_SIMPLYPRINT OPT_PREVENT_CFG_UPDATE"
