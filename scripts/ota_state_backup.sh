@@ -28,6 +28,17 @@ function restore_ota_state_message(){
   bottom_line
 }
 
+function detect_usb_mount(){
+  local mnt
+  for mnt in /tmp/udisk/sda1 /tmp/udisk/sdb1 /mnt/UDISK /media/usb0; do
+    if [ -d "$mnt" ] && { mountpoint -q "$mnt" 2>/dev/null || [ -w "$mnt" ]; }; then
+      echo "$mnt"
+      return 0
+    fi
+  done
+  return 1
+}
+
 function run_ota_state_backup_core(){
   mkdir -p "$OTA_BACKUP_DIR"
   rm -f "$OTA_BACKUP_DIR/ota_configs.tar.gz" "$OTA_BACKUP_DIR/ota_initd.tar.gz" "$OTA_BACKUP_DIR/ota_state.env"
@@ -64,17 +75,17 @@ function run_ota_state_backup_core(){
     echo "DISABLED_SERVICES='${disabled_list# }'"
   } > "$OTA_BACKUP_DIR/ota_state.env"
 
-  local usb_dir=""
-  for mnt in /tmp/udisk/sda1 /tmp/udisk/sdb1 /mnt/UDISK /media/usb0; do
-    if [ -d "$mnt" ] && mountpoint -q "$mnt" 2>/dev/null || [ -w "$mnt" ]; then
-      usb_dir="$mnt/helper-script-ota-backup"
-      break
-    fi
-  done
-  if [ -n "$usb_dir" ]; then
+  local target_mode="${1:-auto}"
+  local usb_mnt
+  usb_mnt="$(detect_usb_mount 2>/dev/null || true)"
+  if [ -n "$usb_mnt" ] && { [ "$target_mode" = "usb" ] || [ "$target_mode" = "both" ] || [ "$target_mode" = "auto" ]; }; then
+    local usb_dir="$usb_mnt/helper-script-ota-backup"
     mkdir -p "$usb_dir"
     cp -af "$OTA_BACKUP_DIR/." "$usb_dir/"
-    echo -e "Info: USB copy saved to ${usb_dir} (Factory-Reset safe!)"
+    echo -e "Info: USB copy saved to ${usb_dir}"
+  fi
+  if [ "$target_mode" = "usb" ]; then
+    rm -rf "$OTA_BACKUP_DIR"
   fi
 }
 
@@ -154,8 +165,29 @@ function backup_ota_state(){
     case "${yn}" in
       Y|y)
         echo -e "${white}"
-        run_ota_state_backup_core
-        ok_msg "Helper-Script OTA snapshot saved to ${yellow}${OTA_BACKUP_DIR}${green}!"
+        local usb_mnt target_mode="data" saved_msg="${OTA_BACKUP_DIR}"
+        usb_mnt="$(detect_usb_mount 2>/dev/null || true)"
+        if [ -n "$usb_mnt" ]; then
+          echo -e " ${cyan}USB drive detected:${white} ${usb_mnt}"
+          echo -e " Where do you want to save the backup?"
+          echo -e "   ${yellow}1)${white} Internal /usr/data only (${OTA_BACKUP_DIR})"
+          echo -e "   ${yellow}2)${white} USB drive only (${usb_mnt}/helper-script-ota-backup)"
+          echo -e "   ${yellow}3)${white} Both (/usr/data + USB drive)"
+          echo
+          local b_choice
+          while true; do
+            read -p " ${white}Select destination (${yellow}1${white}/${yellow}2${white}/${yellow}3${white}): ${yellow}" b_choice
+            echo -e "${white}"
+            case "${b_choice}" in
+              1) target_mode="data"; saved_msg="${OTA_BACKUP_DIR}"; break;;
+              2) target_mode="usb"; saved_msg="${usb_mnt}/helper-script-ota-backup"; break;;
+              3) target_mode="both"; saved_msg="${OTA_BACKUP_DIR} + ${usb_mnt}/helper-script-ota-backup"; break;;
+              *) error_msg "Please select 1, 2 or 3!";;
+            esac
+          done
+        fi
+        run_ota_state_backup_core "$target_mode"
+        ok_msg "Helper-Script OTA snapshot saved to ${yellow}${saved_msg}${green}!"
         return;;
       N|n)
         error_msg "Backup canceled!"
@@ -168,15 +200,32 @@ function backup_ota_state(){
 
 function restore_ota_state(){
   restore_ota_state_message
-  if [ ! -f "$OTA_BACKUP_DIR/ota_state.env" ]; then
-    for mnt in /tmp/udisk/sda1 /tmp/udisk/sdb1 /mnt/UDISK /media/usb0; do
-      if [ -f "$mnt/helper-script-ota-backup/ota_state.env" ]; then
-        echo -e "Info: Importing snapshot from USB (${mnt}/helper-script-ota-backup)..."
-        mkdir -p "$OTA_BACKUP_DIR"
-        cp -af "$mnt/helper-script-ota-backup/." "$OTA_BACKUP_DIR/"
-        break
-      fi
-    done
+  local usb_mnt
+  usb_mnt="$(detect_usb_mount 2>/dev/null || true)"
+  if [ -n "$usb_mnt" ] && [ -f "$usb_mnt/helper-script-ota-backup/ota_state.env" ]; then
+    if [ ! -f "$OTA_BACKUP_DIR/ota_state.env" ]; then
+      echo -e "Info: Importing snapshot from USB (${usb_mnt}/helper-script-ota-backup)..."
+      mkdir -p "$OTA_BACKUP_DIR"
+      cp -af "$usb_mnt/helper-script-ota-backup/." "$OTA_BACKUP_DIR/"
+    else
+      echo -e " ${cyan}Backups found on both /usr/data and USB (${usb_mnt}):${white}"
+      echo -e "   ${yellow}1)${white} Use internal backup (/usr/data)"
+      echo -e "   ${yellow}2)${white} Import & use USB backup (${usb_mnt}/helper-script-ota-backup)"
+      echo
+      local r_src
+      while true; do
+        read -p " ${white}Select backup source (${yellow}1${white}/${yellow}2${white}): ${yellow}" r_src
+        echo -e "${white}"
+        case "${r_src}" in
+          1) break;;
+          2)
+            mkdir -p "$OTA_BACKUP_DIR"
+            cp -af "$usb_mnt/helper-script-ota-backup/." "$OTA_BACKUP_DIR/"
+            break;;
+          *) error_msg "Please select 1 or 2!";;
+        esac
+      done
+    fi
   fi
   if [ ! -f "$OTA_BACKUP_DIR/ota_state.env" ]; then
     error_msg "No OTA state snapshot found in ${OTA_BACKUP_DIR} or on USB!"
