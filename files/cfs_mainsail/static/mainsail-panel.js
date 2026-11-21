@@ -1267,6 +1267,17 @@
     }
 
     gridEl.innerHTML = "";
+    if (hasCfsBox) {
+      if (nexuspPaused) {
+        const holderItem = latestSlots.find(function (x) { return x.is_holder; });
+        if (holderItem) selectedSlot = holderItem.slot;
+      } else if (selectedSlot === "HOLDER" || !latestSlots.some(function (x) { return x.slot === selectedSlot && x.present; })) {
+        const bestCfs = latestSlots.find(function (x) { return !x.is_holder && x.selected && x.present; })
+          || latestSlots.find(function (x) { return !x.is_holder && x.present; })
+          || latestSlots.find(function (x) { return !x.is_holder; });
+        if (bestCfs) selectedSlot = bestCfs.slot;
+      }
+    }
     gridEl.style.display = hasCfsBox ? "" : "none";
     const holderWrapEl = document.getElementById("k1c-cfs-holder-wrap");
     if (holderWrapEl) {
