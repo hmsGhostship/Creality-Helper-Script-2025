@@ -110,7 +110,7 @@ function run_ota_state_backup_core(){
     done
   fi
   if [ -n "$cfg_items" ]; then
-    tar -czf "$OTA_BACKUP_DIR/ota_configs.tar.gz" -C /usr/data $cfg_items
+    tar --exclude="*.log" --exclude="*.pid" --exclude="*.sock" -czf "$OTA_BACKUP_DIR/ota_configs.tar.gz" -C /usr/data $cfg_items 2>/dev/null || true
   fi
 
   echo -e "Info: Saving custom Klipper extras, system binaries & crontabs..."
