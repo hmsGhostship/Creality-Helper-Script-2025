@@ -456,6 +456,11 @@ if [ "$1" = "--auto" ]; then
   fi
   [ -z "$model" ] && model="K1_2025"
   command -v set_paths >/dev/null 2>&1 && set_paths
-  run_ota_state_backup_core
-  echo "OK: Helper-Script OTA snapshot saved to ${OTA_BACKUP_DIR}"
+  run_ota_state_backup_core "auto"
+  _auto_usb="$(detect_usb_mount 2>/dev/null || true)"
+  if [ -n "$_auto_usb" ]; then
+    echo "OK: Helper-Script OTA snapshot saved to ${OTA_BACKUP_DIR} + USB (${_auto_usb}/helper-script-ota-backup)"
+  else
+    echo "OK: Helper-Script OTA snapshot saved to ${OTA_BACKUP_DIR} (No USB drive detected - internal backup only)"
+  fi
 fi
