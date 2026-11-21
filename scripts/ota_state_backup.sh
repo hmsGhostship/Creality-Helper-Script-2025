@@ -63,6 +63,19 @@ function run_ota_state_backup_core(){
     done
     echo "DISABLED_SERVICES='${disabled_list# }'"
   } > "$OTA_BACKUP_DIR/ota_state.env"
+
+  local usb_dir=""
+  for mnt in /tmp/udisk/sda1 /tmp/udisk/sdb1 /mnt/UDISK /media/usb0; do
+    if [ -d "$mnt" ] && mountpoint -q "$mnt" 2>/dev/null || [ -w "$mnt" ]; then
+      usb_dir="$mnt/helper-script-ota-backup"
+      break
+    fi
+  done
+  if [ -n "$usb_dir" ]; then
+    mkdir -p "$usb_dir"
+    cp -af "$OTA_BACKUP_DIR/." "$usb_dir/"
+    echo -e "Info: USB copy saved to ${usb_dir} (Factory-Reset safe!)"
+  fi
 }
 
 function ota_backup_macro_message(){
@@ -156,7 +169,17 @@ function backup_ota_state(){
 function restore_ota_state(){
   restore_ota_state_message
   if [ ! -f "$OTA_BACKUP_DIR/ota_state.env" ]; then
-    error_msg "No OTA state snapshot found in ${OTA_BACKUP_DIR}!"
+    for mnt in /tmp/udisk/sda1 /tmp/udisk/sdb1 /mnt/UDISK /media/usb0; do
+      if [ -f "$mnt/helper-script-ota-backup/ota_state.env" ]; then
+        echo -e "Info: Importing snapshot from USB (${mnt}/helper-script-ota-backup)..."
+        mkdir -p "$OTA_BACKUP_DIR"
+        cp -af "$mnt/helper-script-ota-backup/." "$OTA_BACKUP_DIR/"
+        break
+      fi
+    done
+  fi
+  if [ ! -f "$OTA_BACKUP_DIR/ota_state.env" ]; then
+    error_msg "No OTA state snapshot found in ${OTA_BACKUP_DIR} or on USB!"
     return
   fi
 
@@ -231,16 +254,26 @@ function restore_ota_state(){
               esac
             done
 
-            # Re-inject missing [include Helper-Script/...] & [output_pin LED] into new printer.cfg
+            # Re-inject missing [include ...], [output_pin LED] & CFS-C SAVE_CONFIG blocks into new printer.cfg
             if [ -f "$src_cfg/printer.cfg" ] && [ -f "$dst_cfg/printer.cfg" ]; then
-              echo -e "Info: Merging Helper-Script includes into new firmware printer.cfg..."
-              grep '^\[include Helper-Script/' "$src_cfg/printer.cfg" | while IFS= read -r inc_line; do
+              echo -e "Info: Merging custom includes & CFS-C blocks into new firmware printer.cfg..."
+              grep '^\[include ' "$src_cfg/printer.cfg" | while IFS= read -r inc_line; do
                 if ! grep -Fq "$inc_line" "$dst_cfg/printer.cfg"; then
                   sed -i "1i\\${inc_line}" "$dst_cfg/printer.cfg"
                 fi
               done
               if grep -q '^\[output_pin LED\]' "$src_cfg/printer.cfg" && ! grep -q '^\[output_pin LED\]' "$dst_cfg/printer.cfg"; then
                 sed -n '/^\[output_pin LED\]/,/^$/p' "$src_cfg/printer.cfg" >> "$dst_cfg/printer.cfg"
+              fi
+              if grep -qE "serial_can|cm-切刀|mb-料盒" "$src_cfg/printer.cfg" && ! grep -q "mb-料盒" "$dst_cfg/printer.cfg"; then
+                echo -e "Info: Restoring CFS-C SAVE_CONFIG calibration blocks..."
+                grep -q "<---------------------- SAVE_CONFIG ---------------------->" "$dst_cfg/printer.cfg" || echo "#*# <---------------------- SAVE_CONFIG ---------------------->" >> "$dst_cfg/printer.cfg"
+                awk '
+                  BEGIN { keep = 0 }
+                  /#\*# \[(serial_can|box|motor_control)/ || /cm-切刀/ || /mb-料盒/ { keep = 1; print; next }
+                  /#\*# \[[a-zA-Z0-9_]+\]/ { keep = 0 }
+                  { if (keep == 1 && /^#\*#/) print }
+                ' "$src_cfg/printer.cfg" >> "$dst_cfg/printer.cfg"
               fi
             fi
             rm -rf "$OTA_BACKUP_DIR/cfg_tmp"
@@ -279,6 +312,15 @@ function restore_ota_state(){
 
         if [ -n "$GO2RTC_MODE" ] && type configure_go2rtc_k1_2025 >/dev/null 2>&1; then
           configure_go2rtc_k1_2025 "$GO2RTC_MODE"
+        fi
+
+        if [ "${HAS_CFS_MAINSAIL:-0}" = "1" ] && [ -d "$MAINSAIL_FOLDER" ] && [ -f "$HS_FILES/cfs_mainsail/static/mainsail-panel.js" ]; then
+          cp -f "$HS_FILES/cfs_mainsail/static/mainsail-panel.js" "$MAINSAIL_FOLDER/k1c-cfs-panel.js"
+          grep -q "k1c-cfs-panel.js" "$MAINSAIL_FOLDER/index.html" 2>/dev/null || sed -i 's|</body>|<script src="k1c-cfs-panel.js"></script></body>|' "$MAINSAIL_FOLDER/index.html"
+        fi
+        if [ "${HAS_CFS_FLUIDD:-0}" = "1" ] && [ -d "$FLUIDD_FOLDER" ] && [ -f "$HS_FILES/cfs_mainsail/static/mainsail-panel.js" ]; then
+          cp -f "$HS_FILES/cfs_mainsail/static/mainsail-panel.js" "$FLUIDD_FOLDER/k1c-cfs-panel.js"
+          grep -q "k1c-cfs-panel.js" "$FLUIDD_FOLDER/index.html" 2>/dev/null || sed -i 's|</body>|<script src="k1c-cfs-panel.js"></script></body>|' "$FLUIDD_FOLDER/index.html"
         fi
 
         type sync_timelapse_snapshot_url_k1_2025 >/dev/null 2>&1 && sync_timelapse_snapshot_url_k1_2025
