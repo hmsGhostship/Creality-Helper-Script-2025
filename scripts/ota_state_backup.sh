@@ -210,7 +210,8 @@ function run_ota_state_backup_core(){
     local usb_dir="$usb_mnt/helper-script-ota-backup"
     mkdir -p "$usb_dir"
     cp -af "$OTA_BACKUP_DIR/." "$usb_dir/"
-    echo -e "Info: USB copy saved to ${usb_dir}"
+    sync
+    echo -e "Info: USB copy saved & synced to ${usb_dir} (safe to unplug)"
   fi
   if [ "$target_mode" = "usb" ]; then
     rm -rf "$OTA_BACKUP_DIR"
