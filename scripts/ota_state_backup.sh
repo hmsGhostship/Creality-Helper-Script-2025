@@ -81,10 +81,10 @@ function detect_usb_mount(){
   local mnt
   for mnt in /media/creality/sda1 /media/creality/sdb1 /media/creality/sda /tmp/udisk/sda1 /tmp/udisk/sdb1 /mnt/UDISK /media/usb0; do
     if [ -d "$mnt" ] && grep -q " ${mnt} " /proc/mounts 2>/dev/null; then
-      if [ ! -w "$mnt" ]; then
+      if grep -qE " ${mnt} [^ ]+ [^ ]*(^|,)ro(,|$)" /proc/mounts 2>/dev/null || [ ! -w "$mnt" ]; then
         mount -o remount,rw "$mnt" 2>/dev/null || true
       fi
-      if [ -w "$mnt" ]; then
+      if grep -qE " ${mnt} [^ ]+ [^ ]*(^|,)rw(,|$)" /proc/mounts 2>/dev/null && [ -w "$mnt" ]; then
         echo "$mnt"
         return 0
       fi
@@ -450,6 +450,17 @@ function restore_ota_state(){
     esac
   done
 }
+
+if [ "$1" = "--check-usb" ]; then
+  _u="$(detect_usb_mount 2>/dev/null || true)"
+  if [ -n "$_u" ]; then
+    echo "USB_DETECTED=1 ($_u)"
+    exit 0
+  else
+    echo "USB_DETECTED=0"
+    exit 1
+  fi
+fi
 
 if [ "$1" = "--auto" ]; then
   HELPER_SCRIPT_FOLDER="/usr/data/helper-script"
