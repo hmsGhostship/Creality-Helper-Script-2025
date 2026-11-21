@@ -92,21 +92,6 @@ function restore_ota_state_message(){
   bottom_line
 }
 
-function detect_usb_mount(){
-  local mnt
-  for mnt in /media/creality/sda1 /media/creality/sdb1 /media/creality/sda /tmp/udisk/sda1 /tmp/udisk/sdb1 /mnt/UDISK /media/usb0; do
-    if [ -d "$mnt" ] && grep -q " ${mnt} " /proc/mounts 2>/dev/null; then
-      if grep " ${mnt} " /proc/mounts 2>/dev/null | grep -q " ro,"; then
-        mount -o remount,rw "$mnt" 2>/dev/null || true
-      fi
-      if grep " ${mnt} " /proc/mounts 2>/dev/null | grep -q " rw," && [ -w "$mnt" ]; then
-        echo "$mnt"
-        return 0
-      fi
-    fi
-  done
-  return 1
-}
 
 function prompt_plug_usb_if_missing(){
   local usb_mnt
@@ -181,21 +166,6 @@ function restore_ota_state_message(){
   bottom_line
 }
 
-function detect_usb_mount(){
-  local mnt
-  for mnt in /media/creality/sda1 /media/creality/sdb1 /media/creality/sda /tmp/udisk/sda1 /tmp/udisk/sdb1 /mnt/UDISK /media/usb0; do
-    if [ -d "$mnt" ] && grep -q " ${mnt} " /proc/mounts 2>/dev/null; then
-      if grep -qE " ${mnt} [^ ]+ [^ ]*(^|,)ro(,|$)" /proc/mounts 2>/dev/null || [ ! -w "$mnt" ]; then
-        mount -o remount,rw "$mnt" 2>/dev/null || true
-      fi
-      if grep -qE " ${mnt} [^ ]+ [^ ]*(^|,)rw(,|$)" /proc/mounts 2>/dev/null && [ -w "$mnt" ]; then
-        echo "$mnt"
-        return 0
-      fi
-    fi
-  done
-  return 1
-}
 
 function run_ota_state_backup_core(){
   mkdir -p "$OTA_BACKUP_DIR"
