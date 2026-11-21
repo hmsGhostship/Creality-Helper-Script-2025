@@ -200,7 +200,7 @@ function info_menu_ui_k1_2025_cfs_c() {
   subtitle '•UTILITIES:'
   info_line "$(check_file_k1_2025 "$ENTWARE_FILE")" 'Entware'
   info_line "$(check_file_k1_2025 "$KLIPPER_SHELL_FILE")" 'Klipper Gcode Shell Command'
-  info_line "$(check_file_k1_2025 "/usr/bin/reccon")" 'Recovery Console (reccon)'
+  info_line "$(check_file_k1_2025 "$RECCON_BIN_FILE")" 'Recovery Console (reccon)'
   hr
   subtitle '•IMPROVEMENTS & EXPANSIONS:'
   info_line "$(check_live_status_k1_2025 "^\[input_shaper\]")" 'Restore Input Shapers'

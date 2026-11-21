@@ -206,6 +206,7 @@ function run_ota_state_backup_core(){
   local sys_items=""
   [ -d "/etc/crontabs" ] && sys_items="$sys_items etc/crontabs"
   [ -f "/etc/mdev.conf" ] && sys_items="$sys_items etc/mdev.conf"
+  [ -d "/usr/apps/overlay" ] && sys_items="$sys_items usr/apps/overlay"
   local ub
   for ub in /usr/bin/* /usr/local/bin/*; do
     [ -e "$ub" ] || [ -L "$ub" ] || continue
