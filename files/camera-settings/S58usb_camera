@@ -27,7 +27,7 @@ case "$1" in
     fi
     PORT=8082
     BUILTIN_DEV="/dev/video0"
-    V4L_DEVS=$(v4l2-ctl --list-devices | grep -A2 -i usb | sed 's/^[[:space:]]*//g' | grep '^/dev' | grep -v "^$BUILTIN_DEV$")
+    V4L_DEVS=$(v4l2-ctl --list-devices 2>/dev/null | grep -v "13500000.otg" | grep -A1 -i "usb" | sed 's/^[[:space:]]*//g' | grep '^/dev/video' | grep -v -E '^/dev/video(0|1|4)$' | head -n 1)
     if [ "x$V4L_DEVS" = "x" ]; then
       echo "Error: No third party USB camera found!"
       exit 1
