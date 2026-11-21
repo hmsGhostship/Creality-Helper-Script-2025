@@ -124,6 +124,7 @@ function backup_installed_options_profile(){
     echo -e " ${green}USB copy saved & synced to:${white} ${cyan}${usb_mnt}/helper-script-ota-backup/${fname} (safe to unplug)${white}"
   fi
   echo
+  ok_msg "Installed Options Profile (${variant}) has been backed up successfully!"
 }
 
 function install_fly_lll_for_profile(){
