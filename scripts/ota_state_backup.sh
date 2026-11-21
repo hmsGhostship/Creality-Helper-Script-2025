@@ -79,10 +79,15 @@ function restore_ota_state_message(){
 
 function detect_usb_mount(){
   local mnt
-  for mnt in /tmp/udisk/sda1 /tmp/udisk/sdb1 /mnt/UDISK /media/usb0; do
-    if [ -d "$mnt" ] && { mountpoint -q "$mnt" 2>/dev/null || [ -w "$mnt" ]; }; then
-      echo "$mnt"
-      return 0
+  for mnt in /media/creality/sda1 /media/creality/sdb1 /media/creality/sda /tmp/udisk/sda1 /tmp/udisk/sdb1 /mnt/UDISK /media/usb0; do
+    if [ -d "$mnt" ] && grep -q " ${mnt} " /proc/mounts 2>/dev/null; then
+      if [ ! -w "$mnt" ]; then
+        mount -o remount,rw "$mnt" 2>/dev/null || true
+      fi
+      if [ -w "$mnt" ]; then
+        echo "$mnt"
+        return 0
+      fi
     fi
   done
   return 1
