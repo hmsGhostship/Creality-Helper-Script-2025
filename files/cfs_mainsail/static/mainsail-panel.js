@@ -1389,9 +1389,10 @@
       const extDet = Object.prototype.hasOwnProperty.call(st, "filament_switch_sensor filament_sensor")
         ? !!st["filament_switch_sensor filament_sensor"].filament_detected
         : false;
-      const nPaused = Object.prototype.hasOwnProperty.call(st, "gcode_macro _LLL_WATCHER_STATE")
+      const hasWatcher = Object.prototype.hasOwnProperty.call(st, "gcode_macro _LLL_WATCHER_STATE");
+      const nPaused = hasWatcher
         ? (Number(st["gcode_macro _LLL_WATCHER_STATE"].nexusp_paused) === 1)
-        : false;
+        : true;
       if (hasLll !== lllSensorInstalled || lllDet !== lllFilamentDetected || extDet !== extFilamentDetected || nPaused !== nexuspPaused) {
         lllSensorInstalled = hasLll;
         lllFilamentDetected = lllDet;
