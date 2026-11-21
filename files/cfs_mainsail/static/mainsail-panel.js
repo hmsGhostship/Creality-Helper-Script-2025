@@ -1350,8 +1350,10 @@
     const isLoaded = !!(selectedSlotData && selectedSlotData.selected);
     const isPresent = !!(selectedSlotData && selectedSlotData.present);
     const isHolderSelected = !!(selectedSlotData && selectedSlotData.is_holder);
-    const col1CollisionLock = !!(!nexuspPaused && lllFilamentDetected && !extFilamentDetected);
-    const holderReady = !!(isHolderSelected && nexuspPaused && lllFilamentDetected && extFilamentDetected);
+    const col1CollisionLock = !!(lllSensorInstalled && !nexuspPaused && lllFilamentDetected && !extFilamentDetected);
+    const holderReady = lllSensorInstalled
+      ? !!(isHolderSelected && nexuspPaused && lllFilamentDetected && extFilamentDetected)
+      : !!(isHolderSelected && nexuspPaused && extFilamentDetected);
     const matrixBlock = isHolderSelected ? !holderReady : col1CollisionLock;
     if (feedBtnEl) {
       const allowHolderFeed = holderReady;
