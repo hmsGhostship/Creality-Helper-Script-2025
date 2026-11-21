@@ -171,13 +171,51 @@ function run_ota_state_backup_core(){
   mkdir -p "$OTA_BACKUP_DIR"
   rm -f "$OTA_BACKUP_DIR/ota_configs.tar.gz" "$OTA_BACKUP_DIR/ota_initd.tar.gz" "$OTA_BACKUP_DIR/ota_state.env"
 
-  echo -e "Info: Saving Klipper/Moonraker configs & database..."
+  echo -e "Info: Saving Klipper/Moonraker configs, databases & Helper-Script app configs..."
   local cfg_items=""
-  [ -d "$PRINTER_DATA_FOLDER/config" ] && cfg_items="$cfg_items printer_data/config"
-  [ -d "$PRINTER_DATA_FOLDER/database" ] && cfg_items="$cfg_items printer_data/database"
-  [ -d "/usr/data/go2rtc" ] && cfg_items="$cfg_items go2rtc"
+  local sub
+  for sub in printer_data/config printer_data/database go2rtc nginx guppyscreen kamp KAMP_Settings mobileraker_companion moonraker-obico moonraker-telegram-bot spoolman crowsnest guppyflo wpa_supplicant.conf; do
+    [ -e "/usr/data/$sub" ] && cfg_items="$cfg_items $sub"
+  done
+  if [ -d "/usr/data/octoeverywhere" ]; then
+    local oe_item
+    for oe_item in /usr/data/octoeverywhere/*.json /usr/data/octoeverywhere/*.conf /usr/data/octoeverywhere/*.cfg; do
+      [ -f "$oe_item" ] && cfg_items="$cfg_items octoeverywhere/$(basename "$oe_item")"
+    done
+  fi
   if [ -n "$cfg_items" ]; then
     tar -czf "$OTA_BACKUP_DIR/ota_configs.tar.gz" -C /usr/data $cfg_items
+  fi
+
+  echo -e "Info: Saving custom Klipper extras, system binaries & crontabs..."
+  if [ -d "$KLIPPY_EXTRAS" ]; then
+    local extra_list=""
+    local ef eb
+    for ef in "$KLIPPY_EXTRAS"/*; do
+      [ -e "$ef" ] || [ -L "$ef" ] || continue
+      eb="$(basename "$ef")"
+      if [ -L "$ef" ] || [ "$ef" -nt "$KLIPPY_EXTRAS/__init__.pyc" ] || [ "$eb" = "cfs_material_db.py" ] || [ "$eb" = "box_control.pyc" ]; then
+        extra_list="$extra_list $eb"
+      fi
+    done
+    if [ -n "$extra_list" ]; then
+      tar -czf "$OTA_BACKUP_DIR/ota_extras.tar.gz" -C "$KLIPPY_EXTRAS" $extra_list
+    fi
+  fi
+
+  local sys_items=""
+  [ -d "/etc/crontabs" ] && sys_items="$sys_items etc/crontabs"
+  local ub
+  for ub in /usr/bin/* /usr/local/bin/*; do
+    [ -e "$ub" ] || [ -L "$ub" ] || continue
+    if [ -L "$ub" ] && readlink "$ub" 2>/dev/null | grep -q "^/usr/data/"; then
+      sys_items="$sys_items ${ub#/}"
+    elif [ -f "$ub" ] && [ "$ub" -nt "/bin/sh" ]; then
+      sys_items="$sys_items ${ub#/}"
+    fi
+  done
+  if [ -n "$sys_items" ]; then
+    tar -czf "$OTA_BACKUP_DIR/ota_sysfiles.tar.gz" -C / $sys_items 2>/dev/null || true
   fi
 
   echo -e "Info: Saving init scripts & disabled service markers..."
@@ -194,6 +232,13 @@ function run_ota_state_backup_core(){
     echo "HAS_BUILTIN_CAM=$([ -f "$BUILTIN_CAMERA_FILE" ] || [ -f "$BUILTIN_CAMERA_LEGACY_FILE" ] && echo 1 || echo 0)"
     echo "HAS_CFS_MAINSAIL=$([ -f "${MAINSAIL_FOLDER}/k1c-cfs-panel.js" ] && echo 1 || echo 0)"
     echo "HAS_CFS_FLUIDD=$([ -f "${FLUIDD_FOLDER}/k1c-cfs-panel.js" ] && echo 1 || echo 0)"
+    local app_list=""
+    local app_dir
+    for app_dir in moonraker mainsail fluidd guppyscreen octoeverywhere moonraker-obico mobileraker_companion moonraker-telegram-bot spoolman crowsnest guppyflo; do
+      [ -d "/usr/data/$app_dir" ] && app_list="$app_list $app_dir"
+    done
+    [ -f "/usr/data/entware_opt_mount.img" ] && app_list="$app_list entware_opt_mount.img"
+    echo "INSTALLED_APPS='${app_list# }'"
     local disabled_list=""
     local f
     for f in "$INITD_FOLDER"/disabled.*; do
@@ -407,12 +452,15 @@ function restore_ota_state(){
             mkdir -p "$OTA_BACKUP_DIR/cfg_tmp"
             tar -xzf "$OTA_BACKUP_DIR/ota_configs.tar.gz" -C "$OTA_BACKUP_DIR/cfg_tmp"
 
-            # Moonraker-Datenbank & Go2rtc wiederherstellen
+            # Restore Moonraker DB & all saved Helper-Script app config directories
             [ -d "$OTA_BACKUP_DIR/cfg_tmp/printer_data/database" ] && cp -af "$OTA_BACKUP_DIR/cfg_tmp/printer_data/database/." "$PRINTER_DATA_FOLDER/database/"
-            if [ -d "$OTA_BACKUP_DIR/cfg_tmp/go2rtc" ]; then
-              mkdir -p /usr/data/go2rtc
-              cp -af "$OTA_BACKUP_DIR/cfg_tmp/go2rtc/." /usr/data/go2rtc/
-            fi
+            local app_cfg_dir
+            for app_cfg_dir in go2rtc nginx guppyscreen kamp KAMP_Settings mobileraker_companion moonraker-obico moonraker-telegram-bot spoolman crowsnest guppyflo octoeverywhere; do
+              if [ -d "$OTA_BACKUP_DIR/cfg_tmp/$app_cfg_dir" ]; then
+                mkdir -p "/usr/data/$app_cfg_dir"
+                cp -af "$OTA_BACKUP_DIR/cfg_tmp/$app_cfg_dir/." "/usr/data/$app_cfg_dir/"
+              fi
+            done
 
             # Copy Helper-Script folder & custom config files (without overwriting printer.cfg / box.cfg)
             local src_cfg="$OTA_BACKUP_DIR/cfg_tmp/printer_data/config"
@@ -456,6 +504,31 @@ function restore_ota_state(){
               fi
             fi
             rm -rf "$OTA_BACKUP_DIR/cfg_tmp"
+          fi
+        fi
+
+        if [ -f "$OTA_BACKUP_DIR/ota_extras.tar.gz" ] && [ -d "$KLIPPY_EXTRAS" ]; then
+          echo -e "Info: Restoring custom Klipper extras..."
+          [ -f "$KLIPPY_EXTRAS/box_control.pyc" ] && [ ! -f "$HS_BACKUP_FOLDER/box_control.pyc.orig" ] && mkdir -p "$HS_BACKUP_FOLDER" && cp -p "$KLIPPY_EXTRAS/box_control.pyc" "$HS_BACKUP_FOLDER/box_control.pyc.orig"
+          tar -xzf "$OTA_BACKUP_DIR/ota_extras.tar.gz" -C "$KLIPPY_EXTRAS"
+        fi
+        if [ -f "$OTA_BACKUP_DIR/ota_sysfiles.tar.gz" ]; then
+          echo -e "Info: Restoring custom system binaries & crontabs..."
+          tar -xzf "$OTA_BACKUP_DIR/ota_sysfiles.tar.gz" -C / 2>/dev/null || true
+        fi
+
+        if [ -n "$INSTALLED_APPS" ]; then
+          local missing_apps=""
+          local chk_app
+          for chk_app in $INSTALLED_APPS; do
+            if [ ! -e "/usr/data/$chk_app" ]; then
+              missing_apps="$missing_apps $chk_app"
+            fi
+          done
+          if [ -n "$missing_apps" ]; then
+            echo -e " ${yellow}Notice: The following Helper-Script apps were installed in your snapshot but are missing on /usr/data:${white}"
+            echo -e "  ${cyan}${missing_apps# }${white}"
+            echo -e " ${yellow}Please re-install them via the Helper-Script Install menu — all their configs & databases are already restored!${white}"
           fi
         fi
 
