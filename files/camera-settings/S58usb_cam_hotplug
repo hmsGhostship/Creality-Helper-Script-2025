@@ -1,0 +1,20 @@
+#!/bin/sh
+# Re-inject USB camera hotplug rule into /etc/mdev.conf on every boot
+
+MDEV_CONF="/etc/mdev.conf"
+HOTPLUG_SCRIPT="/usr/data/helper-script/scripts/usb_cam_hotplug.sh"
+OLD_RULE="video[0-9]*             root:root 666"
+NEW_RULE="video[0-9]*             root:root 666 *${HOTPLUG_SCRIPT}"
+
+case "$1" in
+  start|restart|reload)
+    if [ -f "$MDEV_CONF" ] && [ -x "$HOTPLUG_SCRIPT" ]; then
+      if grep -q "^${OLD_RULE}$" "$MDEV_CONF" 2>/dev/null; then
+        sed -i "s|^${OLD_RULE}$|${NEW_RULE}|" "$MDEV_CONF"
+      fi
+    fi
+    ;;
+  stop)
+    exit 0
+    ;;
+esac
