@@ -216,6 +216,7 @@ function info_menu_ui_k1_2025_cfs_c() {
   subtitle '•TOOLS & CALIBRATION:'
   info_line "$(check_file_k1_2025 "$KLIPPER_SERVICE_DISABLED")" 'Prevent updating Klipper configuration files'
   info_line "$(check_content_k1_2025 "^\[webcam chassis\]\|^\[webcam usb\]" "$MOONRAKER_CFG")" 'camera settings in Moonraker'
+  info_line "$(check_live_status_k1_2025 "^\[output_pin LED\]")" 'Chassis Light Control'
   info_line "$(check_live_status_k1_2025 "^\[include Helper-Script/calib_tool_box.cfg\]")" 'Creality Calibration Toolbox (BED MESH)'
   info_line "$(check_file_k1_2025 "${MAINSAIL_FOLDER}/k1c-cfs-panel.js")" 'CFS-C Mainsail Addon'
   info_line "$(check_file_k1_2025 "${FLUIDD_FOLDER}/k1c-cfs-panel.js")" 'CFS-C Fluidd Addon'
