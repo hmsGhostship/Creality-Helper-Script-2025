@@ -100,15 +100,17 @@ function run_ota_state_backup_core(){
   echo -e "Info: Saving Klipper/Moonraker configs, databases & Helper-Script app configs..."
   local cfg_items=""
   local sub
-  for sub in printer_data/config printer_data/database go2rtc nginx guppyscreen kamp KAMP_Settings mobileraker_companion moonraker-obico moonraker-telegram-bot spoolman crowsnest guppyflo wpa_supplicant.conf; do
+  for sub in printer_data/config printer_data/database go2rtc nginx/nginx kamp KAMP_Settings mobileraker_companion moonraker-obico moonraker-telegram-bot spoolman crowsnest wpa_supplicant.conf; do
     [ -e "/usr/data/$sub" ] && cfg_items="$cfg_items $sub"
   done
-  if [ -d "/usr/data/octoeverywhere" ]; then
-    local oe_item
-    for oe_item in /usr/data/octoeverywhere/*.json /usr/data/octoeverywhere/*.conf /usr/data/octoeverywhere/*.cfg; do
-      [ -f "$oe_item" ] && cfg_items="$cfg_items octoeverywhere/$(basename "$oe_item")"
-    done
-  fi
+  local app_cfg_pkg app_cfg_file
+  for app_cfg_pkg in octoeverywhere guppyflo guppyscreen; do
+    if [ -d "/usr/data/$app_cfg_pkg" ]; then
+      for app_cfg_file in "/usr/data/$app_cfg_pkg"/*.json "/usr/data/$app_cfg_pkg"/*.yaml "/usr/data/$app_cfg_pkg"/*.yml "/usr/data/$app_cfg_pkg"/*.conf "/usr/data/$app_cfg_pkg"/*.cfg; do
+        [ -f "$app_cfg_file" ] && cfg_items="$cfg_items ${app_cfg_pkg}/$(basename "$app_cfg_file")"
+      done
+    fi
+  done
   if [ -n "$cfg_items" ]; then
     tar --exclude="*.log" --exclude="*.pid" --exclude="*.sock" -czf "$OTA_BACKUP_DIR/ota_configs.tar.gz" -C /usr/data $cfg_items 2>/dev/null || true
   fi
