@@ -39,7 +39,14 @@ function tools_menu_ui_k1_2025() {
   hr
   subtitle '•System Diagnostics:'
   menu_option '18' 'Show' 'Top RAM & Storage Consumers'
-  menu_option '19' 'Set' 'OctoEverywhere Log Level (WARNING/INFO/ERROR)'
+  if [ -f "${PRINTER_DATA_FOLDER}/config/octoeverywhere.conf" ] || [ -f "${INITD_FOLDER}/S99octoeverywhere" ]; then
+    local oe_lvl
+    oe_lvl="$(grep -E "^log_level[[:space:]]*=" "${PRINTER_DATA_FOLDER}/config/octoeverywhere.conf" 2>/dev/null | head -n 1 | awk -F"=" '{print $2}' | tr -d ' \r\t')"
+    [ -z "$oe_lvl" ] && oe_lvl="WARNING"
+    menu_option '19' 'Set' "OctoEverywhere Log Level [Current: ${yellow}${oe_lvl}${white}]"
+  else
+    unavailable_menu_option '19' 'Set' 'OctoEverywhere Log Level' 'DISABLED: OctoEverywhere is not installed'
+  fi
   inner_line
   hr
   bottom_menu_option 'b' 'Back to [Main Menu]' "${yellow}"

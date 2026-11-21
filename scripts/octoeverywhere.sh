@@ -310,6 +310,11 @@ function configure_octoeverywhere_log_level(){
     return
   fi
 
+  local cur_lvl
+  cur_lvl="$(grep -E "^log_level[[:space:]]*=" "$octo_conf" 2>/dev/null | head -n 1 | awk -F"=" '{print $2}' | tr -d ' \r\t')"
+  [ -z "$cur_lvl" ] && cur_lvl="WARNING"
+  echo -e " ${cyan}Current OctoEverywhere log level:${white} ${yellow}${cur_lvl}${white}" 
+
   local cur_level="unknown"
   if [ -f "$octo_conf" ]; then
     cur_level=$(awk -F'=' '/^log_level[[:space:]]*=/ {gsub(/[[:space:]]/, "", $2); print $2}' "$octo_conf" 2>/dev/null)
