@@ -260,7 +260,14 @@ function info_menu_ui_k1_2025() {
   info_line "$(check_file_k1_2025 "$TIMELAPSE_FILE")" 'Moonraker Timelapse'
   hr
   subtitle '•REMOTE ACCESS:'
-  info_line "$(check_folder_k1_2025 "$OCTOEVERYWHERE_FOLDER")" 'OctoEverywhere'
+  local oe_info_label="OctoEverywhere"
+  if [ -f "${PRINTER_DATA_FOLDER}/config/octoeverywhere.conf" ]; then
+    local oe_lvl
+    oe_lvl="$(grep -E "^log_level[[:space:]]*=" "${PRINTER_DATA_FOLDER}/config/octoeverywhere.conf" 2>/dev/null | head -n 1 | awk -F"=" '{print $2}' | tr -d ' \r\t')"
+    [ -z "$oe_lvl" ] && oe_lvl="WARNING"
+    oe_info_label="OctoEverywhere (Log Level: ${oe_lvl})"
+  fi
+  info_line "$(check_folder_k1_2025 "$OCTOEVERYWHERE_FOLDER")" "$oe_info_label"
   info_line "$(check_folder_k1_2025 "$MOONRAKER_OBICO_FOLDER")" 'Obico'
   info_line "$(check_folder_k1_2025 "$GUPPYFLO_FOLDER")" 'GuppyFLO'
   info_line "$(check_folder_k1_2025 "$MOBILERAKER_COMPANION_FOLDER")" 'Mobileraker Companion'
