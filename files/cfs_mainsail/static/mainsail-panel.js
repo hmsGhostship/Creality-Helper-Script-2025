@@ -61,6 +61,7 @@
   let lllSensorInstalled = false;
   let lllFilamentDetected = false;
   let extFilamentDetected = false;
+  let nexuspPaused = false;
   let latestConnected = false;
   let latestHumidity = null;
   let latestTemp = null;
@@ -1341,9 +1342,10 @@
     });
     const isLoaded = !!(selectedSlotData && selectedSlotData.selected);
     const isPresent = !!(selectedSlotData && selectedSlotData.present);
+    const holderExtEmptyLock = !!(selectedSlotData && selectedSlotData.is_holder && nexuspPaused && !extFilamentDetected);
     if (feedBtnEl) {
-      const allowHolderFeed = !!(selectedSlotData && selectedSlotData.is_holder && isPresent);
-      feedBtnEl.disabled = actionLocked || !!actionSlot || (!allowHolderFeed && isLoaded) || !isPresent;
+      const allowHolderFeed = !!(selectedSlotData && selectedSlotData.is_holder && isPresent && !holderExtEmptyLock);
+      feedBtnEl.disabled = actionLocked || !!actionSlot || holderExtEmptyLock || (!allowHolderFeed && isLoaded) || !isPresent;
       var feedIconEl = feedBtnEl.querySelector("svg");
       var feedTextEl = feedBtnEl.querySelector("span");
       var externalFeedPending = !!pendingAction
@@ -1360,7 +1362,7 @@
       }
     }
     if (configBtnEl) configBtnEl.disabled = actionLocked;
-    if (retractBtnEl) retractBtnEl.disabled = actionLocked || !!actionSlot || !isPresent;
+    if (retractBtnEl) retractBtnEl.disabled = actionLocked || !!actionSlot || holderExtEmptyLock || !isPresent;
 
     updateStatus(connected);
     updateHumidity(latestHumidity, latestTemp);
@@ -1368,17 +1370,21 @@
 
   async function pollHolderSensors() {
     try {
-      const res = await queryKlipperObject("filament_switch_sensor%20lll_plus_sensor&filament_switch_sensor%20filament_sensor");
+      const res = await queryKlipperObject("filament_switch_sensor%20lll_plus_sensor&filament_switch_sensor%20filament_sensor&gcode_macro%20_LLL_WATCHER_STATE");
       const st = (res && res.result && res.result.status) || {};
       const hasLll = Object.prototype.hasOwnProperty.call(st, "filament_switch_sensor lll_plus_sensor");
       const lllDet = hasLll ? !!st["filament_switch_sensor lll_plus_sensor"].filament_detected : false;
       const extDet = Object.prototype.hasOwnProperty.call(st, "filament_switch_sensor filament_sensor")
         ? !!st["filament_switch_sensor filament_sensor"].filament_detected
         : false;
-      if (hasLll !== lllSensorInstalled || lllDet !== lllFilamentDetected || extDet !== extFilamentDetected) {
+      const nPaused = Object.prototype.hasOwnProperty.call(st, "gcode_macro _LLL_WATCHER_STATE")
+        ? (Number(st["gcode_macro _LLL_WATCHER_STATE"].nexusp_paused) === 1)
+        : false;
+      if (hasLll !== lllSensorInstalled || lllDet !== lllFilamentDetected || extDet !== extFilamentDetected || nPaused !== nexuspPaused) {
         lllSensorInstalled = hasLll;
         lllFilamentDetected = lllDet;
         extFilamentDetected = extDet;
+        nexuspPaused = nPaused;
         let cachedHolder = null;
         try { cachedHolder = JSON.parse(window.localStorage.getItem("k1c_cfs_holder_cache") || "null"); } catch (e) {}
         const cType = String((cachedHolder && cachedHolder.type) || "").trim().toUpperCase();
