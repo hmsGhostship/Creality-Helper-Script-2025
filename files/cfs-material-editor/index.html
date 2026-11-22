@@ -151,7 +151,7 @@ async function deleteSelected(){
   SEL_IDS.clear();updateBulkBar();msg(`${ids.length} custom filament(s) deleted`);load();
 }
 function exportSelected(){
-  const chosen=ALL.filter(x=>SEL_IDS.has(x.id));
+  const chosen=ITEMS.filter(x=>SEL_IDS.has(x.id));
   const blob=new Blob([JSON.stringify(chosen,null,2)],{type:'application/json'});
   const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='cfs_custom_filaments.json';a.click();
 }
@@ -212,7 +212,7 @@ function render(){setTimeout(updateBulkBar,0);
   const q=$('q').value.toLowerCase(),fb=$('fBrand').value,ft=$('fType').value,fs=$('fScope').value;
   const rows=ITEMS.filter(x=>(!fb||x.brand===fb)&&(!ft||x.type===ft)&&(!fs||(fs==='custom'?x.custom:!x.custom))&&(!q||`${x.id} ${x.brand} ${x.name} ${x.type}`.toLowerCase().includes(q)));
   $('tb').innerHTML=rows.map(x=>`<tr>
-    <td><code>${x.id}</code></td>
+    <td>${x.custom?`<input type="checkbox" class="rowCb" value="${x.id}" ${SEL_IDS.has(x.id)?'checked':''} style="width:auto" onchange="onRowCb(this.value,this.checked)">`:('')}</td><td><code>${x.id}</code></td>
     <td><span class="tag ${x.custom?'t-cust':'t-stock'}">${x.custom?'Custom':'Stock'}</span></td>
     <td><b>${x.brand}</b></td><td>${x.name}</td><td>${x.type}</td>
     <td>${x.nozzle_temp}°C</td><td>${x.bed_temp}°C</td><td>${x.max_vol} mm³/s</td>
