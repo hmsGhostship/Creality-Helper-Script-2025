@@ -127,6 +127,17 @@ class Handler(BaseHTTPRequestHandler):
             except Exception as e:
                 self._send_json(500, {"ok": False, "error": str(e)})
             return
+                if p == "/api/download_bat":
+            host = (self.headers.get("Host") or "").partition(":").__getitem__(0).strip() or "127.0.0.1"
+            with open(os.path.join(WEB_ROOT, "Send_Filament_to_K1C.bat"), "r", encoding="utf-8") as f:
+                bat = f.read().replace("__IP__", host).replace("\n", "\r\n").encode("utf-8")
+            self.send_response(200)
+            self.send_header("Content-Type", "application/octet-stream")
+            self.send_header("Content-Disposition", 'attachment; filename="Send_Filament_to_K1C.bat"')
+            self.send_header("Content-Length", str(len(bat)))
+            self.end_headers()
+            self.wfile.write(bat)
+            return
         if p == "/api/export":
             with open(DB_PATH, "rb") as f: raw = f.read()
             self.send_response(200)
