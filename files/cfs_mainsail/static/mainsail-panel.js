@@ -217,27 +217,59 @@
     return matchedId;
   }
 
-  function findPresetByTypeAndName(type, name) {
-    const normalizedType = String(type || "").trim().toUpperCase();
-    const normalizedName = String(name || "").trim().toLowerCase();
-    let matchedPreset = null;
-    Object.keys(MATERIAL_PRESETS).some(function (presetKey) {
-      const preset = MATERIAL_PRESETS[presetKey];
-      if (presetMaterialType(presetKey) !== normalizedType) return false;
-      if (String(preset.name || "").trim().toLowerCase() !== normalizedName) return false;
-      matchedPreset = preset;
-      return true;
-    });
-    return matchedPreset;
-  }
+  let DB_PRESETS_BY_TYPE = null;
+  let DB_ALLOW_CF = false;
+  (function loadLiveMaterialDb() {
+    var url = "http://" + window.location.hostname + ":8088/api/materials";
+    fetch(url).then(function (r) { return r.json(); }).then(function (data) {
+      if (!data || !data.ok || !Array.isArray(data.items)) return;
+      DB_ALLOW_CF = !!(data.settings && data.settings.allow_cf);
+      var grouped = {};
+      data.items.forEach(function (it) {
+        var t = String(it.type || "").trim().toUpperCase();
+        if (!t) return;
+        if (!DB_ALLOW_CF && (t.indexOf("-CF") !== -1 || t.indexOf("-GF") !== -1)) return;
+        if (!grouped[t]) grouped[t] = [];
+        var noz = parseInt(it.nozzle_temp, 10) || 215;
+        grouped[t].push({
+          db_id: String(it.id || ""),
+          rfid: String(it.id || ""),
+          vendor: String(it.brand || "Generic"),
+          name: String(it.name || ""),
+          display: (it.brand ? (it.brand + " - " + it.name) : it.name) + (it.custom ? " [Custom]" : ""),
+          temp_min: String(Math.max(170, noz - 15)),
+          temp_max: String(noz + 15),
+          custom: !!it.custom
+        });
+      });
+      Object.keys(grouped).forEach(function (k) {
+        grouped[k].sort(function (a, b) {
+          if (a.custom !== b.custom) return a.custom ? -1 : 1;
+          return a.display.localeCompare(b.display);
+        });
+      });
+      DB_PRESETS_BY_TYPE = grouped;
+    }).catch(function () {});
+  })();
 
   function listPresetsForType(type) {
     const normalizedType = String(type || "").trim().toUpperCase();
+    if (DB_PRESETS_BY_TYPE && DB_PRESETS_BY_TYPE[normalizedType] && DB_PRESETS_BY_TYPE[normalizedType].length) {
+      return DB_PRESETS_BY_TYPE[normalizedType];
+    }
     return Object.keys(MATERIAL_PRESETS).filter(function (presetKey) {
       return presetMaterialType(presetKey) === normalizedType;
     }).map(function (presetKey) {
       return MATERIAL_PRESETS[presetKey];
     });
+  }
+
+  function findPresetByTypeAndName(type, name) {
+    const normalizedName = String(name || "").trim().toLowerCase();
+    const list = listPresetsForType(type);
+    return list.find(function (p) {
+      return String(p.name || "").trim().toLowerCase() === normalizedName || String(p.display || "").trim().toLowerCase() === normalizedName;
+    }) || null;
   }
 
   function materialStatus(stateValue, present) {
@@ -912,7 +944,7 @@
     body.appendChild(colorWrap);
 
     const select = document.createElement("select");
-    MATERIAL_TYPES.forEach(function (material) {
+    MATERIAL_TYPES.filter(function (m) { return DB_ALLOW_CF || (m.indexOf("-CF") === -1 && m.indexOf("-GF") === -1); }).forEach(function (material) {
       const option = document.createElement("option");
       option.value = material;
       option.textContent = material;
@@ -944,19 +976,16 @@
 
     function syncNameOptions(materialType, preferredName) {
       const presets = listPresetsForType(materialType);
-      const names = (MATERIAL_NAME_OPTIONS[materialType] || presets.map(function (preset) {
-        return preset.name;
-      })).filter(Boolean);
       const currentName = String(preferredName || slot.name || "").trim();
       nameSelect.innerHTML = "";
-      names.forEach(function (name) {
+      presets.forEach(function (preset) {
         const option = document.createElement("option");
-        option.value = name;
-        option.textContent = name;
-        if (currentName && currentName === name) option.selected = true;
+        option.value = preset.name;
+        option.textContent = preset.display || preset.name;
+        if (currentName && currentName === preset.name) option.selected = true;
         nameSelect.appendChild(option);
       });
-      if (!nameSelect.value && names[0]) nameSelect.value = names[0];
+      if (!nameSelect.value && presets[0]) nameSelect.value = presets[0].name;
     }
 
     function applyPreset(materialType, preferredName) {
