@@ -194,6 +194,7 @@ class Handler(BaseHTTPRequestHandler):
             with open(DB_PATH, "rb") as f: raw = f.read()
             self.send_response(200)
             self.send_header("Content-Type", "application/json")
+        self.send_header("Access-Control-Allow-Origin", "*")
             self.send_header("Content-Disposition", 'attachment; filename="material_database.json"')
             self.send_header("Content-Length", str(len(raw)))
             self.end_headers()
