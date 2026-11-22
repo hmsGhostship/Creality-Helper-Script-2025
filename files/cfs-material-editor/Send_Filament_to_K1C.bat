@@ -8,8 +8,10 @@ powershell -NoProfile -ExecutionPolicy Bypass -Command ^
   "$files = Get-ChildItem -Path $base -Filter '*.json' -Recurse -ErrorAction SilentlyContinue | Where-Object { $_.Directory.Name -eq 'filament' } | Sort-Object Name;" ^
   "if (-not $files) { Write-Host 'No OrcaSlicer filament JSON files found!' -ForegroundColor Red; exit 1 }" ^
   "Write-Host '=== Your OrcaSlicer Filaments ===' -ForegroundColor Cyan;" ^
+  "Write-Host ' [0] Exit' -ForegroundColor DarkGray;" ^
   "for ($i=0; $i -lt $files.Count; $i++) { Write-Host (' [{0}] {1}' -f ($i+1), $files[$i].BaseName) }" ^
-  "$sel = Read-Host '`nEnter number(s) to send (e.g. 1 or 1,3) and press Enter';" ^
+  "$sel = Read-Host '`nEnter number(s) to send (e.g. 1 or 1,3) or 0 to exit';" ^
+  "if ([string]::IsNullOrWhiteSpace($sel) -or $sel.Trim() -match '^(0|q|exit)$') { exit 2 }" ^
   "$chosen = @();" ^
   "foreach ($s in ($sel -split ',')) { $n = 0; if ([int]::TryParse($s.Trim(), [ref]$n) -and $n -ge 1 -and $n -le $files.Count) { $chosen += (Get-Content -Raw -Encoding UTF8 $files[$n-1].FullName) } }" ^
   "if (-not $chosen) { Write-Host 'No valid selection.' -ForegroundColor Yellow; exit 0 }" ^
@@ -23,4 +25,5 @@ powershell -NoProfile -ExecutionPolicy Bypass -Command ^
   "  }" ^
   "}" ^
   "Write-Host ('Done! Added: ' + $res.added + ', Updated: ' + $res.updated) -ForegroundColor Green;"
+if errorlevel 2 exit /b 0
 pause
