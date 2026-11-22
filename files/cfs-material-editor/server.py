@@ -191,12 +191,29 @@ class Handler(BaseHTTPRequestHandler):
                         cfg = json.loads(raw_f) if isinstance(raw_f, str) else raw_f
                     except Exception:
                         continue
-                    mtype = str(val(cfg, "filament_type", "PLA")).strip()
-                    if ("-CF" in mtype.upper() or "-GF" in mtype.upper()) and not allow_cf:
-                        skipped_cf.append(str(val(cfg, "name", mtype)))
+                    raw_name = str(val(cfg, "name", "")).partition("@").__getitem__(0).strip()
+                    inh = str(val(cfg, "inherits", "")).partition("@").__getitem__(0).strip()
+                    probe = f"{val(cfg, 'filament_type', '')} {raw_name} {inh}".upper()
+                    if ("-CF" in probe or "-GF" in probe) and not allow_cf:
+                        skipped_cf.append(raw_name or inh or "CF/GF Filament")
                         continue
-                    brand = str(val(cfg, "filament_vendor", "Custom")).strip() or "Custom"
-                    full_name = str(val(cfg, "name", mtype)).partition("@").__getitem__(0).strip()
+                    mtype = str(val(cfg, "filament_type", "")).strip()
+                    if not mtype:
+                        for cand in ("PLA-CF", "PETG-CF", "PA-CF", "ASA", "ABS", "PETG", "TPU", "PA", "PC", "PLA"):
+                            if cand in probe:
+                                mtype = cand
+                                break
+                        else:
+                            mtype = "PLA"
+                    brand = str(val(cfg, "filament_vendor", "")).strip()
+                    if not brand:
+                        for known in ("Creality", "Sunlu", "Jayo", "Eryone", "eSun", "Bambu", "Polymaker", "Prusament", "Anycubic", "Elegoo"):
+                            if known.lower() in f"{raw_name} {inh}".lower():
+                                brand = known
+                                break
+                        else:
+                            brand = "Custom"
+                    full_name = raw_name or mtype
                     if full_name.lower().startswith(brand.lower() + " "):
                         full_name = full_name[len(brand)+1:].strip()
                     t_noz = val(cfg, "nozzle_temperature", "220")
