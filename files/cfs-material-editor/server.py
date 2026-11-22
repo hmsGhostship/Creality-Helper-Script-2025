@@ -64,7 +64,7 @@ def sync_all_targets(data):
             con.close()
 
 SETTINGS_PATH = os.path.join(WEB_ROOT, "settings.json")
-DEFAULT_SETTINGS = {"allow_cf": False}
+DEFAULT_SETTINGS = {"allow_cf": False, "allow_edit_stock": False}
 
 def load_settings():
     cfg = dict(DEFAULT_SETTINGS)

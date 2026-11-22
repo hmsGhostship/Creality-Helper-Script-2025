@@ -77,6 +77,12 @@
       <span><strong>Include abrasive CF/GF materials</strong><br><span style="color:#f59e0b;font-size:12px">Warning: Carbon/Glass fiber filaments (PLA-CF, PETG-CF, PA-CF) cause severe wear in CFS-C feeders and tubes. Only enable if you intentionally want CF/GF selectable in the editor and Windows Sender (.bat).</span></span>
     </label>
   </div>
+  <div style="margin:12px 0;padding:10px;background:#111;border:1px solid #333;border-radius:6px">
+    <label style="display:flex;align-items:flex-start;gap:8px;cursor:pointer;color:#eee;font-size:13px">
+      <input id="s_edit_stock" type="checkbox" style="width:auto;margin-top:3px">
+      <span><strong>Allow editing stock profiles (Creality / Generic)</strong><br><span style="color:#aaa;font-size:12px">Disabled by default to protect factory entries. Use Clone to create an editable custom copy (90001+), or enable this option to modify stock entries directly.</span></span>
+    </label>
+  </div>
   <div style="margin:12px 0;padding:10px;background:#111;border:1px solid #333;border-radius:6px;display:flex;justify-content:space-between;align-items:center">
     <span style="font-size:12px;color:#aaa">Database Maintenance</span>
     <button id="btnBak" class="warn" style="display:none" onclick="closeSettings();restoreBak()">Restore Factory Original (.bak)</button>
@@ -115,13 +121,13 @@ function runAction(v){
   else if(v==='bat')window.location.href='api/download_bat';
   else if(v==='backup')window.location.href='api/export';
 }
-let SETTINGS={allow_cf:false};
-function openSettings(){document.getElementById('s_allow_cf').checked=!!SETTINGS.allow_cf;document.getElementById('setModal').classList.add('open')}
+let SETTINGS={allow_cf:false,allow_edit_stock:false};
+function openSettings(){document.getElementById('s_allow_cf').checked=!!SETTINGS.allow_cf;document.getElementById('s_edit_stock').checked=!!SETTINGS.allow_edit_stock;document.getElementById('setModal').classList.add('open')}
 function closeSettings(){document.getElementById('setModal').classList.remove('open')}
 async function saveSettings(){
-  const r=await (await fetch('api/settings',{method:'POST',body:JSON.stringify({settings:{allow_cf:document.getElementById('s_allow_cf').checked}})})).json();
+  const r=await (await fetch('api/settings',{method:'POST',body:JSON.stringify({settings:{allow_cf:document.getElementById('s_allow_cf').checked,allow_edit_stock:document.getElementById('s_edit_stock').checked}})})).json();
   if(!r.ok)return alert(r.error);
-  SETTINGS=r.settings;closeSettings();applySettingsUI();msg('Settings saved');
+  SETTINGS=r.settings;closeSettings();applySettingsUI();render();msg('Settings saved');
 }
 function applySettingsUI(){
   const sel=document.getElementById('f_type');
