@@ -3,7 +3,7 @@
 set -e
 
 CFS_MAT_EDITOR_DIR="/usr/data/cfs-material-editor"
-CFS_MAT_EDITOR_SVC="/etc/init.d/S99cfs_material_editor"
+CFS_MAT_EDITOR_SVC="/usr/apps/etc/init.d/S99cfs_material_editor"
 
 function cfs_material_editor_message(){
   top_line
