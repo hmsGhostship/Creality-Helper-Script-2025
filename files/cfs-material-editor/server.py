@@ -22,6 +22,47 @@ def ensure_backup():
     if os.path.exists(DB_PATH) and not os.path.exists(BACKUP_PATH):
         shutil.copy2(DB_PATH, BACKUP_PATH)
 
+
+import glob
+APP_DB_PATHS = glob.glob("/usr/apps/etc/gui/resource/box/*CFS-C/material_database.json")
+SQL_DBS = ["/usr/data/printer_data/database/nexusp-sql.db", "/usr/data/printer_data/database/moonraker-sql.db"]
+
+def sync_all_targets(data):
+    import sqlite3
+    for ap in APP_DB_PATHS:
+        if os.path.exists(ap):
+            if not os.path.exists(ap + ".bak"):
+                shutil.copy2(ap, ap + ".bak")
+            shutil.copy2(DB_PATH, ap)
+    brand_opts = {}
+    mat_ids = {}
+    brands = []
+    for item in data.get("result", {}).get("list", []):
+        b, kv = item.get("base", {}), item.get("kvParam", {})
+        pid, brand, name, mtype = str(b.get("id", "")), b.get("brand", ""), b.get("name", ""), b.get("meterialType", "")
+        if not pid or not brand or not name or not mtype:
+            continue
+        info = {"id": pid, "min_temp": int(b.get("minTemp", 190)), "max_temp": int(b.get("maxTemp", 260)), "pa": float(kv.get("pressure_advance", 0.04) or 0.04), "nozzle_temp": int(float(kv.get("nozzle_temperature", 220)))}
+        mat_ids[pid] = dict(info, brand=brand, type=mtype, name=name)
+        if brand not in brand_opts:
+            brand_opts[brand] = {"options": ""}
+            brands.append(brand)
+        if mtype not in brand_opts[brand]:
+            brand_opts[brand][mtype] = {"options": ""}
+            brand_opts[brand]["options"] += mtype + "\n"
+        brand_opts[brand][mtype][name] = info
+        brand_opts[brand][mtype]["options"] += name + "\n"
+    brand_opts["options"] = "\n".join(brands) + ("\n" if brands else "")
+    for sdb in SQL_DBS:
+        if os.path.exists(sdb):
+            con = sqlite3.connect(sdb)
+            cur = con.cursor()
+            if cur.execute("SELECT 1 FROM namespace_store WHERE namespace='color_box' LIMIT 1").fetchone():
+                cur.execute("INSERT OR REPLACE INTO namespace_store (namespace, key, value) VALUES ('color_box', 'brand_options', ?)", (json.dumps(brand_opts, separators=(",", ":")),))
+                cur.execute("INSERT OR REPLACE INTO namespace_store (namespace, key, value) VALUES ('color_box', 'material_ids', ?)", (json.dumps(mat_ids, separators=(",", ":")),))
+                con.commit()
+            con.close()
+
 def load_db():
     with open(DB_PATH, "r", encoding="utf-8") as f:
         return json.load(f)
@@ -37,6 +78,7 @@ def save_db(data):
     finally:
         if os.path.exists(tmp_path):
             os.remove(tmp_path)
+    sync_all_targets(data)
 
 def build_entry(tpl, pid, brand, name, mtype, t_nozzle, t_init, t_bed, mvol, dens=1.24, dry_t=55, dry_h=6):
     entry = copy.deepcopy(tpl)
