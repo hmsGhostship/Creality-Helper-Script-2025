@@ -45,15 +45,17 @@
       <h1>K1C CFS-C Material Database Editor</h1>
       <div class="sub">Edits <code>/usr/data/creality/gui/config/material_database.json</code> (Touchscreen &amp; CFS-C Web Addon)</div>
     </div>
-    <div class="btns">
-      <button class="pri" onclick="openNew()">+ New Filament</button>
-      <button class="ok" onclick="importPack7()">+ 7 Custom Presets (Sunlu/Jayo/Eryone/eSun)</button>
-      <button class="pri" onclick="$('orcaFile').click()">Import OrcaSlicer JSON(s)</button>
+    <div class="btns" style="align-items:center">
+      <button class="pri" onclick="openNew()" title="Create a single custom filament profile manually">+ New Filament</button>
+      <select id="actionMenu" onchange="runAction(this.value);this.value=''" style="background:#16a34a;color:#fff;border:1px solid #15803d;border-radius:6px;padding:7px 11px;font-weight:600;cursor:pointer">
+        <option value="">Import / Export &#9662;</option>
+        <option value="orca">Import OrcaSlicer JSON(s)...</option>
+        <option value="pack7">Install Preset Pack (7x Sunlu/Jayo/Eryone/eSun)</option>
+        <option value="bat">Download Windows Sender (.bat)</option>
+        <option value="backup">Download Database Backup (.json)</option>
+      </select>
       <input id="orcaFile" type="file" accept=".json" multiple style="display:none" onchange="importOrca(this.files)">
-      <a class="btn" href="api/download_bat">Windows Sender (.bat)</a>
-      <button onclick="openSettings()">Settings</button>
-      <a class="btn" href="api/export">JSON Backup</a>
-      <button id="btnBak" class="warn" style="display:none" onclick="restoreBak()">Restore Original (.bak)</button>
+      <button onclick="openSettings()" title="Configure editor preferences and database restore">&#9881; Settings</button>
     </div>
   </div>
   <div class="bar">
@@ -74,6 +76,10 @@
       <input id="s_allow_cf" type="checkbox" style="width:auto;margin-top:3px">
       <span><strong>Include abrasive CF/GF materials</strong><br><span style="color:#f59e0b;font-size:12px">Warning: Carbon/Glass fiber filaments (PLA-CF, PETG-CF, PA-CF) cause severe wear in CFS-C feeders and tubes. Only enable if you intentionally want CF/GF selectable in the editor and Windows Sender (.bat).</span></span>
     </label>
+  </div>
+  <div style="margin:12px 0;padding:10px;background:#111;border:1px solid #333;border-radius:6px;display:flex;justify-content:space-between;align-items:center">
+    <span style="font-size:12px;color:#aaa">Database Maintenance</span>
+    <button id="btnBak" class="warn" style="display:none" onclick="closeSettings();restoreBak()">Restore Factory Original (.bak)</button>
   </div>
   <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:14px">
     <button onclick="closeSettings()">Cancel</button>
@@ -103,6 +109,12 @@
 </div>
 <div id="toast" class="toast"></div>
 <script>
+function runAction(v){
+  if(v==='orca')document.getElementById('orcaFile').click();
+  else if(v==='pack7'&&confirm('Install 7 pre-tuned CFS-C profiles (IDs 90001-90007) for Sunlu, Jayo, Eryone & eSun?\n(Existing IDs will not be duplicated.)'))importPack7();
+  else if(v==='bat')window.location.href='api/download_bat';
+  else if(v==='backup')window.location.href='api/export';
+}
 let SETTINGS={allow_cf:false};
 function openSettings(){document.getElementById('s_allow_cf').checked=!!SETTINGS.allow_cf;document.getElementById('setModal').classList.add('open')}
 function closeSettings(){document.getElementById('setModal').classList.remove('open')}
