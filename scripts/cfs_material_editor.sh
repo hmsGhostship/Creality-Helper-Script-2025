@@ -49,7 +49,7 @@ esac
 SVC
         chmod 755 "$CFS_MAT_EDITOR_SVC"
         "$CFS_MAT_EDITOR_SVC" restart >/dev/null 2>&1 || true
-        ok_msg "CFS-C Material Database Editor installed! Open http://$(hostname -I 2>/dev/null | awk '{print $1}'):8088"
+        ok_msg "CFS-C Material Database Editor installed! Open http://$(ip -4 addr show 2>/dev/null | awk '/inet / && $2 !~ /^127\./ {sub(/\/.*/, "", $2); print $2; exit}'):8088"
         return;;
       N|n) error_msg "Installation canceled!"; return;;
       *) error_msg "Please select a correct choice!";;
