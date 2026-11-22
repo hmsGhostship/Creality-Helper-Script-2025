@@ -90,6 +90,13 @@ install_cfs_integration() {
           cp -f "$CFS_WEB_UI_SOURCE_PY" "${KLIPPY_EXTRAS}/"
           chmod 644 "${KLIPPY_EXTRAS}/cfs_material_db.py"
         fi
+        if [ -f "${PRINTER_CFG}" ] && ! grep -q "^\[cfs_material_db\]" "${PRINTER_CFG}"; then
+          if grep -q "^#\*# <---------------------- SAVE_CONFIG ---------------------->" "${PRINTER_CFG}"; then
+            sed -i "/^#\*# <---------------------- SAVE_CONFIG ---------------------->/i [cfs_material_db]\n" "${PRINTER_CFG}"
+          else
+            printf "\n[cfs_material_db]\n" >> "${PRINTER_CFG}"
+          fi
+        fi
 
         ok_msg "CFS-C Web Addon installed successfully!"
         echo "Info: Restarting Klipper service..."
@@ -170,6 +177,7 @@ remove_cfs_integration() {
   if [ ! -f "${HS_CONFIG_FOLDER}/.cfs_addon_mainsail" ] && [ ! -f "${HS_CONFIG_FOLDER}/.cfs_addon_fluidd" ]; then
     rm -f "$CFS_WEB_UI_TARGET_JS"
     rm -f "${KLIPPY_EXTRAS}/cfs_material_db.py"
+    [ -f "${PRINTER_CFG}" ] && sed -i "/^\[cfs_material_db\]$/d" "${PRINTER_CFG}"
     echo -e "Info: Removed shared Klipper CFS-C backend files."
   else
     echo -e "Info: Keeping shared Klipper backend active for the remaining web interface."
