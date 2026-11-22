@@ -63,6 +63,25 @@ def sync_all_targets(data):
                 con.commit()
             con.close()
 
+SETTINGS_PATH = os.path.join(WEB_ROOT, "settings.json")
+DEFAULT_SETTINGS = {"allow_cf": False}
+
+def load_settings():
+    cfg = dict(DEFAULT_SETTINGS)
+    if os.path.exists(SETTINGS_PATH):
+        try:
+            cfg.update(json.load(open(SETTINGS_PATH, "r", encoding="utf-8")))
+        except Exception:
+            pass
+    return cfg
+
+def save_settings(cfg):
+    data = dict(DEFAULT_SETTINGS)
+    data.update(cfg or {})
+    with open(SETTINGS_PATH, "w", encoding="utf-8") as f:
+        json.dump(data, f, indent=2)
+    return data
+
 def load_db():
     with open(DB_PATH, "r", encoding="utf-8") as f:
         return json.load(f)
@@ -123,14 +142,14 @@ class Handler(BaseHTTPRequestHandler):
                         "density": b.get("density", 1.24), "dry_temp": b.get("dryingTemp", 55),
                         "dry_time": b.get("dryingTime", 6), "custom": pid.isdigit() and int(pid) >= 90000
                     })
-                self._send_json(200, {"ok": True, "has_backup": os.path.exists(BACKUP_PATH), "items": rows})
+                self._send_json(200, {"ok": True, "has_backup": os.path.exists(BACKUP_PATH), "settings": load_settings(), "items": rows})
             except Exception as e:
                 self._send_json(500, {"ok": False, "error": str(e)})
             return
         if p == "/api/download_bat":
             host = (self.headers.get("Host") or "").partition(":").__getitem__(0).strip() or "127.0.0.1"
             with open(os.path.join(WEB_ROOT, "Send_Filament_to_K1C.bat"), "r", encoding="utf-8") as f:
-                bat = f.read().replace("__IP__", host).replace("\n", "\r\n").encode("utf-8")
+                bat = f.read().replace("__IP__", host).replace("__ALLOW_CF__", "1" if load_settings().get("allow_cf") else "0").replace("\n", "\r\n").encode("utf-8")
             self.send_response(200)
             self.send_header("Content-Type", "application/octet-stream")
             self.send_header("Content-Disposition", 'attachment; filename="Send_Filament_to_K1C.bat"')
@@ -192,7 +211,8 @@ class Handler(BaseHTTPRequestHandler):
                 self._send_json(200, {"ok": True, "added": added})
             elif p == "/api/import_orca":
                 files = body.get("files", [])
-                allow_cf = bool(body.get("allow_cf", False))
+                cfg_s = load_settings()
+                allow_cf = bool(body.get("allow_cf", False)) and bool(cfg_s.get("allow_cf", False))
                 added, updated, skipped_cf = 0, 0, []
                 def val(d, k, default):
                     v = d.get(k, default)
@@ -246,6 +266,8 @@ class Handler(BaseHTTPRequestHandler):
                         added += 1
                 save_db(data)
                 self._send_json(200, {"ok": True, "added": added, "updated": updated, "skipped_cf": skipped_cf})
+            elif p == "/api/settings":
+                self._send_json(200, {"ok": True, "settings": save_settings(body.get("settings", body))})
             elif p == "/api/restore_backup":
                 shutil.copy2(BACKUP_PATH, DB_PATH)
                 self._send_json(200, {"ok": True})

@@ -51,6 +51,7 @@
       <button class="pri" onclick="$('orcaFile').click()">Import OrcaSlicer JSON(s)</button>
       <input id="orcaFile" type="file" accept=".json" multiple style="display:none" onchange="importOrca(this.files)">
       <a class="btn" href="api/download_bat">Windows Sender (.bat)</a>
+      <button onclick="openSettings()">Settings</button>
       <a class="btn" href="api/export">JSON Backup</a>
       <button id="btnBak" class="warn" style="display:none" onclick="restoreBak()">Restore Original (.bak)</button>
     </div>
@@ -66,6 +67,19 @@
     <tbody id="tb"></tbody>
   </table>
 </div>
+<div id="setModal" class="modal"><div class="box">
+  <h3>Editor Settings</h3>
+  <div style="margin:12px 0;padding:10px;background:#111;border:1px solid #333;border-radius:6px">
+    <label style="display:flex;align-items:flex-start;gap:8px;cursor:pointer;color:#eee;font-size:13px">
+      <input id="s_allow_cf" type="checkbox" style="width:auto;margin-top:3px">
+      <span><strong>Include abrasive CF/GF materials</strong><br><span style="color:#f59e0b;font-size:12px">Warning: Carbon/Glass fiber filaments (PLA-CF, PETG-CF, PA-CF) cause severe wear in CFS-C feeders and tubes. Only enable if you intentionally want CF/GF selectable in the editor and Windows Sender (.bat).</span></span>
+    </label>
+  </div>
+  <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:14px">
+    <button onclick="closeSettings()">Cancel</button>
+    <button class="pri" onclick="saveSettings()">Save Settings</button>
+  </div>
+</div></div>
 <div id="modal" class="modal" onclick="if(event.target===this)closeM()">
   <div class="box">
     <h2 id="mTitle" style="margin:0">Edit Filament</h2>
@@ -137,7 +151,7 @@ async function importOrca(fileList){
   const files=await Promise.all([...fileList].map(f=>f.text()));
   let r=await (await fetch('api/import_orca',{method:'POST',body:JSON.stringify({files,allow_cf:false})})).json();
   if(!r.ok)return alert(r.error);
-  if(r.skipped_cf&&r.skipped_cf.length&&confirm('Abrasive CF/GF filament(s) detected: '+r.skipped_cf.join(', ')+'.\nDo NOT use CF filaments in CFS-C! Import anyway?')){
+  if(r.skipped_cf&&r.skipped_cf.length&&!SETTINGS.allow_cf){alert('Skipped abrasive CF/GF filament(s): '+r.skipped_cf.join(', ')+'.\nEnable "Include abrasive CF/GF materials" in Settings if needed.')}else if(r.skipped_cf&&r.skipped_cf.length&&confirm('Abrasive CF/GF filament(s) detected: '+r.skipped_cf.join(', ')+'.\nDo NOT use CF filaments in CFS-C! Import anyway?')){
     r=await (await fetch('api/import_orca',{method:'POST',body:JSON.stringify({files,allow_cf:true})})).json();
   }
   $('orcaFile').value='';
