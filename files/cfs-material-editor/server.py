@@ -220,7 +220,7 @@ class Handler(BaseHTTPRequestHandler):
                 if not pid:
                     nums = [int(i["base"]["id"]) for i in items if str(i["base"].get("id", "")).isdigit() and int(i["base"]["id"]) >= 90000]
                     pid = str(max(nums + [90000]) + 1)
-                entry = build_entry(tpl, pid, body.get("brand","Custom"), body.get("name","Custom"), body.get("type","PLA"),
+                entry = build_entry(tpl, pid, (body.get("brand") or "").strip() or "Custom", (body.get("name") or "").strip() or "Custom", body.get("type","PLA"),
                                     body.get("nozzle_temp",215), body.get("nozzle_init",215), body.get("bed_temp",60),
                                     body.get("max_vol",15), body.get("density",1.24), body.get("dry_temp",55), body.get("dry_time",6))
                 for idx, it in enumerate(items):

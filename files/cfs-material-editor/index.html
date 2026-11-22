@@ -172,7 +172,7 @@ function msg(t){const el=$('toast');el.textContent=t;el.style.display='block';se
 async function load(){
   const r=await (await fetch('api/materials')).json();
   if(!r.ok)return alert(r.error);
-  ITEMS=r.items;$('btnBak').style.display=r.has_backup?'inline-block':'none';
+  ITEMS=r.items;SETTINGS=r.settings||SETTINGS;applySettingsUI();$('btnBak').style.display=r.has_backup?'inline-block':'none';const rb=$('rebootBanner');if(rb)rb.style.display=(r.pending_count>0)?'block':'none';
   const brands=[...new Set(ITEMS.map(x=>x.brand))].sort();
   const types=[...new Set(ITEMS.map(x=>x.type))].sort();
   $('fBrand').innerHTML='<option value="">All Brands</option>'+brands.map(b=>`<option>${b}</option>`).join('');
@@ -181,10 +181,10 @@ async function load(){
 }
 function render(){
   const q=$('q').value.toLowerCase(),fb=$('fBrand').value,ft=$('fType').value,fs=$('fScope').value;
-  const rows=ITEMS.filter(x=>(!fb||x.brand===fb)&&(!ft||x.type===ft)&&(!fs||(fs==='custom'?x.custom:!x.custom))&&(!q||`${x.id} ${x.brand} ${x.name} ${x.type}`.toLowerCase().includes(q)));
-  $('tb').innerHTML=rows.map(x=>`<tr>
+  const custCnt=ITEMS.filter(x=>x.custom).length;const st=$('dbStats');if(st)st.textContent=`${ITEMS.length} profiles in database (${custCnt} custom)`;const rows=ITEMS.filter(x=>(!fb||x.brand===fb)&&(!ft||x.type===ft)&&(!fs||(fs==='custom'?x.custom:!x.custom))&&(!q||`${x.id} ${x.brand} ${x.name} ${x.type}`.toLowerCase().includes(q))).sort((a,b)=>(b.custom-a.custom)||(Number(b.id)-Number(a.id)));
+  $('tb').innerHTML=rows.map(x=>`<tr style="${x.pending?'background:#2b1d08;box-shadow:inset 3px 0 0 #f59e0b':''}">
     <td><code>${x.id}</code></td>
-    <td><span class="tag ${x.custom?'t-cust':'t-stock'}">${x.custom?'Custom':'Stock'}</span></td>
+    <td><span class="tag ${x.custom?'t-cust':'t-stock'}">${x.custom?'Custom':'Stock'}</span>${x.pending?' <span class="tag" style="background:#422006;color:#fbbf24;border:1px solid #d97706">Pending Reboot</span>':(x.custom?' <span class="tag" style="background:#14532d;color:#86efac">Active</span>':'')}</td>
     <td><b>${x.brand}</b></td><td>${x.name}</td><td>${x.type}</td>
     <td>${x.nozzle_temp}°C</td><td>${x.bed_temp}°C</td><td>${x.max_vol} mm³/s</td>
     <td style="display:flex;gap:6px">
