@@ -196,7 +196,7 @@ class Handler(BaseHTTPRequestHandler):
                         skipped_cf.append(str(val(cfg, "name", mtype)))
                         continue
                     brand = str(val(cfg, "filament_vendor", "Custom")).strip() or "Custom"
-                    full_name = str(val(cfg, "name", mtype)).split("@").strip()
+                    full_name = str(val(cfg, "name", mtype)).partition("@").strip()
                     if full_name.lower().startswith(brand.lower() + " "):
                         full_name = full_name[len(brand)+1:].strip()
                     t_noz = val(cfg, "nozzle_temperature", "220")
