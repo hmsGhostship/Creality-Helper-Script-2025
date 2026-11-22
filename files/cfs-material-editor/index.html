@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="de">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
@@ -43,44 +43,44 @@
   <div class="top">
     <div>
       <h1>K1C CFS-C Material Database Editor</h1>
-      <div class="sub">Bearbeitet <code>/usr/data/creality/gui/config/material_database.json</code> (Touchscreen &amp; CFS-C Web-Addon)</div>
+      <div class="sub">Edits <code>/usr/data/creality/gui/config/material_database.json</code> (Touchscreen &amp; CFS-C Web Addon)</div>
     </div>
     <div class="btns">
-      <button class="pri" onclick="openNew()">+ Neues Filament</button>
+      <button class="pri" onclick="openNew()">+ New Filament</button>
       <button class="ok" onclick="importPack7()">+ 7 Custom Presets (Sunlu/Jayo/Eryone/eSun)</button>
       <a class="btn" href="api/export">JSON Backup</a>
-      <button id="btnBak" class="warn" style="display:none" onclick="restoreBak()">Original (.bak) wiederherstellen</button>
+      <button id="btnBak" class="warn" style="display:none" onclick="restoreBak()">Restore Original (.bak)</button>
     </div>
   </div>
   <div class="bar">
-    <input id="q" type="search" placeholder="Suche nach Marke, Name, Typ oder ID..." oninput="render()">
-    <select id="fBrand" onchange="render()"><option value="">Alle Marken</option></select>
-    <select id="fType" onchange="render()"><option value="">Alle Typen</option></select>
-    <select id="fScope" onchange="render()"><option value="">Alle Einträge</option><option value="custom">Nur Eigene (90001+)</option><option value="stock">Nur Stock</option></select>
+    <input id="q" type="search" placeholder="Search by brand, name, type or ID..." oninput="render()">
+    <select id="fBrand" onchange="render()"><option value="">All Brands</option></select>
+    <select id="fType" onchange="render()"><option value="">All Types</option></select>
+    <select id="fScope" onchange="render()"><option value="">All Entries</option><option value="custom">Custom Only (90001+)</option><option value="stock">Stock Only</option></select>
   </div>
   <table>
-    <thead><tr><th>ID</th><th>Status</th><th>Marke</th><th>Name</th><th>Typ</th><th>Düse</th><th>Bett</th><th>Max Flow</th><th>Aktion</th></tr></thead>
+    <thead><tr><th>ID</th><th>Status</th><th>Brand</th><th>Name</th><th>Type</th><th>Nozzle</th><th>Bed</th><th>Max Flow</th><th>Actions</th></tr></thead>
     <tbody id="tb"></tbody>
   </table>
 </div>
 <div id="modal" class="modal" onclick="if(event.target===this)closeM()">
   <div class="box">
-    <h2 id="mTitle" style="margin:0">Filament bearbeiten</h2>
+    <h2 id="mTitle" style="margin:0">Edit Filament</h2>
     <div class="grid">
-      <label>ID (leer = automatisch 90001+)<input id="f_id" placeholder="90008"></label>
-      <label>Materialtyp<select id="f_type"><option>PLA</option><option>PLA-Silk</option><option>PETG</option><option>ABS</option><option>ASA</option><option>TPU</option><option>PA</option><option>PP</option><option>PC</option></select></label>
-      <label>Marke / Hersteller<input id="f_brand" placeholder="Sunlu"></label>
-      <label>Profilname<input id="f_name" placeholder="HighSpeed PLA"></label>
-      <label>Düse (°C)<input id="f_noz" type="number" value="215"></label>
-      <label>Düse 1. Schicht (°C)<input id="f_nozi" type="number" value="220"></label>
-      <label>Druckbett (°C)<input id="f_bed" type="number" value="60"></label>
-      <label>Max. Volumen (mm³/s)<input id="f_vol" type="number" step="0.5" value="18"></label>
-      <label>Trocknung (°C)<input id="f_dryt" type="number" value="55"></label>
-      <label>Trocknungszeit (h)<input id="f_dryh" type="number" value="6"></label>
+      <label>ID (empty = auto 90001+)<input id="f_id" placeholder="90008"></label>
+      <label>Material Type<select id="f_type"><option>PLA</option><option>PLA-Silk</option><option>PETG</option><option>ABS</option><option>ASA</option><option>TPU</option><option>PA</option><option>PP</option><option>PC</option></select></label>
+      <label>Brand / Vendor<input id="f_brand" placeholder="Sunlu"></label>
+      <label>Profile Name<input id="f_name" placeholder="HighSpeed PLA"></label>
+      <label>Nozzle (°C)<input id="f_noz" type="number" value="215"></label>
+      <label>Nozzle 1st Layer (°C)<input id="f_nozi" type="number" value="220"></label>
+      <label>Bed Temp (°C)<input id="f_bed" type="number" value="60"></label>
+      <label>Max Volumetric Speed (mm³/s)<input id="f_vol" type="number" step="0.5" value="18"></label>
+      <label>Drying Temp (°C)<input id="f_dryt" type="number" value="55"></label>
+      <label>Drying Time (h)<input id="f_dryh" type="number" value="6"></label>
     </div>
     <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:16px">
-      <button onclick="closeM()">Abbrechen</button>
-      <button class="pri" onclick="saveItem()">Speichern</button>
+      <button onclick="closeM()">Cancel</button>
+      <button class="pri" onclick="saveItem()">Save</button>
     </div>
   </div>
 </div>
@@ -95,8 +95,8 @@ async function load(){
   ITEMS=r.items;$('btnBak').style.display=r.has_backup?'inline-block':'none';
   const brands=[...new Set(ITEMS.map(x=>x.brand))].sort();
   const types=[...new Set(ITEMS.map(x=>x.type))].sort();
-  $('fBrand').innerHTML='<option value="">Alle Marken</option>'+brands.map(b=>`<option>${b}</option>`).join('');
-  $('fType').innerHTML='<option value="">Alle Typen</option>'+types.map(t=>`<option>${t}</option>`).join('');
+  $('fBrand').innerHTML='<option value="">All Brands</option>'+brands.map(b=>`<option>${b}</option>`).join('');
+  $('fType').innerHTML='<option value="">All Types</option>'+types.map(t=>`<option>${t}</option>`).join('');
   render();
 }
 function render(){
@@ -108,14 +108,14 @@ function render(){
     <td><b>${x.brand}</b></td><td>${x.name}</td><td>${x.type}</td>
     <td>${x.nozzle_temp}°C</td><td>${x.bed_temp}°C</td><td>${x.max_vol} mm³/s</td>
     <td style="display:flex;gap:6px">
-      <button onclick='openEdit(${JSON.stringify(x)},false)'>Bearbeiten</button>
-      <button onclick='openEdit(${JSON.stringify(x)},true)'>Klonen</button>
-      ${x.custom?`<button class="del" onclick="delItem('${x.id}')">Löschen</button>`:''}
+      <button onclick='openEdit(${JSON.stringify(x)},false)'>Edit</button>
+      <button onclick='openEdit(${JSON.stringify(x)},true)'>Clone</button>
+      ${x.custom?`<button class="del" onclick="delItem('${x.id}')">Delete</button>`:''}
     </td></tr>`).join('');
 }
-function openNew(){$('mTitle').textContent='Neues Filament';$('f_id').value='';$('f_id').disabled=false;$('f_brand').value='';$('f_name').value='';$('modal').classList.add('open')}
+function openNew(){$('mTitle').textContent='New Filament';$('f_id').value='';$('f_id').disabled=false;$('f_brand').value='';$('f_name').value='';$('modal').classList.add('open')}
 function openEdit(x,clone){
-  $('mTitle').textContent=clone?'Filament klonen':'Filament bearbeiten';
+  $('mTitle').textContent=clone?'Clone Filament':'Edit Filament';
   $('f_id').value=clone?'':x.id;$('f_id').disabled=!clone&&!x.custom;
   $('f_brand').value=x.brand;$('f_name').value=clone?x.name+' Copy':x.name;$('f_type').value=x.type;
   $('f_noz').value=x.nozzle_temp;$('f_nozi').value=x.nozzle_init||x.nozzle_temp;$('f_bed').value=x.bed_temp;
@@ -126,11 +126,11 @@ function closeM(){$('modal').classList.remove('open')}
 async function saveItem(){
   const p={id:$('f_id').value,brand:$('f_brand').value,name:$('f_name').value,type:$('f_type').value,nozzle_temp:$('f_noz').value,nozzle_init:$('f_nozi').value,bed_temp:$('f_bed').value,max_vol:$('f_vol').value,dry_temp:$('f_dryt').value,dry_time:$('f_dryh').value};
   const r=await (await fetch('api/save',{method:'POST',body:JSON.stringify(p)})).json();
-  if(!r.ok)return alert(r.error);closeM();msg('Gespeichert (ID '+r.id+') – GUI ggf. neu laden');load();
+  if(!r.ok)return alert(r.error);closeM();msg('Saved (ID '+r.id+') – reload printer UI if needed');load();
 }
-async function delItem(id){if(!confirm('Eintrag '+id+' löschen?'))return;await fetch('api/delete',{method:'POST',body:JSON.stringify({id})});msg('Gelöscht');load();}
-async function importPack7(){const r=await (await fetch('api/import_pack7',{method:'POST'})).json();msg(r.added+' Custom Presets importiert!');load();}
-async function restoreBak(){if(!confirm('Original material_database.json (.bak) wiederherstellen?'))return;await fetch('api/restore_backup',{method:'POST'});msg('Original wiederhergestellt');load();}
+async function delItem(id){if(!confirm('Delete entry '+id+'?'))return;await fetch('api/delete',{method:'POST',body:JSON.stringify({id})});msg('Deleted');load();}
+async function importPack7(){const r=await (await fetch('api/import_pack7',{method:'POST'})).json();msg(r.added+' custom presets imported!');load();}
+async function restoreBak(){if(!confirm('Restore original material_database.json (.bak)?'))return;await fetch('api/restore_backup',{method:'POST'});msg('Original database restored');load();}
 load();
 </script>
 </body>
