@@ -40,7 +40,7 @@ function remove_menu_ui_k1_2025_cfs_c() {
   menu_option '17' 'Remove' 'Motor Sound Support'
   menu_option '18' 'Remove' 'Useful Macros'
   menu_option '19' 'Remove' 'Git Backup'
-# menu_option '20' 'Remove' 'placeholder entry'
+  menu_option '20' 'Remove' 'CFS-C Material Database Editor (port 8088)'
 # menu_option '21' 'Remove' 'placeholder entry'
 # menu_option '22' 'Remove' 'placeholder entry'
 
@@ -270,6 +270,12 @@ function remove_menu_k1_2025_cfs_c() {
            error_msg "Git Backup is not installed!"
          else
            run "remove_git_backup" "remove_menu_ui_k1_2025_cfs_c"
+        fi;;
+      20)
+        if [ ! -d "/usr/data/cfs-material-editor" ]; then
+          error_msg "CFS-C Material Database Editor is not installed!"
+        else
+          run "remove_cfs_material_editor" "remove_menu_ui_k1_2025_cfs_c"
         fi;;
       20)
         clear

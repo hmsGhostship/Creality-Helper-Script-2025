@@ -47,7 +47,7 @@ function install_menu_ui_k1_2025_cfs_c() {
   menu_option '17' 'Install' 'Motor Sound Support'
   menu_option '18' 'Install' 'Useful Macros'
   menu_option '19' 'Install' 'Git Backup'
-# menu_option '20' 'Install' 'placeholder entry'
+  menu_option '20' 'Install' 'CFS-C Material Database Editor (port 8088)'
 # menu_option '21' 'Install' 'placeholder entry'
 # menu_option '22' 'Install' 'placeholder entry'
   hr
@@ -293,6 +293,12 @@ function install_menu_k1_2025_cfs_c() {
           error_msg "Klipper Gcode Shell Command is needed, please install it first!"
         else
           run "install_git_backup" "install_menu_ui_k1_2025_cfs_c"
+        fi;;
+      20)
+        if [ -d "/usr/data/cfs-material-editor" ]; then
+          error_msg "CFS-C Material Database Editor is already installed!"
+        else
+          run "install_cfs_material_editor" "install_menu_ui_k1_2025_cfs_c"
         fi;;
       20)
         clear
