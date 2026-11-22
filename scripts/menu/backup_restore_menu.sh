@@ -23,6 +23,16 @@ function backup_restore_menu_ui() {
   menu_option '9' 'Backup' 'Installed Options Profile (CFS-C / Standard)'
   menu_option '10' 'Restore' 'Installed Options Profile (Select & Reinstall)'
   hr
+  local has_fb=0 usb_fb=""
+  [ -f "/usr/data/helper-script-factory-baseline/baseline_meta.env" ] && has_fb=1
+  if [ "$has_fb" -eq 0 ] && command -v detect_usb_mount >/dev/null 2>&1; then
+    usb_fb="$(detect_usb_mount 2>/dev/null || true)"
+    [ -n "$usb_fb" ] && [ -f "$usb_fb/helper-script-factory-baseline/baseline_meta.env" ] && has_fb=1
+  fi
+  if [ "$has_fb" -eq 1 ]; then
+    menu_option '11' 'Restore' 'Factory Baseline (Pre-Helper-Script State)'
+    hr
+  fi
   inner_line
   hr
   bottom_menu_option 'b' 'Back to [Main Menu]' "${yellow}"
@@ -79,6 +89,8 @@ function backup_restore_menu() {
         run "backup_installed_options_profile" "backup_restore_menu_ui";;
       10)
         run "restore_installed_options_profile" "backup_restore_menu_ui";;
+      11)
+        run "restore_factory_baseline" "backup_restore_menu_ui";;
       B|b)
         clear; main_menu; break;;
       Q|q)
