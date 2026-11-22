@@ -184,7 +184,7 @@ function setSort(c){
   render();
 }
 function sortRows(arr){
-  const cols=('id','status','brand','name','type','nozzle','bed','flow');
+  const cols='id status brand name type nozzle bed flow'.split(' ');
   cols.forEach(k=>{const el=document.getElementById('srt_'+k);if(el)el.textContent=(SORT_COL===k)?(SORT_DIR===1?'▲':'▼'):''});
   return arr.sort((a,b)=>{
     if(SORT_COL==='default')return (b.custom-a.custom)||(Number(b.id)-Number(a.id));
@@ -215,7 +215,7 @@ async function load(){
 }
 function render(){
   const q=$('q').value.toLowerCase(),fb=$('fBrand').value,ft=$('fType').value,fs=$('fScope').value;
-  const custCnt=ITEMS.filter(x=>x.custom).length;const st=$('dbStats');if(st)st.textContent=`${ITEMS.length} profiles in database (${custCnt} custom)`;const rows=sortRows(ITEMS.filter(x=>(!fb||x.brand===fb)&&(!ft||x.type===ft)&&(!fs||(fs==='custom'?x.custom:!x.custom))&&(!q||`${x.id} ${x.brand} ${x.name} ${x.type}`.toLowerCase().includes(q)));
+  const custCnt=ITEMS.filter(x=>x.custom).length;const st=$('dbStats');if(st)st.textContent=`${ITEMS.length} profiles in database (${custCnt} custom)`;const rows=sortRows(ITEMS.filter(x=>(!fb||x.brand===fb)&&(!ft||x.type===ft)&&(!fs||(fs==='custom'?x.custom:!x.custom))&&(!q||`${x.id} ${x.brand} ${x.name} ${x.type}`.toLowerCase().includes(q))));
   $('tb').innerHTML=rows.map(x=>`<tr style="${x.pending?'background:#2b1d08;box-shadow:inset 3px 0 0 #f59e0b':''}">
     <td><code>${x.id}</code></td>
     <td><span class="tag ${x.custom?'t-cust':'t-stock'}">${x.custom?'Custom':'Stock'}</span>${x.pending?' <span class="tag" style="background:#422006;color:#fbbf24;border:1px solid #d97706">Pending Reboot</span>':(x.custom?' <span class="tag" style="background:#14532d;color:#86efac">Active</span>':'')}</td>
