@@ -66,6 +66,24 @@ def sync_all_targets(data):
 SETTINGS_PATH = os.path.join(WEB_ROOT, "settings.json")
 DEFAULT_SETTINGS = {"allow_cf": False, "allow_edit_stock": False}
 
+PENDING_FILE = "/tmp/cfs_editor_pending.json"
+
+def get_pending():
+    if os.path.exists(PENDING_FILE):
+        try:
+            return set(json.load(open(PENDING_FILE, "r", encoding="utf-8")))
+        except Exception:
+            pass
+    return set()
+
+def mark_pending(ids):
+    cur = get_pending()
+    for i in ids:
+        if i:
+            cur.add(str(i))
+    with open(PENDING_FILE, "w", encoding="utf-8") as f:
+        json.dump(sorted(cur), f)
+
 def load_settings():
     cfg = dict(DEFAULT_SETTINGS)
     if os.path.exists(SETTINGS_PATH):
@@ -140,16 +158,25 @@ class Handler(BaseHTTPRequestHandler):
                         "nozzle_init": kv.get("nozzle_temperature_initial_layer", kv.get("nozzle_temperature", "")),
                         "bed_temp": kv.get("textured_plate_temp", ""), "max_vol": kv.get("filament_max_volumetric_speed", ""),
                         "density": b.get("density", 1.24), "dry_temp": b.get("dryingTemp", 55),
-                        "dry_time": b.get("dryingTime", 6), "custom": pid.isdigit() and int(pid) >= 90000
+                        "dry_time": b.get("dryingTime", 6), "custom": pid.isdigit() and int(pid) >= 90000, "pending": pid in get_pending()
                     })
-                self._send_json(200, {"ok": True, "has_backup": os.path.exists(BACKUP_PATH), "settings": load_settings(), "items": rows})
+                self._send_json(200, {"ok": True, "has_backup": os.path.exists(BACKUP_PATH), "pending_count": len(get_pending()), "settings": load_settings(), "items": rows})
             except Exception as e:
                 self._send_json(500, {"ok": False, "error": str(e)})
             return
         if p == "/api/presets":
             data = load_db()
-            existing = set(str(i.get("base", {}).get("id", "")) for i in data.get("result", {}).get("list", []))
-            plist = [{"id": r.__getitem__(0), "brand": r.__getitem__(1), "name": r.__getitem__(2), "type": r.__getitem__(3), "nozzle": r.__getitem__(4), "bed": r.__getitem__(6), "max_vol": r.__getitem__(7), "installed": r.__getitem__(0) in existing} for r in PRESET_PACK_7]
+            by_id = {str(i.get("base", {}).get("id", "")): i for i in data.get("result", {}).get("list", [])}
+            plist = []
+            for r in PRESET_PACK_7:
+                pid, brand, name, mtype, noz, ini, bed, mvol = r.__getitem__(0), r.__getitem__(1), r.__getitem__(2), r.__getitem__(3), r.__getitem__(4), r.__getitem__(5), r.__getitem__(6), r.__getitem__(7)
+                ex = by_id.get(pid)
+                if not ex:
+                    plist.append({"id": pid, "brand": brand, "name": name, "type": mtype, "nozzle": noz, "bed": bed, "max_vol": mvol, "state": "new"})
+                else:
+                    eb, ekv = ex.get("base", {}), ex.get("kvParam", {})
+                    if eb.get("brand") != brand or eb.get("name") != name or str(ekv.get("nozzle_temperature")) != str(noz) or str(ekv.get("textured_plate_temp")) != str(bed):
+                        plist.append({"id": pid, "brand": brand, "name": name, "type": mtype, "nozzle": noz, "bed": bed, "max_vol": mvol, "state": "modified"})
             self._send_json(200, {"ok": True, "presets": plist})
             return
         if p == "/api/download_bat":
@@ -202,6 +229,7 @@ class Handler(BaseHTTPRequestHandler):
                 else:
                     items.append(entry)
                 save_db(data)
+                mark_pending((pid,))
                 self._send_json(200, {"ok": True, "id": pid})
             elif p == "/api/delete":
                 pid = str(body.get("id", "")).strip()
@@ -214,6 +242,7 @@ class Handler(BaseHTTPRequestHandler):
                 existing = {str(i.get("base", {}).get("id", "")) for i in items}
                 added = sum(1 for r in PRESET_PACK_7 if r[0] not in existing and not items.append(build_entry(tpl, *r)))
                 save_db(data)
+                mark_pending(sel_ids)
                 self._send_json(200, {"ok": True, "added": added})
             elif p == "/api/import_orca":
                 files = body.get("files", [])
@@ -271,6 +300,7 @@ class Handler(BaseHTTPRequestHandler):
                         items.append(build_entry(tpl, pid, brand, full_name, mtype, t_noz, t_ini, t_bed, mvol, dens, dry_t, 6))
                         added += 1
                 save_db(data)
+                mark_pending(tuple(str(i.get("base", {}).get("id", "")) for i in items if str(i.get("base", {}).get("id", "")).isdigit() and int(i["base"]["id"]) >= 90000))
                 self._send_json(200, {"ok": True, "added": added, "updated": updated, "skipped_cf": skipped_cf})
             elif p == "/api/settings":
                 self._send_json(200, {"ok": True, "settings": save_settings(body.get("settings", body))})
