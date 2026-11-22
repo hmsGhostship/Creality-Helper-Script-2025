@@ -47,10 +47,10 @@
     </div>
     <div class="btns" style="align-items:center">
       <button class="pri" onclick="openNew()" title="Create a single custom filament profile manually">+ New Filament</button>
+      <button class="ok" onclick="openPackModal()" title="Choose and install pre-tuned CFS-C filament presets">Preset Pack</button>
       <select id="actionMenu" onchange="runAction(this.value);this.value=''" style="background:#16a34a;color:#fff;border:1px solid #15803d;border-radius:6px;padding:7px 11px;font-weight:600;cursor:pointer">
         <option value="">Import / Export &#9662;</option>
         <option value="orca">Import OrcaSlicer JSON(s)...</option>
-        <option value="pack7">Install Preset Pack (7x Sunlu/Jayo/Eryone/eSun)</option>
         <option value="bat">Download Windows Sender (.bat)</option>
         <option value="backup">Download Database Backup (.json)</option>
       </select>
@@ -69,6 +69,16 @@
     <tbody id="tb"></tbody>
   </table>
 </div>
+<div id="packModal" class="modal" onclick="if(event.target===this)closePackModal()"><div class="box" style="max-width:640px">
+  <h3 style="margin:0 0 6px 0">Select Community Presets to Install</h3>
+  <div style="font-size:12px;color:#aaa;margin-bottom:10px">Choose which pre-tuned CFS-C profiles you want to add to your printer database:</div>
+  <div style="margin-bottom:8px"><label style="display:inline-flex;align-items:center;gap:6px;cursor:pointer;font-size:13px;color:#eee"><input id="pkAll" type="checkbox" style="width:auto" onchange="toggleAllPacks(this.checked)"> Select / Deselect All</label></div>
+  <div id="pkList" style="max-height:300px;overflow:auto;border:1px solid #333;border-radius:6px;background:#111;padding:6px"></div>
+  <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:14px">
+    <button onclick="closePackModal()">Cancel</button>
+    <button class="ok" onclick="installSelectedPacks()">Add Selected</button>
+  </div>
+</div></div>
 <div id="setModal" class="modal"><div class="box">
   <h3>Editor Settings</h3>
   <div style="margin:12px 0;padding:10px;background:#111;border:1px solid #333;border-radius:6px">
@@ -115,9 +125,31 @@
 </div>
 <div id="toast" class="toast"></div>
 <script>
+async function openPackModal(){
+  const r=await (await fetch('api/presets')).json();
+  if(!r.ok)return alert(r.error);
+  const box=document.getElementById('pkList');
+  box.innerHTML=(r.presets||[]).map(p=>`<label style="display:flex;align-items:center;gap:10px;padding:7px 8px;border-bottom:1px solid #222;cursor:pointer;font-size:13px">
+    <input type="checkbox" class="pkCb" value="${p.id}" ${p.installed?'':'checked'} style="width:auto">
+    <span style="min-width:52px;color:#888">${p.id}</span>
+    <strong style="min-width:75px;color:#fff">${p.brand}</strong>
+    <span style="flex:1;color:#ddd">${p.name} <span style="color:#888">(${p.type}, ${p.nozzle}&deg;C / ${p.bed}&deg;C)</span></span>
+    ${p.installed?'<span style="font-size:11px;padding:2px 6px;border-radius:4px;background:#1e3a2f;color:#4ade80">Installed</span>':''}
+  </label>`).join('');
+  document.getElementById('pkAll').checked=(r.presets||[]).some(p=>!p.installed);
+  document.getElementById('packModal').classList.add('open');
+}
+function closePackModal(){document.getElementById('packModal').classList.remove('open')}
+function toggleAllPacks(v){document.querySelectorAll('.pkCb').forEach(cb=>cb.checked=v)}
+async function installSelectedPacks(){
+  const ids=Array.from(document.querySelectorAll('.pkCb:checked')).map(cb=>cb.value);
+  if(!ids.length)return alert('Please select at least one preset.');
+  const r=await (await fetch('api/import_pack7',{method:'POST',body:JSON.stringify({ids})})).json();
+  if(!r.ok)return alert(r.error);
+  closePackModal();msg(`${r.added} preset(s) added`);load();
+}
 function runAction(v){
   if(v==='orca')document.getElementById('orcaFile').click();
-  else if(v==='pack7'&&confirm('Install 7 pre-tuned CFS-C profiles (IDs 90001-90007) for Sunlu, Jayo, Eryone & eSun?\n(Existing IDs will not be duplicated.)'))importPack7();
   else if(v==='bat')window.location.href='api/download_bat';
   else if(v==='backup')window.location.href='api/export';
 }

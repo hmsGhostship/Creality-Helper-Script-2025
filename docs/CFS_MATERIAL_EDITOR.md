@@ -23,13 +23,13 @@ To uninstall, run **`2) Remove Menu` -> `20) Remove CFS-C Material Database Edit
 
 ## 3. Features & Usage
 
+- **Preset Pack (`Preset Pack`):** Opens a checklist of 7 pre-tuned CFS-C profiles (`90001`–`90007` for Sunlu, Jayo, Eryone, and eSun) so you can select only the specific filaments you want to install.
 - **Add New Filament (`+ New Filament`):** Leave **ID** empty for automatic `90001+` numbering, set Brand, Name, Material Type, Nozzle/Bed temperatures, Max Volumetric Speed (`mm³/s`), and drying settings, then click **Save**.
 - **Clone / Edit / Delete:**
   - **Clone:** Copy any stock (`Creality` / `Generic`) or custom profile into a new editable `90001+` profile.
   - **Edit / Delete:** Custom profiles (`90001+`) can always be edited or deleted. Stock profiles (`00001`–`29001`) are locked against accidental edits/deletion by default.
 - **Import / Export Menu (`Import / Export ▾`):**
   - **Import OrcaSlicer JSON(s)...:** Select one or multiple local OrcaSlicer user filament `.json` files (`OrcaSlicer/user/<default_or_id>/filament/*.json`) to directly import or update profiles on the printer (automatically strips `@printer` suffixes and detects vendor/type).
-  - **Install Preset Pack (7x Sunlu/Jayo/Eryone/eSun):** Imports 7 pre-tuned CFS-C profiles (`90001`–`90007`) after confirmation (idempotent—safe to run multiple times without creating duplicates).
   - **Download Windows Sender (.bat):** Downloads a pre-configured `Send_Filament_to_K1C.bat` filled with your printer's IP address. Run it on your Windows PC to list your local OrcaSlicer filaments, enter numbers like `1` or `1,3` to push them to the K1C, or press `q` to exit immediately.
   - **Download Database Backup (.json):** Downloads the complete active `material_database.json` to your computer.
 - **Editor Settings (`⚙ Settings`):**

@@ -146,6 +146,12 @@ class Handler(BaseHTTPRequestHandler):
             except Exception as e:
                 self._send_json(500, {"ok": False, "error": str(e)})
             return
+        if p == "/api/presets":
+            data = load_db()
+            existing = set(str(i.get("base", {}).get("id", "")) for i in data.get("result", {}).get("list", []))
+            plist = [{"id": r.__getitem__(0), "brand": r.__getitem__(1), "name": r.__getitem__(2), "type": r.__getitem__(3), "nozzle": r.__getitem__(4), "bed": r.__getitem__(6), "max_vol": r.__getitem__(7), "installed": r.__getitem__(0) in existing} for r in PRESET_PACK_7]
+            self._send_json(200, {"ok": True, "presets": plist})
+            return
         if p == "/api/download_bat":
             host = (self.headers.get("Host") or "").partition(":").__getitem__(0).strip() or "127.0.0.1"
             with open(os.path.join(WEB_ROOT, "Send_Filament_to_K1C.bat"), "r", encoding="utf-8") as f:
