@@ -63,11 +63,9 @@
     <select id="fBrand" onchange="render()"><option value="">All Brands</option></select>
     <select id="fType" onchange="render()"><option value="">All Types</option></select>
     <select id="fScope" onchange="render()"><option value="">All Entries</option><option value="custom">Custom Only (90001+)</option><option value="stock">Stock Only</option></select>
-    <button id="btnDelSel" class="warn" style="display:none" onclick="deleteSelected()">Delete Selected (0)</button>
-    <button id="btnExpSel" style="display:none" onclick="exportSelected()">Export Selected (.json)</button>
   </div>
   <table>
-    <thead><tr><th style="width:28px"><input id="selAllRows" type="checkbox" style="width:auto" title="Select all visible custom entries" onchange="toggleSelAllRows(this.checked)"></th><th>ID</th><th>Status</th><th>Brand</th><th>Name</th><th>Type</th><th>Nozzle</th><th>Bed</th><th>Max Flow</th><th>Actions</th></tr></thead>
+    <thead><tr><th>ID</th><th>Status</th><th>Brand</th><th>Name</th><th>Type</th><th>Nozzle</th><th>Bed</th><th>Max Flow</th><th>Actions</th></tr></thead>
     <tbody id="tb"></tbody>
   </table>
 </div>
@@ -127,34 +125,6 @@
 </div>
 <div id="toast" class="toast"></div>
 <script>
-let SEL_IDS=new Set();
-function updateBulkBar(){
-  const n=SEL_IDS.size;
-  const b1=document.getElementById('btnDelSel'),b2=document.getElementById('btnExpSel');
-  if(b1){b1.style.display=n?'inline-block':'none';b1.textContent=`Delete Selected (${n})`}
-  if(b2){b2.style.display=n?'inline-block':'none'}
-  const cbs=[...document.querySelectorAll('.rowCb')];
-  const sa=document.getElementById('selAllRows');
-  if(sa){sa.checked=cbs.length>0&&cbs.every(c=>c.checked)}
-}
-function onRowCb(id,ch){if(ch)SEL_IDS.add(id);else SEL_IDS.delete(id);updateBulkBar()}
-function toggleSelAllRows(ch){
-  document.querySelectorAll('.rowCb').forEach(cb=>{cb.checked=ch;if(ch)SEL_IDS.add(cb.value);else SEL_IDS.delete(cb.value)});
-  updateBulkBar();
-}
-async function deleteSelected(){
-  const ids=[...SEL_IDS];
-  if(!ids.length||!confirm(`Delete ${ids.length} selected custom filament(s)?`))return;
-  for(const id of ids){
-    await fetch('api/delete',{method:'POST',body:JSON.stringify({id})});
-  }
-  SEL_IDS.clear();updateBulkBar();msg(`${ids.length} custom filament(s) deleted`);load();
-}
-function exportSelected(){
-  const chosen=ITEMS.filter(x=>SEL_IDS.has(x.id));
-  const blob=new Blob([JSON.stringify(chosen,null,2)],{type:'application/json'});
-  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='cfs_custom_filaments.json';a.click();
-}
 async function openPackModal(){
   const r=await (await fetch('api/presets')).json();
   if(!r.ok)return alert(r.error);
@@ -208,11 +178,11 @@ async function load(){
   $('fType').innerHTML='<option value="">All Types</option>'+types.map(t=>`<option>${t}</option>`).join('');
   render();
 }
-function render(){setTimeout(updateBulkBar,0);
+function render(){
   const q=$('q').value.toLowerCase(),fb=$('fBrand').value,ft=$('fType').value,fs=$('fScope').value;
   const rows=ITEMS.filter(x=>(!fb||x.brand===fb)&&(!ft||x.type===ft)&&(!fs||(fs==='custom'?x.custom:!x.custom))&&(!q||`${x.id} ${x.brand} ${x.name} ${x.type}`.toLowerCase().includes(q)));
   $('tb').innerHTML=rows.map(x=>`<tr>
-    <td>${x.custom?`<input type="checkbox" class="rowCb" value="${x.id}" ${SEL_IDS.has(x.id)?'checked':''} style="width:auto" onchange="onRowCb(this.value,this.checked)">`:('')}</td><td><code>${x.id}</code></td>
+    <td><code>${x.id}</code></td>
     <td><span class="tag ${x.custom?'t-cust':'t-stock'}">${x.custom?'Custom':'Stock'}</span></td>
     <td><b>${x.brand}</b></td><td>${x.name}</td><td>${x.type}</td>
     <td>${x.nozzle_temp}°C</td><td>${x.bed_temp}°C</td><td>${x.max_vol} mm³/s</td>
