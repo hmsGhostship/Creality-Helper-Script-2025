@@ -55,6 +55,21 @@ SVC
           printf '[{"title":"Material DB","href":"http://${DRUCKER_IP}:8088","target":"_blank","icon":"M12,3C7.58,3 4,4.79 4,7C4,9.21 7.58,11 12,11C16.42,11 20,9.21 20,7C20,4.79 16.42,3 12,3M4,9V12C4,14.21 7.58,16 12,16C16.42,16 20,14.21 20,12V9C20,11.21 16.42,13 12,13C7.58,13 4,11.21 4,9M4,14V17C4,19.21 7.58,21 12,21C16.42,21 20,19.21 20,17V14C20,16.21 16.42,18 12,18C7.58,18 4,16.21 4,14Z"}]\n' > /usr/data/printer_data/config/.theme/navi.json
           chown -R creality:creality /usr/data/printer_data/config/.theme 2>/dev/null || true
         fi
+        /usr/data/moonraker/moonraker-env/bin/python -c '
+import json, os, sqlite3, uuid
+ip = "${DRUCKER_IP}"
+db = "/usr/data/printer_data/database/moonraker-sql.db"
+if ip and os.path.exists(db):
+    con = sqlite3.connect(db)
+    rows = con.execute("SELECT key, value FROM namespace_store WHERE namespace=\"webcams\"").fetchall()
+    exists = any(json.loads(v.decode() if isinstance(v, bytes) else v).get("name") == "Material DB" for _, v in rows)
+    if not exists:
+        uid = str(uuid.uuid4())
+        entry = {"name": "Material DB", "location": "printer", "service": "iframe", "target_fps": 15, "target_fps_idle": 5, "stream_url": f"http://{ip}:8088", "snapshot_url": "", "flip_horizontal": False, "flip_vertical": False, "rotation": 0, "source": "database", "extra_data": {}, "uid": uid}
+        con.execute("INSERT INTO namespace_store (namespace, key, value) VALUES (\"webcams\", ?, ?)", (uid, json.dumps(entry).encode()))
+        con.commit()
+    con.close()
+' 2>/dev/null || true
         ok_msg "CFS-C Material Database Editor installed! Open http://$(ip -4 addr show 2>/dev/null | awk '/inet / && $2 !~ /^127\./ {sub(/\/.*/, "", $2); print $2; exit}'):8088"
         return;;
       N|n) error_msg "Installation canceled!"; return;;
