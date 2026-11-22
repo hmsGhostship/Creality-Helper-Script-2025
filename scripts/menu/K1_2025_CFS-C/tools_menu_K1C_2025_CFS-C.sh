@@ -176,8 +176,19 @@ function tools_menu_k1_2025_cfs_c() {
         ;;
       14)
         clear
-        if [ -f "${MAINSAIL_FOLDER}/k1c-cfs-panel.js" ] || [ -f "${FLUIDD_FOLDER}/k1c-cfs-panel.js" ]; then
-          error_msg "CFS-C Web Addon is already installed!"
+        local ms_done=1 fl_done=1
+        if [ -f "${MAINSAIL_FOLDER}/index.html" ]; then
+          if [ ! -f "${MAINSAIL_FOLDER}/k1c-cfs-panel.js" ] || ! grep -q "K1C_CFS_INJECT_START" "${MAINSAIL_FOLDER}/index.html" 2>/dev/null; then
+            ms_done=0
+          fi
+        fi
+        if [ -f "${FLUIDD_FOLDER}/index.html" ]; then
+          if [ ! -f "${FLUIDD_FOLDER}/k1c-cfs-panel.js" ] || ! grep -q "K1C_CFS_INJECT_START" "${FLUIDD_FOLDER}/index.html" 2>/dev/null; then
+            fl_done=0
+          fi
+        fi
+        if [ "$ms_done" -eq 1 ] && [ "$fl_done" -eq 1 ] && { [ -f "${MAINSAIL_FOLDER}/index.html" ] || [ -f "${FLUIDD_FOLDER}/index.html" ]; }; then
+          error_msg "CFS-C Web Addon is already installed in all web interfaces!"
           echo
         else
           run "install_cfs_integration" "tools_menu_ui_k1_2025_cfs_c"

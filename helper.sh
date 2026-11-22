@@ -40,6 +40,7 @@ set_paths
 
 # == ONLY HERE follows the sourcing loop for scripts ==
 for script in "${HELPER_SCRIPT_FOLDER}/scripts/"*.sh; do . "${script}"; done
+ensure_factory_baseline
 # ===================================================
 
 function update_helper_script() {
