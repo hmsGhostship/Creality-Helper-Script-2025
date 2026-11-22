@@ -220,6 +220,7 @@
 
   let DB_PRESETS_BY_TYPE = null;
   let DB_ALLOW_CF = false;
+  let DB_EDITOR_AVAILABLE = false;
   window.__k1c_reload_mat_db = function loadLiveMaterialDb() {
     var url = "http://" + window.location.hostname + ":8088/api/materials";
     fetch(url).then(function (r) { return r.json(); }).then(function (data) {
@@ -250,7 +251,9 @@
         });
       });
       DB_PRESETS_BY_TYPE = grouped;
-    }).catch(function () {});
+      DB_EDITOR_AVAILABLE = true;
+      if (dbBtnEl) dbBtnEl.style.display = (hasCfsBox && DB_EDITOR_AVAILABLE) ? "" : "none";
+    }).catch(function () { DB_EDITOR_AVAILABLE = false; if (dbBtnEl) dbBtnEl.style.display = "none"; });
   };
   window.__k1c_reload_mat_db();
 
