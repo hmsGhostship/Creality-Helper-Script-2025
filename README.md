@@ -90,6 +90,7 @@ This repository is tailored and tested for advanced hardware modifications:
 * **Phaetus DXC Extruder Integration:** Fully compatible with custom extruder configurations and fine-tuned macro settings.
 * **CFS-C Purge Volume Fix (Prime Tower):** Available in the **Install Menu**, this patch fixes under-extrusion and empty extrusion inside the Prime Tower during toolchanges by adjusting the purge volume (`E40`) and feeding velocity (`120 mm/min`) in `box.cfg`. This prevents torn lines, stabilizes the Prime Tower structure, and reduces material waste across both stock and aftermarket hotends.
 * **Creality Calibration Toolbox (Bed Mesh & Native Adaptive Mesh):** Integrates Creality's original **Adaptive Bed Mesh** directly into the Calibration Toolbox. You can easily switch between **Original (Full Mesh)**, **Adaptive Bed Mesh**, or **Disabled** directly from the interface, ensuring fast, localized probing and precise first layers.
+* **CFS-C Material Database Editor (Port 8088):** Available in the **Install Menu (Option 20)** for CFS-C setups, this lightweight web editor lets you add, clone, edit, and back up custom filament brands and temperatures directly in `material_database.json`—automatically syncing them to both the Creality Touchscreen and Mainsail/Fluidd. See the full [CFS-C Material Database Editor Guide](docs/CFS_MATERIAL_EDITOR.md).
 
 ### ⚡ CFS-C Speed Fix (High Back-Pressure & Grinding Prevention)
 
