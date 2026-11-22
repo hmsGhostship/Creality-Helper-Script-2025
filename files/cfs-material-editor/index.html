@@ -65,7 +65,17 @@
     <select id="fScope" onchange="render()"><option value="">All Entries</option><option value="custom">Custom Only (90001+)</option><option value="stock">Stock Only</option></select>
   </div>
   <table>
-    <thead><tr><th>ID</th><th>Status</th><th>Brand</th><th>Name</th><th>Type</th><th>Nozzle</th><th>Bed</th><th>Max Flow</th><th>Actions</th></tr></thead>
+    <thead><tr>
+  <th style="cursor:pointer;user-select:none" onclick="setSort('id')">ID <span id="srt_id"></span></th>
+  <th style="cursor:pointer;user-select:none" onclick="setSort('status')">Status <span id="srt_status"></span></th>
+  <th style="cursor:pointer;user-select:none" onclick="setSort('brand')">Brand <span id="srt_brand"></span></th>
+  <th style="cursor:pointer;user-select:none" onclick="setSort('name')">Name <span id="srt_name"></span></th>
+  <th style="cursor:pointer;user-select:none" onclick="setSort('type')">Type <span id="srt_type"></span></th>
+  <th style="cursor:pointer;user-select:none" onclick="setSort('nozzle')">Nozzle <span id="srt_nozzle"></span></th>
+  <th style="cursor:pointer;user-select:none" onclick="setSort('bed')">Bed <span id="srt_bed"></span></th>
+  <th style="cursor:pointer;user-select:none" onclick="setSort('flow')">Max Flow <span id="srt_flow"></span></th>
+  <th>Actions</th>
+</tr></thead>
     <tbody id="tb"></tbody>
   </table>
 </div>
@@ -167,6 +177,30 @@ function applySettingsUI(){
   Array.from(sel.options).forEach(o=>{if(o.value.includes('-CF')||o.value.includes('-GF'))o.hidden=!SETTINGS.allow_cf});
 }
 let ITEMS=[];
+let SORT_COL='default',SORT_DIR=-1;
+function setSort(c){
+  if(SORT_COL===c)SORT_DIR*=-1;
+  else{SORT_COL=c;SORT_DIR=(c==='id'||c==='status')?-1:1}
+  render();
+}
+function sortRows(arr){
+  const cols=('id','status','brand','name','type','nozzle','bed','flow');
+  cols.forEach(k=>{const el=document.getElementById('srt_'+k);if(el)el.textContent=(SORT_COL===k)?(SORT_DIR===1?'▲':'▼'):''});
+  return arr.sort((a,b)=>{
+    if(SORT_COL==='default')return (b.custom-a.custom)||(Number(b.id)-Number(a.id));
+    let va,vb;
+    if(SORT_COL==='id'){va=Number(a.id)||0;vb=Number(b.id)||0}
+    else if(SORT_COL==='status'){va=(a.pending?2:(a.custom?1:0));vb=(b.pending?2:(b.custom?1:0))}
+    else if(SORT_COL==='nozzle'){va=parseFloat(a.nozzle_temp)||0;vb=parseFloat(b.nozzle_temp)||0}
+    else if(SORT_COL==='bed'){va=parseFloat(a.bed_temp)||0;vb=parseFloat(b.bed_temp)||0}
+    else if(SORT_COL==='flow'){va=parseFloat(a.max_vol)||0;vb=parseFloat(b.max_vol)||0}
+    else{va=String(a[SORT_COL]||'').toLowerCase();vb=String(b[SORT_COL]||'').toLowerCase()}
+    if(va<vb)return -1*SORT_DIR;
+    if(va>vb)return 1*SORT_DIR;
+    return (Number(a.id)||0)-(Number(b.id)||0);
+  });
+}
+
 const $=id=>document.getElementById(id);
 function msg(t){const el=$('toast');el.textContent=t;el.style.display='block';setTimeout(()=>el.style.display='none',3200)}
 async function load(){
@@ -181,7 +215,7 @@ async function load(){
 }
 function render(){
   const q=$('q').value.toLowerCase(),fb=$('fBrand').value,ft=$('fType').value,fs=$('fScope').value;
-  const custCnt=ITEMS.filter(x=>x.custom).length;const st=$('dbStats');if(st)st.textContent=`${ITEMS.length} profiles in database (${custCnt} custom)`;const rows=ITEMS.filter(x=>(!fb||x.brand===fb)&&(!ft||x.type===ft)&&(!fs||(fs==='custom'?x.custom:!x.custom))&&(!q||`${x.id} ${x.brand} ${x.name} ${x.type}`.toLowerCase().includes(q))).sort((a,b)=>(b.custom-a.custom)||(Number(b.id)-Number(a.id)));
+  const custCnt=ITEMS.filter(x=>x.custom).length;const st=$('dbStats');if(st)st.textContent=`${ITEMS.length} profiles in database (${custCnt} custom)`;const rows=sortRows(ITEMS.filter(x=>(!fb||x.brand===fb)&&(!ft||x.type===ft)&&(!fs||(fs==='custom'?x.custom:!x.custom))&&(!q||`${x.id} ${x.brand} ${x.name} ${x.type}`.toLowerCase().includes(q)));
   $('tb').innerHTML=rows.map(x=>`<tr style="${x.pending?'background:#2b1d08;box-shadow:inset 3px 0 0 #f59e0b':''}">
     <td><code>${x.id}</code></td>
     <td><span class="tag ${x.custom?'t-cust':'t-stock'}">${x.custom?'Custom':'Stock'}</span>${x.pending?' <span class="tag" style="background:#422006;color:#fbbf24;border:1px solid #d97706">Pending Reboot</span>':(x.custom?' <span class="tag" style="background:#14532d;color:#86efac">Active</span>':'')}</td>
