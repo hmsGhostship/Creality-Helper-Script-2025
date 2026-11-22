@@ -127,7 +127,7 @@ class Handler(BaseHTTPRequestHandler):
             except Exception as e:
                 self._send_json(500, {"ok": False, "error": str(e)})
             return
-                if p == "/api/download_bat":
+        if p == "/api/download_bat":
             host = (self.headers.get("Host") or "").partition(":").__getitem__(0).strip() or "127.0.0.1"
             with open(os.path.join(WEB_ROOT, "Send_Filament_to_K1C.bat"), "r", encoding="utf-8") as f:
                 bat = f.read().replace("__IP__", host).replace("\n", "\r\n").encode("utf-8")
