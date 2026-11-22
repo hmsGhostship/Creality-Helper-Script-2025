@@ -75,6 +75,7 @@
   let feedBtnEl = null;
   let retractBtnEl = null;
   let configBtnEl = null;
+  let dbBtnEl = null;
 
   if (!document.getElementById(STYLE_ID)) {
     const style = document.createElement("style");
@@ -219,7 +220,7 @@
 
   let DB_PRESETS_BY_TYPE = null;
   let DB_ALLOW_CF = false;
-  (function loadLiveMaterialDb() {
+  window.__k1c_reload_mat_db = function loadLiveMaterialDb() {
     var url = "http://" + window.location.hostname + ":8088/api/materials";
     fetch(url).then(function (r) { return r.json(); }).then(function (data) {
       if (!data || !data.ok || !Array.isArray(data.items)) return;
@@ -250,7 +251,8 @@
       });
       DB_PRESETS_BY_TYPE = grouped;
     }).catch(function () {});
-  })();
+  };
+  window.__k1c_reload_mat_db();
 
   function listPresetsForType(type) {
     const normalizedType = String(type || "").trim().toUpperCase();
@@ -902,6 +904,48 @@
     }
   }
 
+  function openMaterialDbModal() {
+    closeModal();
+    const modal = document.createElement("div");
+    modal.id = MODAL_ID;
+    const card = document.createElement("div");
+    card.className = "k1c-cfs-modal-card";
+    card.style.width = "min(1280px, 95vw)";
+    card.style.maxWidth = "95vw";
+    card.style.height = "88vh";
+    card.style.display = "flex";
+    card.style.flexDirection = "column";
+    const head = document.createElement("div");
+    head.className = "k1c-cfs-modal-head";
+    const title = document.createElement("div");
+    title.className = "k1c-cfs-modal-title";
+    title.textContent = "Material Database Editor";
+    const closeBtn = document.createElement("button");
+    closeBtn.type = "button";
+    closeBtn.className = "k1c-cfs-cancel-btn";
+    closeBtn.textContent = "Close";
+    const onDone = function () {
+      closeModal();
+      if (typeof window.__k1c_reload_mat_db === "function") window.__k1c_reload_mat_db();
+    };
+    closeBtn.onclick = onDone;
+    head.appendChild(title);
+    head.appendChild(closeBtn);
+    card.appendChild(head);
+    const frame = document.createElement("iframe");
+    frame.src = "http://" + window.location.hostname + ":8088/";
+    frame.style.width = "100%";
+    frame.style.flex = "1";
+    frame.style.border = "none";
+    frame.style.background = "#121212";
+    card.appendChild(frame);
+    modal.appendChild(card);
+    modal.addEventListener("click", function (event) {
+      if (event.target === modal) onDone();
+    });
+    document.body.appendChild(modal);
+  }
+
   function openEditModal(slot) {
     closeModal();
 
@@ -1136,7 +1180,19 @@
     controlsRow.appendChild(feedBtn);
     controlsRow.appendChild(retractBtn);
     controls.appendChild(controlsRow);
+    const dbBtn = document.createElement("button");
+    dbBtn.type = "button";
+    dbBtn.className = "k1c-cfs-action";
+    dbBtn.appendChild(createSvgPath("M12 3C7.58 3 4 4.79 4 7v10c0 2.21 3.58 4 8 4s8-1.79 8-4V7c0-2.21-3.58-4-8-4zm0 2c3.87 0 6 .9 6 2s-2.13 2-6 2-6-.9-6-2 2.13-2 6-2zm0 14c-3.87 0-6-.9-6-2v-2.23c1.61.78 3.72 1.23 6 1.23s4.39-.45 6-1.23V17c0 1.1-2.13 2-6 2zm0-5c-3.87 0-6-.9-6-2V9.77C7.61 10.55 9.72 11 12 11s4.39-.45 6-1.23V12c0 1.1-2.13 2-6 2z"));
+    const dbText = document.createElement("span");
+    dbText.textContent = "Material DB";
+    dbBtn.appendChild(dbText);
+    dbBtn.title = "Open Material Database Editor";
+    dbBtn.onclick = function () { openMaterialDbModal(); };
+    dbBtnEl = dbBtn;
+
     controls.appendChild(configBtn);
+    controls.appendChild(dbBtn);
     shell.appendChild(controls);
     return root;
   }
@@ -1332,6 +1388,7 @@
       if (titleEl && !hasCfsBox) titleEl.textContent = "Spool Holder";
     }
     if (configBtnEl) configBtnEl.style.display = hasCfsBox ? "" : "none";
+    if (dbBtnEl) dbBtnEl.style.display = hasCfsBox ? "" : "none";
 
     latestSlots.forEach(function (slot) {
       const item = document.createElement("div");
@@ -1422,6 +1479,7 @@
       }
     }
     if (configBtnEl) configBtnEl.disabled = actionLocked;
+    if (dbBtnEl) dbBtnEl.disabled = actionLocked;
     if (retractBtnEl) retractBtnEl.disabled = actionLocked || !!actionSlot || matrixBlock || !isPresent;
 
     updateStatus(connected);
