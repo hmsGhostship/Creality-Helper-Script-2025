@@ -48,6 +48,8 @@
     <div class="btns">
       <button class="pri" onclick="openNew()">+ New Filament</button>
       <button class="ok" onclick="importPack7()">+ 7 Custom Presets (Sunlu/Jayo/Eryone/eSun)</button>
+      <button class="pri" onclick="$('orcaFile').click()">Import OrcaSlicer JSON(s)</button>
+      <input id="orcaFile" type="file" accept=".json" multiple style="display:none" onchange="importOrca(this.files)">
       <a class="btn" href="api/export">JSON Backup</a>
       <button id="btnBak" class="warn" style="display:none" onclick="restoreBak()">Restore Original (.bak)</button>
     </div>
@@ -129,6 +131,17 @@ async function saveItem(){
   if(!r.ok)return alert(r.error);closeM();msg('Saved (ID '+r.id+') – reload printer UI if needed');load();
 }
 async function delItem(id){if(!confirm('Delete entry '+id+'?'))return;await fetch('api/delete',{method:'POST',body:JSON.stringify({id})});msg('Deleted');load();}
+async function importOrca(fileList){
+  if(!fileList||!fileList.length)return;
+  const files=await Promise.all([...fileList].map(f=>f.text()));
+  let r=await (await fetch('api/import_orca',{method:'POST',body:JSON.stringify({files,allow_cf:false})})).json();
+  if(!r.ok)return alert(r.error);
+  if(r.skipped_cf&&r.skipped_cf.length&&confirm('Abrasive CF/GF filament(s) detected: '+r.skipped_cf.join(', ')+'.\nDo NOT use CF filaments in CFS-C! Import anyway?')){
+    r=await (await fetch('api/import_orca',{method:'POST',body:JSON.stringify({files,allow_cf:true})})).json();
+  }
+  $('orcaFile').value='';
+  msg(`OrcaSlicer import: ${r.added} added, ${r.updated} updated`);load();
+}
 async function importPack7(){const r=await (await fetch('api/import_pack7',{method:'POST'})).json();msg(r.added+' custom presets imported!');load();}
 async function restoreBak(){if(!confirm('Restore original material_database.json (.bak)?'))return;await fetch('api/restore_backup',{method:'POST'});msg('Original database restored');load();}
 load();

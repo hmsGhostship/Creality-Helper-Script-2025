@@ -179,6 +179,45 @@ class Handler(BaseHTTPRequestHandler):
                 added = sum(1 for r in PRESET_PACK_7 if r[0] not in existing and not items.append(build_entry(tpl, *r)))
                 save_db(data)
                 self._send_json(200, {"ok": True, "added": added})
+            elif p == "/api/import_orca":
+                files = body.get("files", [])
+                allow_cf = bool(body.get("allow_cf", False))
+                added, updated, skipped_cf = 0, 0, []
+                def val(d, k, default):
+                    v = d.get(k, default)
+                    return v if isinstance(v, list) and v else (v if v not in (None, "") else default)
+                for raw_f in files:
+                    try:
+                        cfg = json.loads(raw_f) if isinstance(raw_f, str) else raw_f
+                    except Exception:
+                        continue
+                    mtype = str(val(cfg, "filament_type", "PLA")).strip()
+                    if ("-CF" in mtype.upper() or "-GF" in mtype.upper()) and not allow_cf:
+                        skipped_cf.append(str(val(cfg, "name", mtype)))
+                        continue
+                    brand = str(val(cfg, "filament_vendor", "Custom")).strip() or "Custom"
+                    full_name = str(val(cfg, "name", mtype)).split("@").strip()
+                    if full_name.lower().startswith(brand.lower() + " "):
+                        full_name = full_name[len(brand)+1:].strip()
+                    t_noz = val(cfg, "nozzle_temperature", "220")
+                    t_ini = val(cfg, "nozzle_temperature_initial_layer", t_noz)
+                    t_bed = val(cfg, "textured_plate_temp", val(cfg, "hot_plate_temp", "60"))
+                    mvol = val(cfg, "filament_max_volumetric_speed", "15")
+                    dens = val(cfg, "filament_density", "1.24")
+                    dry_t = 80 if "ABS" in mtype.upper() or "ASA" in mtype.upper() else (65 if "PETG" in mtype.upper() else 50)
+                    match = next((it for it in items if str(it.get("base", {}).get("id", "")).isdigit() and int(it["base"]["id"]) >= 90000 and it["base"].get("brand","").lower() == brand.lower() and it["base"].get("name","").lower() == full_name.lower()), None)
+                    if match:
+                        pid = match["base"]["id"]
+                        idx = items.index(match)
+                        items[idx] = build_entry(tpl, pid, brand, full_name, mtype, t_noz, t_ini, t_bed, mvol, dens, dry_t, 6)
+                        updated += 1
+                    else:
+                        nums = [int(i["base"]["id"]) for i in items if str(i["base"].get("id", "")).isdigit() and int(i["base"]["id"]) >= 90000]
+                        pid = str(max(nums +) + 1)
+                        items.append(build_entry(tpl, pid, brand, full_name, mtype, t_noz, t_ini, t_bed, mvol, dens, dry_t, 6))
+                        added += 1
+                save_db(data)
+                self._send_json(200, {"ok": True, "added": added, "updated": updated, "skipped_cf": skipped_cf})
             elif p == "/api/restore_backup":
                 shutil.copy2(BACKUP_PATH, DB_PATH)
                 self._send_json(200, {"ok": True})

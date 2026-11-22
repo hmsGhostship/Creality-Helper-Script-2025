@@ -25,6 +25,7 @@ To uninstall, run 2) Remove Menu -> 20) Remove CFS-C Material Database Editor (p
 
 - Add New Filament (+ New Filament): Leave ID empty for automatic 90001+ numbering, set Brand, Name, Material Type, Nozzle/Bed temperatures, Max Volumetric Speed (mm³/s), and drying settings, then click Save.
 - Clone / Edit / Delete: Clone any stock or custom profile, adjust parameters, or remove custom (90001+) entries. Stock Creality/Generic entries are protected from deletion.
+- **Import OrcaSlicer JSON(s):** Select one or multiple OrcaSlicer user filament `.json` files (`OrcaSlicer/user/<id>/filament/*.json`) to directly import or update profiles on the printer (with automatic `@printer` suffix cleanup and abrasive `-CF`/`-GF` safety warning).
 - One-Click Preset Pack: Imports 7 pre-tuned CFS-C profiles (90001-90007) for Sunlu, Jayo, Eryone, and eSun (idempotent—safe to click multiple times).
 - Backup & Restore: Download a full material_database.json backup anytime or revert to the untouched factory .bak file.
 
