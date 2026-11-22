@@ -8,12 +8,6 @@ Additional support for K1 2025 CFS-C by @hmsGhostship.
 
 > **⚠️ Firmware Compatibility Note:** All features, patches, and CFS-C options in this repository have currently only been tested on **Creality Firmware Version `1.1.0.27`**. Newer Creality firmware updates may change internal files, services, or Klipper bytecode—always create an **OTA-Safe State Backup** (option `5` in the Backup & Restore menu or via the `BACKUP_OTA_STATE` macro, ideally with a USB drive attached) before updating.
 
-### 💾 Backup, Restore & Options Profiles (`Backup & Restore Menu`)
-* **OTA-Safe State Backup & Restore (Options `5` & `6` / `BACKUP_OTA_STATE` macro):** Saves configs, Moonraker databases, custom Klipper extras (`box_control.pyc`, `cfs_material_db.py`, shell commands), system overlays (`reccon`, `mdev.conf`, crontabs), and disabled service states to `/usr/data` and/or an attached **USB drive** (with automatic `sync` for safe removal). Supports **Safe Merge** (keeps new stock firmware configs and merges `[include ...]` & `SAVE_CONFIG` values) or **Full Overwrite**.
-* **Installed Options Profile Backup & Selective Restore (Options `9` & `10`):** Scans all active modules from the Info Menu (separately for **CFS-C** and **Standard / Non-CFS**) and reinstalls missing or selected modules in **strict dependency order**—including automatic cross-variant upgrade/adapt merging (`Non-CFS ↔ CFS-C`).
-* **Automatic Pre-Helper-Script Factory Baseline (Option `11`):** On a pristine printer, the very first launch of `helper.sh` automatically captures an immutable snapshot of your original configs, Klipper extras, system services, and file manifests (`/usr/data/helper-script-factory-baseline/`). If a baseline snapshot exists (locally or on a USB drive), **Option `11`** appears in the Backup & Restore Menu and allows a full, clean revert back to the pre-helper-script state (removing all added `.py` modules, services, Entware, and web frontends while keeping root access and Wi-Fi intact). *(Tip: Copy `/usr/data/helper-script-factory-baseline` to a USB drive after the first run, especially when testing on older firmware revisions like `1.0.0.25` or Non-CFS setups.)*
-
-
 ## 📋 / ✅ Prerequisites and installation
 
 1. **Install a root exploit**
@@ -42,6 +36,12 @@ git clone --depth 1 https://github.com/hmsGhostship/Creality-Helper-Script-2025.
 ```bash
 sh /usr/data/helper-script/helper.sh
 ```
+
+### 💾 Backup, Restore & Options Profiles (`Backup & Restore Menu`)
+* **OTA-Safe State Backup & Restore (Options `5` & `6` / `BACKUP_OTA_STATE` macro):** Saves configs, Moonraker databases, custom Klipper extras (`box_control.pyc`, `cfs_material_db.py`, shell commands), system overlays (`reccon`, `mdev.conf`, crontabs), and disabled service states to `/usr/data` and/or an attached **USB drive** (with automatic `sync` for safe removal). Supports **Safe Merge** (keeps new stock firmware configs and merges `[include ...]` & `SAVE_CONFIG` values) or **Full Overwrite**.
+* **Installed Options Profile Backup & Selective Restore (Options `9` & `10`):** Scans all active modules from the Info Menu (separately for **CFS-C** and **Standard / Non-CFS**) and reinstalls missing or selected modules in **strict dependency order**—including automatic cross-variant upgrade/adapt merging (`Non-CFS ↔ CFS-C`).
+* **Automatic Pre-Helper-Script Factory Baseline (Option `11`):** On a pristine printer, the very first launch of `helper.sh` automatically captures an immutable snapshot of your original configs, Klipper extras, system services, and file manifests (`/usr/data/helper-script-factory-baseline/`). If a baseline snapshot exists (locally or on a USB drive), **Option `11`** appears in the Backup & Restore Menu and allows a full, clean revert back to the pre-helper-script state (removing all added `.py` modules, services, Entware, and web frontends while keeping root access and Wi-Fi intact). *(Tip: Copy `/usr/data/helper-script-factory-baseline` to a USB drive after the first run, especially when testing on older firmware revisions like `1.0.0.25` or Non-CFS setups.)*
+
 
 ### 🚀 CFS-C Edition (Automated Submodel Detection)
 
