@@ -48,7 +48,7 @@
     <div class="btns">
       <button class="pri" onclick="openNew()">+ Neues Filament</button>
       <button class="ok" onclick="importPack7()">+ 7 Custom Presets (Sunlu/Jayo/Eryone/eSun)</button>
-      <a class="btn" href="/api/export">JSON Backup</a>
+      <a class="btn" href="api/export">JSON Backup</a>
       <button id="btnBak" class="warn" style="display:none" onclick="restoreBak()">Original (.bak) wiederherstellen</button>
     </div>
   </div>
@@ -90,7 +90,7 @@ let ITEMS=[];
 const $=id=>document.getElementById(id);
 function msg(t){const el=$('toast');el.textContent=t;el.style.display='block';setTimeout(()=>el.style.display='none',3200)}
 async function load(){
-  const r=await (await fetch('/api/materials')).json();
+  const r=await (await fetch('api/materials')).json();
   if(!r.ok)return alert(r.error);
   ITEMS=r.items;$('btnBak').style.display=r.has_backup?'inline-block':'none';
   const brands=[...new Set(ITEMS.map(x=>x.brand))].sort();
@@ -125,12 +125,12 @@ function openEdit(x,clone){
 function closeM(){$('modal').classList.remove('open')}
 async function saveItem(){
   const p={id:$('f_id').value,brand:$('f_brand').value,name:$('f_name').value,type:$('f_type').value,nozzle_temp:$('f_noz').value,nozzle_init:$('f_nozi').value,bed_temp:$('f_bed').value,max_vol:$('f_vol').value,dry_temp:$('f_dryt').value,dry_time:$('f_dryh').value};
-  const r=await (await fetch('/api/save',{method:'POST',body:JSON.stringify(p)})).json();
+  const r=await (await fetch('api/save',{method:'POST',body:JSON.stringify(p)})).json();
   if(!r.ok)return alert(r.error);closeM();msg('Gespeichert (ID '+r.id+') – GUI ggf. neu laden');load();
 }
-async function delItem(id){if(!confirm('Eintrag '+id+' löschen?'))return;await fetch('/api/delete',{method:'POST',body:JSON.stringify({id})});msg('Gelöscht');load();}
-async function importPack7(){const r=await (await fetch('/api/import_pack7',{method:'POST'})).json();msg(r.added+' Custom Presets importiert!');load();}
-async function restoreBak(){if(!confirm('Original material_database.json (.bak) wiederherstellen?'))return;await fetch('/api/restore_backup',{method:'POST'});msg('Original wiederhergestellt');load();}
+async function delItem(id){if(!confirm('Eintrag '+id+' löschen?'))return;await fetch('api/delete',{method:'POST',body:JSON.stringify({id})});msg('Gelöscht');load();}
+async function importPack7(){const r=await (await fetch('api/import_pack7',{method:'POST'})).json();msg(r.added+' Custom Presets importiert!');load();}
+async function restoreBak(){if(!confirm('Original material_database.json (.bak) wiederherstellen?'))return;await fetch('api/restore_backup',{method:'POST'});msg('Original wiederhergestellt');load();}
 load();
 </script>
 </body>
