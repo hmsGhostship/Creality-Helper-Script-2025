@@ -62,6 +62,7 @@ It completely bypasses the legacy port `9999` socket by communicating directly w
 * **Cycle-Aware UI Lock:** Automatically detects complex multi-material physical sequences (nozzle heating -> cutting via side-buffer -> retracting -> purging) and prevents premature interface unlocking. Buttons are strictly kept frozen until Klipper returns to a true `Idle` state.
 * **Dual-Engine Polling:** Monitors Klipper's `idle_timeout` and the `color_box` namespace simultaneously to achieve perfect synchronization between hardware status and browser feedback.
 * **Granular Control:** Safely install or remove the interface integration independently for Mainsail, Fluidd, or both via the Customize Menu without risking any system configuration mismatches.
+* **Live Material Database Sync:** Automatically fetches your active printer material database (`material_database.json` via the CFS-C Material Database Editor on port `8088`) so all custom `90001+` profiles, vendors, and temperature limits are immediately selectable in the slot **Edit Material** dropdown (with seamless fallback to built-in presets).
 
 > 💡 *Note: After installing or removing the addon, please perform a hard reload (**Ctrl + F5**) in your web browser to force Chrome to load the newly injected script tags.*
 
