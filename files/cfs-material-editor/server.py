@@ -185,7 +185,7 @@ class Handler(BaseHTTPRequestHandler):
                 added, updated, skipped_cf = 0, 0, []
                 def val(d, k, default):
                     v = d.get(k, default)
-                    return v if isinstance(v, list) and v else (v if v not in (None, "") else default)
+                    return next(iter(v)) if isinstance(v, list) and v else (v if v not in (None, "") else default)
                 for raw_f in files:
                     try:
                         cfg = json.loads(raw_f) if isinstance(raw_f, str) else raw_f
@@ -213,7 +213,7 @@ class Handler(BaseHTTPRequestHandler):
                         updated += 1
                     else:
                         nums = [int(i["base"]["id"]) for i in items if str(i["base"].get("id", "")).isdigit() and int(i["base"]["id"]) >= 90000]
-                        pid = str(max(nums +) + 1)
+                        pid = str(max(nums or (90000,)) + 1)
                         items.append(build_entry(tpl, pid, brand, full_name, mtype, t_noz, t_ini, t_bed, mvol, dens, dry_t, 6))
                         added += 1
                 save_db(data)
