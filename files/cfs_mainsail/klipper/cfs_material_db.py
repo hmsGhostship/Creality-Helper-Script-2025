@@ -33,7 +33,7 @@ class CfsMaterialDb:
     def __init__(self, config):
         self.printer = config.get_printer()
         self.gcode = self.printer.lookup_object("gcode")
-        self.material_db_path = "/usr/data/creality/userdata/box/material_database.json"
+        self.material_db_path = "/usr/data/creality/gui/config/material_database.json" if os.path.exists("/usr/data/creality/gui/config/material_database.json") else "/usr/data/creality/userdata/box/material_database.json"
         self.generic_materials = GENERIC_MATERIALS
         self.gcode.register_command(
             "CFS_SET_MATERIAL_DB_TEMP",
