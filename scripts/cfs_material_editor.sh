@@ -49,6 +49,11 @@ esac
 SVC
         chmod 755 "$CFS_MAT_EDITOR_SVC"
         "$CFS_MAT_EDITOR_SVC" restart >/dev/null 2>&1 || true
+        mkdir -p /usr/data/printer_data/config/.theme
+        if [ ! -f /usr/data/printer_data/config/.theme/navi.json ]; then
+          printf '[{"title":"Material DB","href":":8088","target":"_blank","icon":"mdiDatabaseEdit"}]\n' > /usr/data/printer_data/config/.theme/navi.json
+          chown -R creality:creality /usr/data/printer_data/config/.theme 2>/dev/null || true
+        fi
         ok_msg "CFS-C Material Database Editor installed! Open http://$(ip -4 addr show 2>/dev/null | awk '/inet / && $2 !~ /^127\./ {sub(/\/.*/, "", $2); print $2; exit}'):8088"
         return;;
       N|n) error_msg "Installation canceled!"; return;;
