@@ -101,6 +101,13 @@ install_cfs_integration() {
         ok_msg "CFS-C Web Addon installed successfully!"
         echo "Info: Restarting Klipper service..."
         restart_klipper
+        if [ ! -f "/usr/data/cfs-material-editor/server.py" ] && type install_cfs_material_editor >/dev/null 2>&1; then
+          echo ""
+          read -p "Do you also want to install the CFS-C Material Database Editor (port 8088) for the Material DB button? [y/n]: " install_mdb
+          case "$install_mdb" in
+            Y|y) install_cfs_material_editor ;;
+          esac
+        fi
         return;;
       N|n)
         error_msg "Installation canceled!"
