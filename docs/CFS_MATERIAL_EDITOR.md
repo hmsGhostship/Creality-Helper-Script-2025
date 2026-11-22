@@ -23,7 +23,7 @@ To uninstall, run **`2) Remove Menu` -> `20) Remove CFS-C Material Database Edit
 
 ## 3. Features & Usage
 
-- **Preset Pack (`Preset Pack`):** Opens a checklist of 7 pre-tuned CFS-C profiles (`90001`–`90007` for Sunlu, Jayo, Eryone, and eSun) so you can select only the specific filaments you want to install.
+- **Add Selection to DB (`Add Selection to DB`):** Opens a checklist of 7 pre-tuned CFS-C profiles (`90001`–`90007` for Sunlu, Jayo, Eryone, and eSun) so you can select only the specific filaments you want to install.
 - **Add New Filament (`+ New Filament`):** Leave **ID** empty for automatic `90001+` numbering, set Brand, Name, Material Type, Nozzle/Bed temperatures, Max Volumetric Speed (`mm³/s`), and drying settings, then click **Save**.
 - **Clone / Edit / Delete:**
   - **Clone:** Copy any stock (`Creality` / `Generic`) or custom profile into a new editable `90001+` profile.
