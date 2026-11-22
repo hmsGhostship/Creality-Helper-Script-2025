@@ -103,6 +103,18 @@
 </div>
 <div id="toast" class="toast"></div>
 <script>
+let SETTINGS={allow_cf:false};
+function openSettings(){document.getElementById('s_allow_cf').checked=!!SETTINGS.allow_cf;document.getElementById('setModal').classList.add('open')}
+function closeSettings(){document.getElementById('setModal').classList.remove('open')}
+async function saveSettings(){
+  const r=await (await fetch('api/settings',{method:'POST',body:JSON.stringify({settings:{allow_cf:document.getElementById('s_allow_cf').checked}})})).json();
+  if(!r.ok)return alert(r.error);
+  SETTINGS=r.settings;closeSettings();applySettingsUI();msg('Settings saved');
+}
+function applySettingsUI(){
+  const sel=document.getElementById('f_type');
+  Array.from(sel.options).forEach(o=>{if(o.value.includes('-CF')||o.value.includes('-GF'))o.hidden=!SETTINGS.allow_cf});
+}
 let ITEMS=[];
 const $=id=>document.getElementById(id);
 function msg(t){const el=$('toast');el.textContent=t;el.style.display='block';setTimeout(()=>el.style.display='none',3200)}
