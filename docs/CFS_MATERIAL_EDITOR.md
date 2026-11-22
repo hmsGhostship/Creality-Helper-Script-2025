@@ -39,7 +39,7 @@ To uninstall, run **`2) Remove Menu` -> `20) Remove CFS-C Material Database Edit
 
 ## 4. Applying Changes to the Touchscreen
 
-- Changes are immediately available in the **Fluidd / Mainsail CFS-C web panel** after a page refresh.
+- Changes are immediately available in the **Fluidd / Mainsail CFS-C web panel** (`Edit Material` dropdown lists your custom `90001+` profiles automatically after a page refresh).
 - Reboot the printer once after adding new brands so the **Creality Touchscreen** reloads the updated brand list.
 
 > **Safety Note:** Do not route abrasive carbon-fiber or glass-fiber filaments (`PLA-CF`, `PETG-CF`, `PA-CF`) through the CFS-C—always print CF/GF materials from the external spool holder.
