@@ -799,27 +799,27 @@
     }
 
     const purgeMaterials = [
-      { type: "PLA", id: "00001", commandKey: "PLA", statusKey: "pla" },
-      { type: "PLA-Silk", id: "00002", commandKey: "PLA_SILK", statusKey: "pla_silk" },
-      { type: "PETG", id: "00003", commandKey: "PETG", statusKey: "petg" },
-      { type: "ABS", id: "00004", commandKey: "ABS", statusKey: "abs" },
-      { type: "TPU", id: "00005", commandKey: "TPU", statusKey: "tpu" },
-      { type: "PLA-CF", id: "00006", commandKey: "PLA_CF", statusKey: "pla_cf" },
-      { type: "ASA", id: "00007", commandKey: "ASA", statusKey: "asa" },
-      { type: "PA", id: "00008", commandKey: "PA", statusKey: "pa" },
-      { type: "PA-CF", id: "00009", commandKey: "PA_CF", statusKey: "pa_cf" },
-      { type: "BVOH", id: "00010", commandKey: "BVOH", statusKey: "bvoh" },
-      { type: "PVA", id: "00011", commandKey: "PVA", statusKey: "pva" },
-      { type: "HIPS", id: "00012", commandKey: "HIPS", statusKey: "hips" },
-      { type: "PET-CF", id: "00013", commandKey: "PET_CF", statusKey: "pet_cf" },
-      { type: "PETG-CF", id: "00014", commandKey: "PETG_CF", statusKey: "petg_cf" },
-      { type: "PA6-CF", id: "00015", commandKey: "PA6_CF", statusKey: "pa6_cf" },
-      { type: "PAHT-CF", id: "00016", commandKey: "PAHT_CF", statusKey: "paht_cf" },
-      { type: "PPS", id: "00017", commandKey: "PPS", statusKey: "pps" },
-      { type: "PPS-CF", id: "00018", commandKey: "PPS_CF", statusKey: "pps_cf" },
-      { type: "PP", id: "00019", commandKey: "PP", statusKey: "pp" },
-      { type: "PET", id: "00020", commandKey: "PET", statusKey: "pet" },
-      { type: "PC", id: "00021", commandKey: "PC", statusKey: "pc" },
+      { type: "PLA", id: "00001", commandKey: "PLA", statusKey: "pla", def: 220 },
+      { type: "PLA-Silk", id: "00002", commandKey: "PLA_SILK", statusKey: "pla_silk", def: 220 },
+      { type: "PETG", id: "00003", commandKey: "PETG", statusKey: "petg", def: 245 },
+      { type: "ABS", id: "00004", commandKey: "ABS", statusKey: "abs", def: 260 },
+      { type: "TPU", id: "00005", commandKey: "TPU", statusKey: "tpu", def: 225 },
+      { type: "PLA-CF", id: "00006", commandKey: "PLA_CF", statusKey: "pla_cf", def: 225 },
+      { type: "ASA", id: "00007", commandKey: "ASA", statusKey: "asa", def: 260 },
+      { type: "PA", id: "00008", commandKey: "PA", statusKey: "pa", def: 260 },
+      { type: "PA-CF", id: "00009", commandKey: "PA_CF", statusKey: "pa_cf", def: 280 },
+      { type: "BVOH", id: "00010", commandKey: "BVOH", statusKey: "bvoh", def: 215 },
+      { type: "PVA", id: "00011", commandKey: "PVA", statusKey: "pva", def: 215 },
+      { type: "HIPS", id: "00012", commandKey: "HIPS", statusKey: "hips", def: 240 },
+      { type: "PET-CF", id: "00013", commandKey: "PET_CF", statusKey: "pet_cf", def: 290 },
+      { type: "PETG-CF", id: "00014", commandKey: "PETG_CF", statusKey: "petg_cf", def: 255 },
+      { type: "PA6-CF", id: "00015", commandKey: "PA6_CF", statusKey: "pa6_cf", def: 290 },
+      { type: "PAHT-CF", id: "00016", commandKey: "PAHT_CF", statusKey: "paht_cf", def: 300 },
+      { type: "PPS", id: "00017", commandKey: "PPS", statusKey: "pps", def: 320 },
+      { type: "PPS-CF", id: "00018", commandKey: "PPS_CF", statusKey: "pps_cf", def: 320 },
+      { type: "PP", id: "00019", commandKey: "PP", statusKey: "pp", def: 240 },
+      { type: "PET", id: "00020", commandKey: "PET", statusKey: "pet", def: 255 },
+      { type: "PC", id: "00021", commandKey: "PC", statusKey: "pc", def: 270 },
     ];
 
     const grid = document.createElement("div");
@@ -869,6 +869,14 @@
       }
     };
 
+    const resetBtn = document.createElement("button");
+    resetBtn.type = "button";
+    resetBtn.className = "k1c-cfs-cancel-btn";
+    resetBtn.textContent = "Load Defaults";
+    resetBtn.onclick = function () {
+      purgeMaterials.forEach(function (entry) { if (purgeInputs[entry.type]) purgeInputs[entry.type].value = String(entry.def); });
+    };
+    actions.appendChild(resetBtn);
     actions.appendChild(cancel);
     actions.appendChild(save);
     card.appendChild(actions);
@@ -886,7 +894,7 @@
       purgeMaterials.forEach(function (entry) {
         var input = purgeInputs[entry.type];
         if (!input) return;
-        input.value = temps[entry.statusKey] == null ? "" : String(temps[entry.statusKey]);
+        var v = temps[entry.statusKey]; input.value = (v == null || v === "" || Number(v) <= 0) ? String(entry.def) : String(v);
       });
     } catch (error) {
       closeModal();
