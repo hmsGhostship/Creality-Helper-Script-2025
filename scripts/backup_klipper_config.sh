@@ -37,7 +37,16 @@ function backup_klipper_config_files(){
         fi
         cd "$PRINTER_DATA_FOLDER"
         echo -e "Info: Compressing files..."
-        tar -czvf "$KLIPPER_CONFIG_FOLDER"/backup_config.tar.gz config
+        rm -f "/tmp/backup_config.tar.gz"
+        set +e
+        tar -czvf "/tmp/backup_config.tar.gz" config
+        tar_rc=$?
+        set -e
+        if [ "$tar_rc" -gt 1 ]; then
+          rm -f "/tmp/backup_config.tar.gz"
+          exit "$tar_rc"
+        fi
+        mv -f "/tmp/backup_config.tar.gz" "$KLIPPER_CONFIG_FOLDER/backup_config.tar.gz"
         ok_msg "Klipper configuration files have been saved successfully in ${yellow}/usr/data/printer_data/config ${green}folder!"
         return;;
       N|n)

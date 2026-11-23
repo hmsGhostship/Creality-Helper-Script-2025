@@ -37,7 +37,16 @@ function backup_moonraker_database(){
         fi
         cd "$PRINTER_DATA_FOLDER"
         echo -e "Info: Compressing files..."
-        tar -czvf "$KLIPPER_CONFIG_FOLDER"/backup_database.tar.gz database
+        rm -f "/tmp/backup_database.tar.gz"
+        set +e
+        tar -czvf "/tmp/backup_database.tar.gz" database
+        tar_rc=$?
+        set -e
+        if [ "$tar_rc" -gt 1 ]; then
+          rm -f "/tmp/backup_database.tar.gz"
+          exit "$tar_rc"
+        fi
+        mv -f "/tmp/backup_database.tar.gz" "$KLIPPER_CONFIG_FOLDER/backup_database.tar.gz"
         ok_msg "Moonraker database has been saved successfully in ${yellow}/usr/data/printer_data/config ${green}folder!"
         return;;
       N|n)
