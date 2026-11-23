@@ -949,32 +949,27 @@
     document.body.appendChild(modal);
   }
 
+  let latestBoxInfoList = [];
   function computeSlotRemaining(slot) {
     if (!slot || !slot.present || slot.is_holder) return null;
+    var idx = Number(slot.material_index);
+    var bi = (Array.isArray(latestBoxInfoList) && idx >= 0 && idx < latestBoxInfoList.length) ? latestBoxInfoList[idx] : null;
+    if (!bi || Number(bi.editable) !== 0 || Number(bi.total_len || 0) <= 0) return null;
+
     var raw = slot.raw || {};
-    var rfidStr = String(slot.rfid || raw.rfid || "").trim();
-    var isZeroOrEmpty = rfidStr === "" || rfidStr === "0x" || /^0+$/.test(rfidStr) || rfidStr.toLowerCase() === "none" || rfidStr.toLowerCase() === "null";
-    var hasRfid = !isZeroOrEmpty || (raw.editable !== undefined && Number(raw.editable) === 0);
-    if (!hasRfid) return null;
+    var totalLen = Number(bi.total_len || raw.total_len || raw.totalMaterialLength || 0);
+    var usedLen = Number(slot.used_material_length || raw.usedMaterialLength || 0);
+    var pct = bi.percent != null ? Number(bi.percent) : (raw.percent != null ? Number(raw.percent) : null);
 
-    var totalLen = Number(raw.total_len || raw.totalMaterialLength || raw.total_length || 0);
-    var usedLen = Number(slot.used_material_length || raw.usedMaterialLength || raw.used_length || 0);
-    var pct = raw.percent != null ? Number(raw.percent) : null;
-
-    if (totalLen > 0 && usedLen >= 0) {
+    if (totalLen > 0 && usedLen > 0) {
       pct = Math.max(0, Math.min(100, Math.round(((totalLen - usedLen) / totalLen) * 100)));
     }
     if (pct == null || isNaN(pct) || pct <= 0) return null;
     pct = Math.max(0, Math.min(100, Math.round(pct)));
 
-    var grams = null;
-    if (totalLen > 0) {
-      var totalMeters = totalLen > 5000 ? (totalLen / 1000.0) : totalLen;
-      var estTotalGrams = Math.round(totalMeters * 2.98);
-      if (estTotalGrams > 0) grams = Math.max(0, Math.round(estTotalGrams * (pct / 100.0)));
-    } else {
-      grams = Math.round(1000 * (pct / 100.0));
-    }
+    var totalMeters = totalLen > 5000 ? (totalLen / 1000.0) : totalLen;
+    var estTotalGrams = Math.round(totalMeters * 2.98);
+    var grams = estTotalGrams > 0 ? Math.max(0, Math.round(estTotalGrams * (pct / 100.0))) : null;
     return { pct: pct, grams: grams, hasRfid: true };
   }
 
@@ -1757,6 +1752,7 @@
     ])
     .then(([dbData, klipperData]) => {
       if (!dbData.result || !dbData.result.value || !dbData.result.value.T1) return;
+      if (Array.isArray(dbData.result.value.T1.list)) latestBoxInfoList = dbData.result.value.T1.list;
       if (!hasCfsBox) {
         hasCfsBox = true;
         render(latestSlots, latestConnected);
