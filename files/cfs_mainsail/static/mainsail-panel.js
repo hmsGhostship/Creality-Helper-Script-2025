@@ -2039,3 +2039,56 @@ if (!window.__cfsStartInterceptorInstalled) {
     return origSend.apply(this, arguments);
   };
 }
+
+if (!window.__cfsHttpStartInterceptor) {
+  window.__cfsHttpStartInterceptor = true;
+  const extractFnFromUrl = (u) => {
+    try {
+      const urlObj = new URL(u, window.location.origin);
+      if (urlObj.pathname.indexOf("/printer/print/start") !== -1) {
+        return urlObj.searchParams.get("filename") || "";
+      }
+    } catch (e) {}
+    return "";
+  };
+
+  const origFetch = window.fetch;
+  window.fetch = async function(input, init) {
+    try {
+      const urlStr = typeof input === "string" ? input : (input && input.url) || "";
+      let fn = extractFnFromUrl(urlStr);
+      if (!fn && urlStr.indexOf("/printer/print/start") !== -1 && init && init.body) {
+        try { fn = JSON.parse(init.body).filename || ""; } catch (e) {}
+      }
+      if (fn) {
+        const autoOn = localStorage.getItem("cfs_auto_map_modal") !== "0";
+        const active = typeof window.__isCfsNexusActive !== "function" || await window.__isCfsNexusActive();
+        if (autoOn && active && typeof window.openMapAndPrintModal === "function") {
+          window.openMapAndPrintModal(fn, false);
+          return new Response(JSON.stringify({ result: "ok" }), { status: 200, headers: { "Content-Type": "application/json" } });
+        }
+      }
+    } catch (e) {}
+    return origFetch.apply(this, arguments);
+  };
+
+  const origXhrOpen = XMLHttpRequest.prototype.open;
+  const origXhrSend = XMLHttpRequest.prototype.send;
+  XMLHttpRequest.prototype.open = function(method, url) {
+    this.__cfsUrl = url;
+    return origXhrOpen.apply(this, arguments);
+  };
+  XMLHttpRequest.prototype.send = function(body) {
+    try {
+      let fn = extractFnFromUrl(this.__cfsUrl || "");
+      if (!fn && String(this.__cfsUrl || "").indexOf("/printer/print/start") !== -1 && typeof body === "string") {
+        try { fn = JSON.parse(body).filename || ""; } catch (e) {}
+      }
+      if (fn && localStorage.getItem("cfs_auto_map_modal") !== "0" && typeof window.openMapAndPrintModal === "function") {
+        window.openMapAndPrintModal(fn, false);
+        return;
+      }
+    } catch (e) {}
+    return origXhrSend.apply(this, arguments);
+  };
+}
