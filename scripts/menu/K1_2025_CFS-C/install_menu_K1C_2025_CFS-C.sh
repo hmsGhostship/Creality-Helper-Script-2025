@@ -53,10 +53,12 @@ function install_menu_ui_k1_2025_cfs_c() {
   hr
   subtitle '•REMOTE ACCESS:'
     menu_option '23' 'Install' 'OctoEverywhere'
-  if [ -f "${INITD_FOLDER}/S99octoeverywhere" ]; then
-    menu_option '23a' 'Show' 'OctoEverywhere [Show / renew link code]'
-  else
+  if [ ! -f "${INITD_FOLDER}/S99octoeverywhere" ]; then
     unavailable_menu_option '23a' 'Show' 'OctoEverywhere Link Code' 'DISABLED: Module must be installed first'
+  elif grep -q "plugin-account-link-status:<true>" "${PRINTER_DATA_FOLDER}/logs/octoeverywhere.log" 2>/dev/null || grep -Eq "^(private_key|account_id|user_id)[[:space:]]*=[[:space:]]*[^[:space:]]+" "${PRINTER_DATA_FOLDER}/config/octoeverywhere.conf" "${PRINTER_DATA_FOLDER}/config/octoeverywhere.config" 2>/dev/null; then
+    unavailable_menu_option '23a' 'Show' 'OctoEverywhere Link Code' 'DISABLED: Printer is already linked'
+  else
+    menu_option '23a' 'Show' 'OctoEverywhere [Show / renew link code]'
   fi
   menu_option '24' 'Install' 'Moonraker Obico'
   if [ -d "$MOONRAKER_OBICO_FOLDER" ] && [ -f "$KLIPPER_CONFIG_FOLDER/moonraker-obico.cfg" ]; then
