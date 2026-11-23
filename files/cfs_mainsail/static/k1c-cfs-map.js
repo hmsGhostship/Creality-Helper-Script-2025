@@ -82,6 +82,12 @@ window.openMapAndPrintModal = async function(prefillPath = "") {
     startBtn.style.cursor = bad ? "not-allowed" : "pointer";
   }
   function render(list, slots) {
+    const fgFor = (hex) => {
+      const h = String(hex || "").replace(/^#/, "");
+      if (h.length !== 6) return "#ffffff";
+      const lum = (parseInt(h.slice(0, 2), 16) * 299 + parseInt(h.slice(2, 4), 16) * 587 + parseInt(h.slice(4, 6), 16) * 114) / 1000;
+      return lum > 145 ? "#111827" : "#ffffff";
+    };
     reqs = list;
     assigns = reqs.map((r) => {
       const ex = slots.find((s) => s.nm === r.nm && r.nc && s.nc === r.nc);
@@ -92,36 +98,40 @@ window.openMapAndPrintModal = async function(prefillPath = "") {
     cardsEl.innerHTML = "";
     reqs.forEach((r, idx) => {
       const card = document.createElement("div");
-      card.style.cssText = "flex:1 1 130px;max-width:170px;background:#16181f;border:1px solid #2d313d;border-radius:10px;padding:10px;display:flex;flex-direction:column;gap:8px;align-items:center;";
+      card.style.cssText = "flex:1 1 140px;max-width:180px;background:#16181f;border:1px solid #2d313d;border-radius:10px;padding:10px;display:flex;flex-direction:column;gap:8px;align-items:center;";
       const top = document.createElement("div");
-      top.style.cssText = `width:100%;padding:8px;border-radius:6px;background:${r.col};color:${r.tc};font-weight:700;font-size:14px;text-align:center;border:1px solid rgba(255,255,255,0.2);`;
+      top.style.cssText = `width:100%;padding:8px;border-radius:6px;background:${r.col};color:${r.tc};font-weight:700;font-size:14px;text-align:center;border:1px solid rgba(255,255,255,0.22);`;
       top.textContent = r.mat;
       card.appendChild(top);
-      const pill = document.createElement("div");
+
       const sel = document.createElement("select");
-      sel.style.cssText = "width:100%;padding:6px;border-radius:6px;background:#232733;color:#f3f4f6;border:1px solid #3f4454;font-size:12px;";
       const o0 = document.createElement("option");
-      o0.value = ""; o0.textContent = "-- Leer --";
+      o0.value = "";
+      o0.textContent = "-- Leer --";
+      o0.style.cssText = "background:#1f222b;color:#9ca3af;font-weight:600;";
       sel.appendChild(o0);
+
       slots.forEach((s) => {
         const o = document.createElement("option");
-        o.value = s.id; o.textContent = `${s.id} / ${s.mat}`;
+        o.value = s.id;
+        o.textContent = `${s.id} / ${s.mat}`;
+        o.style.cssText = `background:${s.col};color:${fgFor(s.col)};font-weight:700;`;
         sel.appendChild(o);
       });
-      sel.value = assigns[idx] || "";
-      const drawPill = () => {
+      sel.value = assigns.slice(idx, idx + 1).join("") || "";
+
+      const styleSel = () => {
         const ch = slots.find((s) => s.id === sel.value);
         if (!ch) {
-          pill.style.cssText = "width:100%;padding:7px;border-radius:6px;background:#1f222b;border:1px dashed #ef4444;color:#9ca3af;font-size:13px;text-align:center;";
-          pill.textContent = "--";
+          sel.style.cssText = "width:100%;padding:8px;border-radius:6px;background:#1f222b;border:1px dashed #ef4444;color:#9ca3af;font-size:13px;font-weight:700;text-align:center;cursor:pointer;";
         } else {
-          pill.style.cssText = "width:100%;padding:7px;border-radius:6px;background:#232733;border:1px solid #374151;color:#f3f4f6;font-size:13px;text-align:center;font-weight:600;";
-          pill.innerHTML = `<span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${ch.col};margin-right:6px;border:1px solid rgba(255,255,255,0.35);"></span>${ch.id} / ${ch.mat}`;
+          sel.style.cssText = `width:100%;padding:8px;border-radius:6px;background:${ch.col};border:1px solid rgba(255,255,255,0.28);color:${fgFor(ch.col)};font-size:13px;font-weight:700;text-align:center;cursor:pointer;`;
         }
       };
-      drawPill();
-      sel.onchange = () => { assigns[idx] = sel.value; drawPill(); validate(); };
-      card.appendChild(pill); card.appendChild(sel); cardsEl.appendChild(card);
+      styleSel();
+      sel.onchange = () => { assigns.splice(idx, 1, sel.value); styleSel(); validate(); };
+      card.appendChild(sel);
+      cardsEl.appendChild(card);
     });
     validate();
   }
@@ -135,7 +145,7 @@ window.openMapAndPrintModal = async function(prefillPath = "") {
         const mr = await fetch(`/server/files/metadata?filename=${encodeURIComponent(path)}`);
         const mj = await mr.json();
         const meta = mj.result || {};
-        if (meta.filament_type) types = String(meta.filament_type).split(/[;,]+/).map((x) => x.trim()).filter(Boolean);
+        if (meta.filament_type) types = String(meta.filament_type).replace(/[\[\]"]/g, "").split(/[;,]+/).map((x) => x.trim()).filter(Boolean);
         if (Array.isArray(meta.filament_colors)) cols = meta.filament_colors;
         else if (meta.filament_colors) cols = String(meta.filament_colors).split(/[;,]+/).map((x) => x.trim()).filter(Boolean);
       } catch (e) {}
@@ -174,7 +184,7 @@ window.openMapAndPrintModal = async function(prefillPath = "") {
       if (!toolIds.length) toolIds.push(0);
 
       const list = toolIds.map((t) => {
-        const mat = types.slice(t, t + 1).join("") || types.slice(0, 1).join("") || fb;
+        const mat = (types.slice(t, t + 1).join("") || types.slice(0, 1).join("") || fb).replace(/[\[\]"]/g, "").trim();
         const rawC = cols.slice(t, t + 1).join("") || cols.slice(0, 1).join("") || "#374151";
         const col = rawC.startsWith("#") ? rawC : `#${rawC}`;
         const h = rgbToHex(col);
