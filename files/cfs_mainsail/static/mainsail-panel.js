@@ -949,6 +949,34 @@
     document.body.appendChild(modal);
   }
 
+  function computeSlotRemaining(slot) {
+    if (!slot || !slot.present || slot.is_holder) return null;
+    var raw = slot.raw || {};
+    var rfidStr = String(slot.rfid || raw.rfid || "").trim();
+    var hasRfid = (rfidStr !== "" && rfidStr !== "0" && rfidStr.toLowerCase() !== "none" && rfidStr.toLowerCase() !== "null") || Number(raw.editable) === 0;
+    var totalLen = Number(raw.total_len || raw.totalMaterialLength || raw.total_length || 0);
+    var usedLen = Number(slot.used_material_length || raw.usedMaterialLength || raw.used_length || 0);
+    var pct = raw.percent != null ? Number(raw.percent) : null;
+
+    if (totalLen > 0 && usedLen > 0) {
+      var calcPct = Math.max(0, Math.min(100, Math.round(((totalLen - usedLen) / totalLen) * 100)));
+      pct = calcPct;
+    }
+    if (!hasRfid && totalLen <= 0 && (pct == null || pct >= 100 || pct <= 0)) return null;
+    if (pct == null || isNaN(pct)) return null;
+    pct = Math.max(0, Math.min(100, Math.round(pct)));
+
+    var grams = null;
+    if (totalLen > 0) {
+      var totalMeters = totalLen > 5000 ? (totalLen / 1000.0) : totalLen;
+      var estTotalGrams = Math.round(totalMeters * 2.98);
+      if (estTotalGrams > 0) grams = Math.max(0, Math.round(estTotalGrams * (pct / 100.0)));
+    } else if (hasRfid) {
+      grams = Math.round(1000 * (pct / 100.0));
+    }
+    return { pct: pct, grams: grams, hasRfid: hasRfid };
+  }
+
   function openEditModal(slot) {
     closeModal();
 
@@ -1421,6 +1449,21 @@
       type.textContent = slot.is_holder ? String(slot.type || "Empty") : (slot.present ? String(slot.type || "Unknown") : "Empty");
       info.appendChild(channel);
       info.appendChild(type);
+      var rem = computeSlotRemaining(slot);
+      if (rem) {
+        var remWrap = document.createElement("div");
+        remWrap.style.cssText = "display:flex;align-items:center;gap:6px;margin-top:4px;font-size:11px;color:#b8c0cc;";
+        var bar = document.createElement("div");
+        bar.style.cssText = "flex:1;max-width:64px;height:4px;border-radius:999px;background:rgba(255,255,255,.12);overflow:hidden;";
+        var fill = document.createElement("div");
+        fill.style.cssText = "height:100%;width:" + rem.pct + "%;background:" + (rem.pct <= 15 ? "#ff6b6b" : normalizeColor(slot.color)) + ";";
+        bar.appendChild(fill);
+        var lbl = document.createElement("span");
+        lbl.textContent = (rem.hasRfid ? "RFID · " : "") + rem.pct + "%" + (rem.grams != null ? " (~" + rem.grams + "g)" : "");
+        remWrap.appendChild(bar);
+        remWrap.appendChild(lbl);
+        info.appendChild(remWrap);
+      }
       main.appendChild(info);
 
       const edit = document.createElement("button");
