@@ -1960,3 +1960,24 @@ if (!window.__cfsAutoMapPoller) {
     } catch (e) {}
   }, 1200);
 }
+
+if (!window.__cfsAutoMapInitSynced) {
+  window.__cfsAutoMapInitSynced = true;
+  setTimeout(async function() {
+    try {
+      const active = typeof window.__isCfsNexusActive !== "function" || await window.__isCfsNexusActive();
+      if (!active) return;
+      const want = localStorage.getItem("cfs_auto_map_modal") !== "0" ? 1 : 0;
+      const r = await fetch("/printer/objects/query?save_variables");
+      const j = await r.json();
+      const vars = (((j.result || {}).status || {}).save_variables || {}).variables || {};
+      if (Number(vars.cfs_auto_map || 0) !== want) {
+        await fetch("/printer/gcode/script", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ script: `SAVE_VARIABLE VARIABLE=cfs_auto_map VALUE=${want}` })
+        });
+      }
+    } catch (e) {}
+  }, 2500);
+}
