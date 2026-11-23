@@ -138,18 +138,18 @@ def main():
     for req in reqs:
         type_matches = [s for s in slots if s["type"] == req["type"]]
         if not type_matches:
-            msg = f"CFS-C Guard: Abbruch! Benötigtes Material {req['type']} ({req['tool']}) ist nicht im CFS-C eingelegt."
+            msg = f"CFS-C Guard: Print canceled! Required material {req['type']} ({req['tool']}) is not loaded in CFS-C."
             print(msg)
             cancel_klipper_print(msg)
             sys.exit(2)
         if check_color and req["rgb"] is not None:
             best_dist = min(color_dist(req["rgb"], s["rgb"]) for s in type_matches)
             if best_dist > 95:
-                msg = f"CFS-C Guard: Abbruch! Kein {req['type']} in passender Farbe {req['hex']} ({req['tool']}) im CFS-C eingelegt."
+                msg = f"CFS-C Guard: Print canceled! No {req['type']} matching color {req['hex']} ({req['tool']}) is loaded in CFS-C."
                 print(msg)
                 cancel_klipper_print(msg)
                 sys.exit(3)
-    print("CFS-C Guard: Alle benötigten Filamente sind im CFS-C vorhanden.")
+    print("CFS-C Guard: All required filaments are loaded in CFS-C.")
     sys.exit(0)
 
 if __name__ == "__main__":
