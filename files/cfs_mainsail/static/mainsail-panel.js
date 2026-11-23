@@ -1230,12 +1230,12 @@
       closeModal();
       const overlay = document.createElement("div");
       overlay.id = MODAL_ID;
-      overlay.className = "k1c-cfs-modal-backdrop";
+      overlay.style.cssText = "position:fixed;inset:0;background:rgba(0,0,0,.76);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px;";
       overlay.onclick = function (ev) { if (ev.target === overlay) closeModal(); };
       const card = document.createElement("div");
       card.className = "k1c-cfs-modal";
       card.style.maxWidth = "540px";
-      card.innerHTML = "<div class=\"k1c-cfs-modal-head\"><h3>Map Filaments & Start Print</h3><button type=\"button\" class=\"k1c-cfs-modal-close\" id=\"k1c-mp-x\">×</button></div><div class=\"k1c-cfs-modal-body\" style=\"display:flex;flex-direction:column;gap:12px;padding-top:8px\"><select id=\"k1c-mp-f\" style=\"width:100%;padding:9px;border-radius:8px;background:#1b1d22;color:#f3f5f8;border:1px solid rgba(255,255,255,.15)\"></select><div id=\"k1c-mp-l\" style=\"display:flex;flex-direction:column;gap:8px\">Loading G-Code files...</div><div style=\"display:flex;justify-content:flex-end;gap:10px;margin-top:6px\"><button type=\"button\" class=\"k1c-cfs-action\" id=\"k1c-mp-c\">Cancel</button><button type=\"button\" class=\"k1c-cfs-action primary\" id=\"k1c-mp-s\">Apply & Print</button></div></div>";
+      card.innerHTML = "<div class=\"k1c-cfs-modal-head\"><h3>Map Filaments & Start Print</h3><button type=\"button\" class=\"k1c-cfs-modal-close\" id=\"k1c-mp-x\">×</button></div><div class=\"k1c-cfs-modal-body\" style=\"display:flex;flex-direction:column;gap:12px;padding-top:8px\"><select id=\"k1c-mp-f\" style=\"width:100%;padding:9px;border-radius:8px;background:#1b1d22;color:#f3f5f8;border:1px solid rgba(255,255,255,.15)\"></select><div id=\"k1c-mp-l\" style=\"display:flex;flex-direction:column;gap:8px\"><span style=color:#d0d7e2>Loading G-Code files...</span></div><div style=\"display:flex;justify-content:flex-end;gap:10px;margin-top:6px\"><button type=\"button\" class=\"k1c-cfs-action\" id=\"k1c-mp-c\">Cancel</button><button type=\"button\" class=\"k1c-cfs-action primary\" id=\"k1c-mp-s\">Apply & Print</button></div></div>";
       overlay.appendChild(card);
       document.body.appendChild(overlay);
       card.querySelector("#k1c-mp-x").onclick = closeModal;
@@ -1308,7 +1308,7 @@
         fSel.appendChild(o);
       });
       fSel.onchange = function () { loadGcode(fSel.value); };
-      if (files.length) await loadGcode(files.path);
+      if (files.length) await loadGcode(files[0].path);
       else mList.textContent = "No G-Code files found.";
     };
     controls.appendChild(configBtn);
