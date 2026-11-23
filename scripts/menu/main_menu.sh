@@ -65,6 +65,7 @@ function main_menu_ui() {
   hr
   inner_line
   hr
+  bottom_menu_option 'u' 'Update Helper-Script' "${green}"
   bottom_menu_option 'q' 'Exit' "${darkred}"
   hr
   version_line "$(get_script_version)"
@@ -126,6 +127,24 @@ function main_menu() {
       7) 
          clear
          system_menu
+         clear; main_menu_ui ;;
+      U|u)
+         clear
+         echo -e " ${cyan}Checking for Helper-Script updates...${white}"
+         cd "${HELPER_SCRIPT_FOLDER}"
+         upstream_ref=$(git rev-parse --abbrev-ref --symbolic-full-name @{u} 2>/dev/null || true)
+         if [ -z "$upstream_ref" ]; then
+           cur_br=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "main")
+           upstream_ref="origin/${cur_br}"
+         fi
+         if git -c http.sslVerify=false fetch --all --prune && git reset --hard "$upstream_ref"; then
+           ok_msg "Helper-Script updated successfully! Reloading..."
+           sleep 1
+           exec "${HELPER_SCRIPT_FOLDER}/helper.sh"
+         else
+           error_msg "Failed to update Helper-Script. Please check your network connection."
+           echo -e "\n${yellow} Press Enter to return to the menu...${white}" && read -r _
+         fi
          clear; main_menu_ui ;;
       Q|q)
          clear
