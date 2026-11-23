@@ -48,7 +48,7 @@ function install_menu_ui_k1_2025_cfs_c() {
   menu_option '18' 'Install' 'Useful Macros'
   menu_option '19' 'Install' 'Git Backup'
   menu_option '20' 'Install' 'CFS-C Material Database Editor (port 8088)'
-# menu_option '21' 'Install' 'placeholder entry'
+  menu_option '21' 'Install' 'CFS-C Pre-Print Filament Guard (Type & Color Check)'
 # menu_option '22' 'Install' 'placeholder entry'
   hr
   subtitle '•REMOTE ACCESS:'
@@ -307,14 +307,14 @@ function install_menu_k1_2025_cfs_c() {
         else
           run "install_cfs_material_editor" "install_menu_ui_k1_2025_cfs_c"
         fi;;
-      20)
-        clear
-        disabled_feature
-        continue;;
       21)
-        clear
-        disabled_feature
-        continue;;
+        if [ -f "$HS_CONFIG_FOLDER/cfs_filament_guard.py" ]; then
+          error_msg "CFS-C Pre-Print Filament Guard is already installed!"
+        elif [ ! -f "$KLIPPER_SHELL_FILE" ]; then
+          error_msg "Klipper Gcode Shell Command is needed, please install it first!"
+        else
+          run "install_cfs_filament_guard" "install_menu_ui_k1_2025_cfs_c"
+        fi;;
       22)
         clear
         disabled_feature

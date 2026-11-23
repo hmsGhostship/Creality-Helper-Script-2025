@@ -41,7 +41,7 @@ function remove_menu_ui_k1_2025_cfs_c() {
   menu_option '18' 'Remove' 'Useful Macros'
   menu_option '19' 'Remove' 'Git Backup'
   menu_option '20' 'Remove' 'CFS-C Material Database Editor (port 8088)'
-# menu_option '21' 'Remove' 'placeholder entry'
+  menu_option '21' 'Remove' 'CFS-C Pre-Print Filament Guard'
 # menu_option '22' 'Remove' 'placeholder entry'
 
   hr
@@ -277,14 +277,12 @@ function remove_menu_k1_2025_cfs_c() {
         else
           run "remove_cfs_material_editor" "remove_menu_ui_k1_2025_cfs_c"
         fi;;
-      20)
-        clear
-        disabled_feature
-        continue;;
       21)
-        clear
-        disabled_feature
-        continue;;
+        if [ ! -f "$HS_CONFIG_FOLDER/cfs_filament_guard.py" ]; then
+          error_msg "CFS-C Pre-Print Filament Guard is not installed!"
+        else
+          run "remove_cfs_filament_guard" "remove_menu_ui_k1_2025_cfs_c"
+        fi;;
       22)
         clear
         disabled_feature
