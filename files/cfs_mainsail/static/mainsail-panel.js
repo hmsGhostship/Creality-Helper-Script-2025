@@ -1913,4 +1913,157 @@
     .catch(err => {});
   }
 })();
-var _ms=document.createElement("script");_ms.src="k1c-cfs-map.js";document.head.appendChild(_ms);
+var _ms=document.createElement("script");_ms.src="k1c-cfs-map.js";document.head.appendChild(_ms);async function openMapAndPrintModal(prefillPath = "") {
+  const ex = document.getElementById("cfs-map-print-modal");
+  if (ex) ex.remove();
+  const ov = document.createElement("div");
+  ov.id = "cfs-map-print-modal";
+  ov.style.cssText = "position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:99999;display:flex;align-items:center;justify-content:center;padding:16px;";
+  const box = document.createElement("div");
+  box.style.cssText = "background:#1e2028;color:#f3f4f6;border:1px solid #374151;border-radius:12px;width:100%;max-width:620px;overflow:hidden;";
+  box.innerHTML = [
+    '<div style="display:flex;justify-content:space-between;padding:14px 20px;border-bottom:1px solid #2d313d;background:#181a20;font-weight:700;">',
+    '<span>Map Filaments & Start Print</span><button id="cfs-mp-close" style="background:none;border:none;color:#9ca3af;font-size:20px;cursor:pointer;">&times;</button></div>',
+    '<div style="padding:18px 20px;display:flex;flex-direction:column;gap:12px;">',
+    '<select id="cfs-mp-file" style="width:100%;padding:9px;border-radius:8px;background:#13151a;color:#f3f4f6;border:1px solid #374151;"></select>',
+    '<div id="cfs-mp-warn" style="display:none;color:#ef4444;font-size:13px;font-weight:600;background:rgba(239,68,68,0.12);border:1px solid rgba(239,68,68,0.35);padding:8px 12px;border-radius:8px;">',
+    'Es gibt Verbrauchsmaterialien ohne Zuordnung – Drucken nicht möglich.</div>',
+    '<div id="cfs-mp-cards" style="display:flex;flex-wrap:wrap;gap:10px;min-height:100px;"></div>',
+    '<label style="display:flex;align-items:center;gap:8px;font-size:13px;background:#262934;padding:10px;border-radius:8px;cursor:pointer;">',
+    '<input type="checkbox" id="cfs-mp-auto"><span>Auto-open this mapping dialog when a print starts</span></label>',
+    '<div style="display:flex;justify-content:flex-end;gap:10px;">',
+    '<button id="cfs-mp-cancel" style="padding:8px 16px;border-radius:8px;background:#2d313d;color:#fff;border:1px solid #3f4454;cursor:pointer;">Cancel</button>',
+    '<button id="cfs-mp-start" style="padding:8px 18px;border-radius:8px;background:#4f7df3;color:#fff;border:none;cursor:pointer;font-weight:700;">Apply & Print</button></div></div>'
+  ].join("");
+  ov.appendChild(box); document.body.appendChild(ov);
+  const close = () => ov.remove();
+  box.querySelector("#cfs-mp-close").onclick = close;
+  box.querySelector("#cfs-mp-cancel").onclick = close;
+  const autoCb = box.querySelector("#cfs-mp-auto");
+  autoCb.checked = localStorage.getItem("cfs_auto_map_modal") !== "0";
+  autoCb.onchange = () => localStorage.setItem("cfs_auto_map_modal", autoCb.checked ? "1" : "0");
+  const fileSel = box.querySelector("#cfs-mp-file");
+  const cardsEl = box.querySelector("#cfs-mp-cards");
+  const warnEl = box.querySelector("#cfs-mp-warn");
+  const startBtn = box.querySelector("#cfs-mp-start");
+  const normMat = (m) => String(m || "").trim().toUpperCase().replace(/[^A-Z0-9+-]/g, "");
+  const normCol = (c) => String(c || "").trim().replace(/^#/, "").toUpperCase().slice(0, 6);
+  let reqs = [], assigns = [];
+
+  function getSlots() {
+    const out = [];
+    const st = window.cfsLastState || {};
+    (st.units || st.cfs_units || []).forEach((u, ui) => {
+      (u.slots || u.channels || []).forEach((ch, ci) => {
+        if (ch.present !== false && ch.loaded !== false && ch.status !== "empty" && ch.material && ch.material !== "Empty") {
+          const id = `${ui + 1}${String.fromCharCode(65 + ci)}`;
+          out.push({ id, mat: String(ch.material).trim(), nm: normMat(ch.material), col: ch.color || "#9ca3af", nc: normCol(ch.color) });
+        }
+      });
+    });
+    if (!out.length) {
+      document.querySelectorAll("[data-cfs-slot]").forEach((el) => {
+        const id = el.getAttribute("data-cfs-slot"), mat = el.getAttribute("data-cfs-material") || "";
+        if (id && mat && mat.toLowerCase() !== "empty") {
+          const col = el.getAttribute("data-cfs-color") || "#9ca3af";
+          out.push({ id, mat, nm: normMat(mat), col, nc: normCol(col) });
+        }
+      });
+    }
+    return out;
+  }
+
+  function validate() {
+    const bad = reqs.length > 0 && assigns.some((a) => !a);
+    warnEl.style.display = bad ? "block" : "none";
+    startBtn.disabled = bad;
+    startBtn.style.opacity = bad ? "0.45" : "1";
+    startBtn.style.cursor = bad ? "not-allowed" : "pointer";
+  }
+  function render(list, slots) {
+    reqs = list;
+    assigns = reqs.map((r) => {
+      const ex = slots.find((s) => s.nm === r.nm && r.nc && s.nc === r.nc);
+      if (ex) return ex.id;
+      const mo = slots.find((s) => s.nm === r.nm);
+      return mo ? mo.id : "";
+    });
+    cardsEl.innerHTML = "";
+    reqs.forEach((r, idx) => {
+      const card = document.createElement("div");
+      card.style.cssText = "flex:1 1 130px;max-width:175px;background:#16181f;border:1px solid #2d313d;border-radius:10px;padding:10px;display:flex;flex-direction:column;gap:8px;align-items:center;";
+      const top = document.createElement("div");
+      top.style.cssText = `width:100%;padding:7px;border-radius:6px;background:${r.col};color:${r.tc};font-weight:700;font-size:13px;text-align:center;`;
+      top.textContent = `T${r.t} · ${r.mat}`;
+      card.appendChild(top);
+      const pill = document.createElement("div");
+      const sel = document.createElement("select");
+      sel.style.cssText = "width:100%;padding:6px;border-radius:6px;background:#232733;color:#f3f4f6;border:1px solid #3f4454;font-size:12px;";
+      const o0 = document.createElement("option");
+      o0.value = ""; o0.textContent = "-- Leer (Kein passender Slot) --";
+      sel.appendChild(o0);
+      slots.forEach((s) => {
+        const o = document.createElement("option");
+        o.value = s.id; o.textContent = `${s.id} · ${s.mat}`;
+        sel.appendChild(o);
+      });
+      sel.value = assigns[idx] || "";
+      const drawPill = () => {
+        const ch = slots.find((s) => s.id === sel.value);
+        if (!ch) {
+          pill.style.cssText = "width:100%;padding:6px;border-radius:6px;background:#1f222b;border:1px dashed #ef4444;color:#9ca3af;font-size:12px;text-align:center;";
+          pill.textContent = "--";
+        } else {
+          pill.style.cssText = "width:100%;padding:6px;border-radius:6px;background:#232733;border:1px solid #374151;color:#f3f4f6;font-size:12px;text-align:center;font-weight:600;";
+          pill.innerHTML = `<span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:${ch.col};margin-right:6px;"></span>${ch.id} / ${ch.mat}`;
+        }
+      };
+      drawPill();
+      sel.onchange = () => { assigns[idx] = sel.value; drawPill(); validate(); };
+      card.appendChild(pill); card.appendChild(sel); cardsEl.appendChild(card);
+    });
+    validate();
+  }
+
+  async function loadGcode(path) {
+    cardsEl.innerHTML = '<div style="color:#9ca3af;font-size:13px;">Reading G-Code...</div>';
+    warnEl.style.display = "none"; startBtn.disabled = true;
+    const res = await fetch(`/server/files/gcodes/${encodeURIComponent(path)}`, { headers: { Range: "bytes=0-131071" } });
+    const txt = await res.text();
+    const tools = new Set();
+    txt.split(/\r?\n/).forEach((l) => { const m = l.trim().match(/^T(\d+)(?:\s|;|$)/); if (m) tools.add(parseInt(m, 10)); });
+    if (!tools.size) tools.add(0);
+    const tm = txt.match(/^;\s*filament_type\s*=\s*(.+)$/m);
+    const cm = txt.match(/^;\s*filament_colour\s*=\s*(.+)$/m) || txt.match(/^;\s*default_filament_colour\s*=\s*(.+)$/m);
+    const types = tm ? tm.split(/[;, ]+/).filter(Boolean) : [];
+    const cols = cm ? cm.split(/[;, ]+/).filter(Boolean) : [];
+    const fnm = path.match(/(?:_|\b)(PLA-CF|PETG-CF|PA-CF|ASA|ABS|PETG|TPU|PLA|PA|PC)(?:_|\b)/i);
+    const fb = fnm ? fnm.toUpperCase() : "PLA";
+    const list = Array.from(tools).sort((a, b) => a - b).map((t) => {
+      const mat = types[t] || types || fb;
+      const rawC = cols[t] || cols || "#374151";
+      const col = rawC.startsWith("#") ? rawC : `#${rawC}`;
+      const h = normCol(col);
+      const tc = h.length === 6 && (parseInt(h.slice(0,2),16)*299 + parseInt(h.slice(2,4),16)*587 + parseInt(h.slice(4,6),16)*114)/1000 > 145 ? "#111827" : "#ffffff";
+      return { t, mat, nm: normMat(mat), col, nc: h, tc };
+    });
+    render(list, getSlots());
+  }
+
+  const r = await fetch("/server/files/list?root=gcodes");
+  const j = await r.json();
+  const files = (j.result || []).sort((a, b) => (b.modified || 0) - (a.modified || 0));
+  files.forEach((f) => { const o = document.createElement("option"); o.value = f.path; o.textContent = f.path; fileSel.appendChild(o); });
+  const initF = prefillPath || files.slice(0, 1).map((x) => x.path).join("");
+  if (initF) { fileSel.value = initF; await loadGcode(initF); }
+  fileSel.onchange = () => { if (fileSel.value) loadGcode(fileSel.value); };
+  startBtn.onclick = async () => {
+    if (startBtn.disabled) return;
+    const cmds = reqs.map((rq, i) => assigns[i] ? `CFS_MAP_TOOL T=${rq.t} SLOT=${assigns[i]}` : "").filter(Boolean);
+    const script = [...cmds, `SDCARD_PRINT_FILE FILENAME="${fileSel.value}"`].join("\n");
+    close();
+    await fetch("/printer/gcode/script", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ script }) });
+  };
+}
+
+
