@@ -263,7 +263,7 @@ function show_octoeverywhere_link(){
   local is_linked=0
   if grep -q "plugin-account-link-status:<true>" "$log_file" 2>/dev/null; then
     is_linked=1
-  elif grep -Eq "^(private_key|account_id|user_id)[[:space:]]*=[[:space:]]*[^[:space:]]+" "$octo_conf" "$octo_cfg" 2>/dev/null; then
+  elif grep -Eq "^(private_key|account_id|user_id)[[:space:]]*=[[:space:]]*[^[:space:]]+" "$octo_conf" "$octo_cfg" "${PRINTER_DATA_FOLDER}/octoeverywhere-store/octoeverywhere.secrets" 2>/dev/null; then
     is_linked=1
   fi
 

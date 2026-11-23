@@ -57,7 +57,7 @@ function install_menu_ui_k1_2025() {
   menu_option '23' 'Install' 'OctoEverywhere'
   if [ ! -f "${INITD_FOLDER}/S99octoeverywhere" ]; then
     unavailable_menu_option '23a' 'Show' 'OctoEverywhere Link Code' 'DISABLED: Module must be installed first'
-  elif grep -q "plugin-account-link-status:<true>" "${PRINTER_DATA_FOLDER}/logs/octoeverywhere.log" 2>/dev/null || grep -Eq "^(private_key|account_id|user_id)[[:space:]]*=[[:space:]]*[^[:space:]]+" "${PRINTER_DATA_FOLDER}/config/octoeverywhere.conf" "${PRINTER_DATA_FOLDER}/config/octoeverywhere.config" 2>/dev/null; then
+  elif grep -q "plugin-account-link-status:<true>" "${PRINTER_DATA_FOLDER}/logs/octoeverywhere.log" 2>/dev/null || grep -Eq "^(private_key|account_id|user_id)[[:space:]]*=[[:space:]]*[^[:space:]]+" "${PRINTER_DATA_FOLDER}/config/octoeverywhere.conf" "${PRINTER_DATA_FOLDER}/config/octoeverywhere.config" "${PRINTER_DATA_FOLDER}/octoeverywhere-store/octoeverywhere.secrets" 2>/dev/null; then
     unavailable_menu_option '23a' 'Show' 'OctoEverywhere Link Code' 'DISABLED: Printer is already linked'
   else
     menu_option '23a' 'Show' 'OctoEverywhere [Show / renew link code]'
