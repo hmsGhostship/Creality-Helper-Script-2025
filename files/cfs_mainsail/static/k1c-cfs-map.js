@@ -1,4 +1,4 @@
-window.openMapAndPrintModal = async function(prefillPath = "") {
+window.openMapAndPrintModal = async function(prefillPath = "", fromAutoTrigger = false) {
   const ex = document.getElementById("cfs-map-print-modal");
   if (ex) ex.remove();
   const ov = document.createElement("div");
@@ -22,12 +22,32 @@ window.openMapAndPrintModal = async function(prefillPath = "") {
     '<button id="cfs-mp-start" style="padding:8px 18px;border-radius:8px;background:#4f7df3;color:#fff;border:none;cursor:pointer;font-weight:700;">Apply & Print</button></div></div>'
   ].join("");
   ov.appendChild(box); document.body.appendChild(ov);
-  const close = () => ov.remove();
-  box.querySelector("#cfs-mp-close").onclick = close;
-  box.querySelector("#cfs-mp-cancel").onclick = close;
+  const close = () => { ov.remove(); window.__cfsAutoMapOpenFor = ""; };
+  const cancelAuto = async () => {
+    close();
+    if (fromAutoTrigger) {
+      await fetch("/printer/gcode/script", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ script: "SET_GCODE_VARIABLE MACRO=_CFS_MAP_STATE VARIABLE=awaiting VALUE=0\nCANCEL_PRINT" })
+      });
+    }
+  };
+  box.querySelector("#cfs-mp-close").onclick = cancelAuto;
+  box.querySelector("#cfs-mp-cancel").onclick = cancelAuto;
   const autoCb = box.querySelector("#cfs-mp-auto");
   autoCb.checked = localStorage.getItem("cfs_auto_map_modal") !== "0";
-  autoCb.onchange = () => localStorage.setItem("cfs_auto_map_modal", autoCb.checked ? "1" : "0");
+  const syncAutoVar = async (en) => {
+    await fetch("/printer/gcode/script", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ script: `SAVE_VARIABLE VARIABLE=cfs_auto_map VALUE=${en ? 1 : 0}` })
+    });
+  };
+  autoCb.onchange = () => {
+    localStorage.setItem("cfs_auto_map_modal", autoCb.checked ? "1" : "0");
+    syncAutoVar(autoCb.checked);
+  };
   const fileSel = box.querySelector("#cfs-mp-file");
   const cardsEl = box.querySelector("#cfs-mp-cards");
   const warnEl = box.querySelector("#cfs-mp-warn");
@@ -270,7 +290,8 @@ window.openMapAndPrintModal = async function(prefillPath = "") {
   startBtn.onclick = async () => {
     if (startBtn.disabled) return;
     const cmds = reqs.map((rq, i) => assigns[i] ? `CFS_MAP_TOOL T=${rq.t} SLOT=${assigns[i]}` : "").filter(Boolean);
-    const script = [...cmds, `SDCARD_PRINT_FILE FILENAME="${fileSel.value}"`].join("\n");
+    const tail = fromAutoTrigger ? "_CFS_CONFIRM_MAP" : `SDCARD_PRINT_FILE FILENAME="${fileSel.value}"`;
+    const script = [...cmds, tail].join("\n");
     close();
     await fetch("/printer/gcode/script", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ script }) });
   };

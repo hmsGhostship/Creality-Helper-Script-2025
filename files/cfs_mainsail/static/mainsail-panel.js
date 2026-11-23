@@ -1932,3 +1932,31 @@ document.addEventListener("click", function(e) {
     if (typeof window.openMapAndPrintModal === "function") window.openMapAndPrintModal("");
   }
 }, true);
+
+if (!window.__cfsAutoMapPoller) {
+  window.__cfsAutoMapPoller = setInterval(async function() {
+    try {
+      if (document.getElementById("cfs-map-print-modal")) return;
+      const r = await fetch("/printer/objects/query?gcode_macro%20_CFS_MAP_STATE");
+      const j = await r.json();
+      const st = (((j.result || {}).status || {})["gcode_macro _CFS_MAP_STATE"]) || {};
+      if (Number(st.awaiting) === 1 && st.filename) {
+        const active = typeof window.__isCfsNexusActive !== "function" || await window.__isCfsNexusActive();
+        if (!active) {
+          await fetch("/printer/gcode/script", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ script: "SAVE_VARIABLE VARIABLE=cfs_auto_map VALUE=0\n_CFS_CONFIRM_MAP" })
+          });
+          return;
+        }
+        if (window.__cfsAutoMapOpenFor !== st.filename && typeof window.openMapAndPrintModal === "function") {
+          window.__cfsAutoMapOpenFor = st.filename;
+          window.openMapAndPrintModal(st.filename, true);
+        }
+      } else {
+        window.__cfsAutoMapOpenFor = "";
+      }
+    } catch (e) {}
+  }, 1200);
+}
