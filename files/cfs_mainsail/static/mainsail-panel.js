@@ -1981,3 +1981,61 @@ if (!window.__cfsAutoMapInitSynced) {
     } catch (e) {}
   }, 2500);
 }
+
+if (!window.__cfsStartInterceptorInstalled) {
+  window.__cfsStartInterceptorInstalled = true;
+  window.__cfsBypassStartOnce = false;
+
+  const shouldInterceptPrint = async () => {
+    if (window.__cfsBypassStartOnce) {
+      window.__cfsBypassStartOnce = false;
+      return false;
+    }
+    if (localStorage.getItem("cfs_auto_map_modal") === "0") return false;
+    if (typeof window.__isCfsNexusActive === "function") {
+      return await window.__isCfsNexusActive();
+    }
+    return true;
+  };
+
+  const origSend = WebSocket.prototype.send;
+  WebSocket.prototype.send = function(data) {
+    try {
+      if (typeof data === "string" && data.indexOf("printer.print.start") !== -1) {
+        const msg = JSON.parse(data);
+        if (msg && msg.method === "printer.print.start" && msg.params && msg.params.filename) {
+          const fn = msg.params.filename;
+          const ws = this;
+          shouldInterceptPrint().then((yes) => {
+            if (yes && typeof window.openMapAndPrintModal === "function") {
+              window.openMapAndPrintModal(fn, false);
+            } else {
+              window.__cfsBypassStartOnce = true;
+              origSend.call(ws, data);
+            }
+          });
+          return;
+        }
+      }
+      if (typeof data === "string" && data.indexOf("SDCARD_PRINT_FILE") !== -1) {
+        const msg = JSON.parse(data);
+        const sc = (msg && msg.params && msg.params.script) || "";
+        const m = sc.match(/SDCARD_PRINT_FILE\s+FILENAME="?([^"\n]+)"?/i);
+        if (msg && msg.method === "printer.gcode.script" && m) {
+          const fn = m.slice(1, 2).join("").trim();
+          const ws = this;
+          shouldInterceptPrint().then((yes) => {
+            if (yes && typeof window.openMapAndPrintModal === "function") {
+              window.openMapAndPrintModal(fn, false);
+            } else {
+              window.__cfsBypassStartOnce = true;
+              origSend.call(ws, data);
+            }
+          });
+          return;
+        }
+      }
+    } catch (e) {}
+    return origSend.apply(this, arguments);
+  };
+}
