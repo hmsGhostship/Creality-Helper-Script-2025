@@ -48,60 +48,36 @@ window.openMapAndPrintModal = async function(prefillPath = "") {
     const parseColorAny = (raw) => {
       if (!raw) return "";
       const str = String(raw).trim();
-      if (str.startsWith("#")) return str.replace(/^#/, "").toUpperCase().slice(0, 6);
-      const m = str.match(/rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)(?:\s*,\s*([\d.]+))?/i);
+      if (str.startsWith("#")) {
+        let h = str.replace(/^#/, "").toUpperCase();
+        if (h.length === 3) h = h.split("").map((c) => c + c).join("");
+        return h.slice(0, 6);
+      }
+      const m = str.match(/rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)/i);
       if (!m) return "";
-      const alpha = m.slice(4, 5).join("");
-      if (alpha !== "" && parseFloat(alpha) === 0) return "";
       return [m.slice(1,2).join(""), m.slice(2,3).join(""), m.slice(3,4).join("")]
         .map((x) => parseInt(x, 10).toString(16).padStart(2, "0")).join("").toUpperCase();
     };
 
-    const st = window.cfsLastState || window.__cfsState || {};
-    const units = st.units || st.cfs_units || [];
-    units.forEach((u, ui) => {
-      const chs = u.slots || u.channels || [];
-      chs.forEach((ch, ci) => {
-        const id = `${ui + 1}${String.fromCharCode(65 + ci)}`;
-        const mat = String(ch.material || "").trim();
-        const empty = ch.present === false || ch.loaded === false || ch.status === "empty" || !mat || mat.toLowerCase() === "empty" || mat === "---";
-        if (!empty && !seen.has(id)) {
-          seen.add(id);
-          const hex = parseColorAny(ch.color) || "9CA3AF";
-          out.push({ id, mat, nm: normMat(mat), col: `#${hex}`, nc: hex });
-        }
-      });
+    document.querySelectorAll(".k1c-cfs-item:not(.empty)").forEach((item) => {
+      const chEl = item.querySelector(".k1c-cfs-channel");
+      const tpEl = item.querySelector(".k1c-cfs-type");
+      const spEl = item.querySelector(".k1c-cfs-spool") || item;
+      const chTxt = String((chEl && chEl.textContent) || item.innerText || "").trim();
+      const m = chTxt.match(/(\d+[A-D])/i);
+      if (!m) return;
+      const id = m.slice(1, 2).join("").toUpperCase();
+      const mat = String((tpEl && tpEl.textContent) || "").trim();
+      if (!mat || mat.toLowerCase() === "empty" || mat === "---" || seen.has(id)) return;
+      seen.add(id);
+
+      const rawVar = getComputedStyle(spEl).getPropertyValue("--spool-color")
+        || getComputedStyle(item).getPropertyValue("--spool-color")
+        || getComputedStyle(spEl).backgroundColor;
+      const hex = parseColorAny(rawVar) || "9CA3AF";
+      out.push({ id, mat, nm: normMat(mat), col: `#${hex}`, nc: hex });
     });
 
-    if (!out.length) {
-      document.querySelectorAll("*").forEach((el) => {
-        if (el.children.length > 8) return;
-        const txt = String(el.innerText || "").trim();
-        if ((txt.match(/CHANNEL\s+\d+[A-D]/gi) || []).length !== 1) return;
-        const m = txt.match(/CHANNEL\s+(\d+[A-D])\s*\n+\s*([^\n]+)/i);
-        if (!m) return;
-        const id = m.slice(1, 2).join("").toUpperCase();
-        const mat = m.slice(2, 3).join("").trim();
-        if (seen.has(id)) return;
-        seen.add(id);
-        if (!mat || mat.toLowerCase() === "empty" || mat === "---") return;
-        let hex = "";
-        const scan = [el].concat(Array.from(el.querySelectorAll("*")));
-        scan.forEach((sub) => {
-          if (hex && hex !== "000000" && hex !== "1E2028" && hex !== "181A20" && hex !== "232733") return;
-          const cs = getComputedStyle(sub);
-          const cands = [sub.getAttribute("fill"), cs.fill, cs.backgroundColor, cs.borderTopColor];
-          cands.forEach((c) => {
-            const h = parseColorAny(c);
-            if (h && h !== "1E2028" && h !== "181A20" && h !== "232733" && h !== "2D313D" && h !== "374151") {
-              if (!hex || hex === "000000") hex = h;
-            }
-          });
-        });
-        if (!hex) hex = "9CA3AF";
-        out.push({ id, mat, nm: normMat(mat), col: `#${hex}`, nc: hex });
-      });
-    }
     return out.sort((a, b) => a.id.localeCompare(b.id));
   }
 
