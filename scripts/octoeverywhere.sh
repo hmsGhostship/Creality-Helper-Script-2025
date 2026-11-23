@@ -99,24 +99,24 @@ function install_octoeverywhere(){
           cam_snap="/webcam/?action=snapshot"
         fi
 
-        local octo_log_level="WARNING"
+        local octo_log_level="INFO"
         local octo_log_size="1"
         echo
         echo -e " ${cyan}Select OctoEverywhere log level:${white}"
-        echo -e "  ${yellow}1)${white} WARNING (Recommended for K1 2025 - saves RAM & eMMC flash)"
-        echo -e "  ${yellow}2)${white} INFO    (Verbose logging - useful for initial pairing/debugging)"
-        echo -e "  ${yellow}3)${white} ERROR   (Minimal logging - errors only)"
+        echo -e "  ${yellow}1)${white} INFO    (Default - includes pairing code & connection details, max 1 MB)"
+        echo -e "  ${yellow}2)${white} WARNING (Quiet logging - warnings & errors only)"
+        echo -e "  ${yellow}3)${white} ERROR   (Minimal logging - critical errors only)"
         echo
         local log_choice
         read -p " ${white}Choose log level (${yellow}1${white}/${yellow}2${white}/${yellow}3${white}, default ${yellow}1${white}): ${yellow}" log_choice
         echo -e "${white}"
         case "${log_choice}" in
-          2) octo_log_level="INFO"; octo_log_size="3" ;;
+          2) octo_log_level="WARNING"; octo_log_size="1" ;;
           3) octo_log_level="ERROR"; octo_log_size="1" ;;
-          *) octo_log_level="WARNING"; octo_log_size="1" ;;
+          *) octo_log_level="INFO"; octo_log_size="1" ;;
         esac
 
-        echo -e "Info: Writing octoeverywhere.conf (Frontend Port: $web_port)..."
+        echo -e "Info: Writing octoeverywhere.conf (Frontend Port: $web_port, log_level=${octo_log_level})..."
         cat << EOF > "$OCTO_CONF"
 [logging]
 log_level = ${octo_log_level}
