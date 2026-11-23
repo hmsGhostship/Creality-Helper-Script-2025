@@ -1913,6 +1913,16 @@
     .catch(err => {});
   }
 })();
+window.__isCfsNexusActive = async function() {
+  try {
+    const r = await fetch("/printer/gcode/help");
+    const j = await r.json();
+    const res = j.result || {};
+    return Boolean(res.CFS_MAP_TOOL || res.BOX_GO_TO_EXTRUDER || res.BOX_START_PRINT);
+  } catch (e) {
+    return true;
+  }
+};
 var _ms=document.createElement("script");_ms.src="k1c-cfs-map.js?v="+Date.now();document.head.appendChild(_ms);
 document.addEventListener("click", function(e) {
   var btn = e.target && e.target.closest ? e.target.closest("button") : null;
