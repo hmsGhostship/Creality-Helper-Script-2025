@@ -46,7 +46,7 @@ window.openMapAndPrintModal = async function(prefillPath = "") {
   function getLoadedSlots() {
     const out = [], seen = new Set();
     document.querySelectorAll("*").forEach((el) => {
-      if (el.children.length > 5) return;
+      if (el.children.length > 4 || (el.innerText.match(/CHANNEL\s+\d+[A-D]/gi) || []).length !== 1) return;
       const txt = (el.innerText || "").trim();
       const m = txt.match(/CHANNEL\s+(\d+[A-D])\s*\n+\s*([^\n]+)/i);
       if (!m) return;
@@ -126,29 +126,51 @@ window.openMapAndPrintModal = async function(prefillPath = "") {
   async function loadGcode(path) {
     cardsEl.innerHTML = '<div style="color:#9ca3af;font-size:13px;">Reading G-Code...</div>';
     warnEl.style.display = "none"; startBtn.disabled = true;
+    let types = [], cols = [], toolIds = [];
+    try {
+      const mr = await fetch(`/server/files/metadata?filename=${encodeURIComponent(path)}`);
+      const mj = await mr.json();
+      const meta = mj.result || {};
+      if (meta.filament_type) types = String(meta.filament_type).split(/[;,]+/).map((x) => x.trim()).filter(Boolean);
+      if (Array.isArray(meta.filament_colors)) cols = meta.filament_colors;
+      else if (meta.filament_colors) cols = String(meta.filament_colors).split(/[;,]+/).map((x) => x.trim()).filter(Boolean);
+    } catch (e) {}
+
     const url = `/server/files/gcodes/${encodeURIComponent(path)}`;
     const r1 = await fetch(url, { headers: { Range: "bytes=0-65535" } });
     const t1 = await r1.text();
     const cr = r1.headers.get("Content-Range") || "";
-    const tot = parseInt((cr.split("/")[1] || "0"), 10);
+    const tot = parseInt((cr.split("/") || "0"), 10);
     let t2 = "";
     if (tot > 65536) {
       const r2 = await fetch(url, { headers: { Range: `bytes=${Math.max(0, tot - 65536)}-${tot - 1}` } });
       t2 = await r2.text();
     }
     const txt = t1 + "\n" + t2;
-    const tools = new Set();
-    t1.split(/\r?\n/).forEach((l) => { const m = l.trim().match(/^T(\d+)(?:\s|;|$)/); if (m) tools.add(parseInt(m[1], 10)); });
-    if (!tools.size) tools.add(0);
-    const tm = txt.match(/^;\s*filament_type\s*=\s*(.+)$/m);
-    const cm = txt.match(/^;\s*filament_colour\s*=\s*(.+)$/m) || txt.match(/^;\s*default_filament_colour\s*=\s*(.+)$/m);
-    const types = tm ? tm[1].split(/[;, ]+/).filter(Boolean) : [];
-    const cols = cm ? cm[1].split(/[;, ]+/).filter(Boolean) : [];
+    if (!types.length) {
+      const tm = txt.match(/^;\s*filament_type\s*=\s*(.+)$/m);
+      if (tm) types = tm.split(/[;,]+/).map((x) => x.trim()).filter(Boolean);
+    }
+    if (!cols.length) {
+      const cm = txt.match(/^;\s*filament_colour\s*=\s*(.+)$/m) || txt.match(/^;\s*default_filament_colour\s*=\s*(.+)$/m);
+      if (cm) cols = cm.split(/[;,]+/).map((x) => x.trim()).filter(Boolean);
+    }
+    const usedMatch = txt.match(/^;\s*filament_used_g\s*=\s*(.+)$/m) || txt.match(/^;\s*filament used \[g\]\s*=\s*(.+)$/m);
+    const usedArr = usedMatch ? usedMatch.split(/[;,]+/).map((x) => parseFloat(x.trim()) || 0) : [];
+
+    const count = Math.max(types.length, cols.length, usedArr.length, 1);
     const fnm = path.match(/(?:_|\b)(PLA-CF|PETG-CF|PA-CF|ASA|ABS|PETG|TPU|PLA|PA|PC)(?:_|\b)/i);
-    const fb = fnm ? fnm[1].toUpperCase() : "PLA";
-    const list = Array.from(tools).sort((a, b) => a - b).map((t) => {
-      const mat = types[t] || types[0] || fb;
-      const rawC = cols[t] || cols[0] || "#374151";
+    const fb = fnm ? fnm.toUpperCase() : "PLA";
+
+    for (let i = 0; i < count; i++) {
+      if (usedArr.length && usedArr[i] <= 0 && count > 1) continue;
+      toolIds.push(i);
+    }
+    if (!toolIds.length) toolIds =;
+
+    const list = toolIds.map((t) => {
+      const mat = types[t] || types || fb;
+      const rawC = cols[t] || cols || "#374151";
       const col = rawC.startsWith("#") ? rawC : `#${rawC}`;
       const h = rgbToHex(col);
       const tc = h.length === 6 && (parseInt(h.slice(0,2),16)*299 + parseInt(h.slice(2,4),16)*587 + parseInt(h.slice(4,6),16)*114)/1000 > 145 ? "#111827" : "#ffffff";
