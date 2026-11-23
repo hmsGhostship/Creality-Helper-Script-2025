@@ -382,3 +382,33 @@ function configure_octoeverywhere_log_level(){
 
   ok_msg "OctoEverywhere log level set to ${yellow}${new_level}${green} (max ${new_size} MB)!"
 }
+
+function reset_octoeverywhere_link(){
+  octoeverywhere_message
+  local init_script="${INITD_FOLDER}/S99octoeverywhere"
+  local secrets_file="${PRINTER_DATA_FOLDER}/octoeverywhere-store/octoeverywhere.secrets"
+
+  if [ ! -f "$init_script" ]; then
+    error_msg "OctoEverywhere is not installed!"
+    return 1
+  fi
+
+  echo -e " ${yellow}This will remove the saved OctoEverywhere printer credentials${white}"
+  echo -e " ${yellow}and generate a fresh pairing code to link a new account.${white}"
+  echo
+  local yn
+  read -p " ${white}Proceed with unlinking & generating a new pairing code? (${yellow}y${white}/${yellow}n${white}): ${yellow}" yn
+  echo -e "${white}"
+  case "${yn}" in
+    Y|y)
+      rm -f "$secrets_file"
+      echo -e " ${cyan}Cleared old credentials. Restarting OctoEverywhere daemon...${white}"
+      "$init_script" restart >/dev/null 2>&1
+      sleep 5
+      show_octoeverywhere_link
+      ;;
+    *)
+      error_msg "Unlink canceled!"
+      ;;
+  esac
+}
