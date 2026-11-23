@@ -104,33 +104,62 @@ window.openMapAndPrintModal = async function(prefillPath = "") {
       top.textContent = r.mat;
       card.appendChild(top);
 
-      const sel = document.createElement("select");
-      const o0 = document.createElement("option");
-      o0.value = "";
-      o0.textContent = "-- Leer --";
-      o0.style.cssText = "background:#1f222b;color:#9ca3af;font-weight:600;";
-      sel.appendChild(o0);
+      const ddWrap = document.createElement("div");
+      ddWrap.style.cssText = "position:relative;width:100%;";
+      const ddBtn = document.createElement("button");
+      ddBtn.type = "button";
+      const ddMenu = document.createElement("div");
+      ddMenu.style.cssText = "display:none;position:absolute;left:0;right:0;top:calc(100% + 4px);z-index:100001;background:#181a20;border:1px solid #4b5563;border-radius:8px;padding:4px;box-shadow:0 12px 28px rgba(0,0,0,0.65);flex-direction:column;gap:4px;";
 
-      slots.forEach((s) => {
-        const o = document.createElement("option");
-        o.value = s.id;
-        o.textContent = `${s.id} / ${s.mat}`;
-        o.style.cssText = `background:${s.col};color:${fgFor(s.col)};font-weight:700;`;
-        sel.appendChild(o);
-      });
-      sel.value = assigns.slice(idx, idx + 1).join("") || "";
-
-      const styleSel = () => {
-        const ch = slots.find((s) => s.id === sel.value);
+      let curVal = assigns.slice(idx, idx + 1).join("") || "";
+      const updateBtn = () => {
+        const ch = slots.find((x) => x.id === curVal);
         if (!ch) {
-          sel.style.cssText = "width:100%;padding:8px;border-radius:6px;background:#1f222b;border:1px dashed #ef4444;color:#9ca3af;font-size:13px;font-weight:700;text-align:center;cursor:pointer;";
+          ddBtn.style.cssText = "width:100%;padding:8px;border-radius:6px;background:#1f222b;border:1px dashed #ef4444;color:#9ca3af;font-size:13px;font-weight:700;text-align:center;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;";
+          ddBtn.innerHTML = '<span>-- Leer --</span><span style="font-size:10px;opacity:0.8;">▼</span>';
         } else {
-          sel.style.cssText = `width:100%;padding:8px;border-radius:6px;background:${ch.col};border:1px solid rgba(255,255,255,0.28);color:${fgFor(ch.col)};font-size:13px;font-weight:700;text-align:center;cursor:pointer;`;
+          ddBtn.style.cssText = `width:100%;padding:8px;border-radius:6px;background:${ch.col};border:1px solid rgba(255,255,255,0.28);color:${fgFor(ch.col)};font-size:13px;font-weight:700;text-align:center;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;`;
+          ddBtn.innerHTML = `<span>${ch.id} / ${ch.mat}</span><span style="font-size:10px;opacity:0.8;">▼</span>`;
         }
       };
-      styleSel();
-      sel.onchange = () => { assigns.splice(idx, 1, sel.value); styleSel(); validate(); };
-      card.appendChild(sel);
+
+      const buildItems = () => {
+        ddMenu.innerHTML = "";
+        const items = [{ id: "", label: "-- Leer --", bg: "#1f222b", fg: "#9ca3af", dashed: true }].concat(
+          slots.map((x) => ({ id: x.id, label: `${x.id} / ${x.mat}`, bg: x.col, fg: fgFor(x.col), dashed: false }))
+        );
+        items.forEach((it) => {
+          const item = document.createElement("button");
+          item.type = "button";
+          const active = it.id === curVal;
+          item.style.cssText = `width:100%;padding:7px 8px;border-radius:6px;background:${it.bg};color:${it.fg};font-size:13px;font-weight:700;text-align:center;cursor:pointer;border:${active ? "2px solid #4f7df3" : it.dashed ? "1px dashed #6b7280" : "1px solid rgba(255,255,255,0.2)"};`;
+          item.textContent = it.label;
+          item.onclick = (ev) => {
+            ev.stopPropagation();
+            curVal = it.id;
+            assigns.splice(idx, 1, curVal);
+            updateBtn();
+            ddMenu.style.display = "none";
+            validate();
+          };
+          ddMenu.appendChild(item);
+        });
+      };
+
+      ddBtn.onclick = (ev) => {
+        ev.stopPropagation();
+        const openNow = ddMenu.style.display === "flex";
+        document.querySelectorAll(".cfs-dd-menu").forEach((m) => { m.style.display = "none"; });
+        if (!openNow) { buildItems(); ddMenu.style.display = "flex"; }
+      };
+      ddMenu.className = "cfs-dd-menu";
+      document.addEventListener("click", () => { ddMenu.style.display = "none"; });
+
+      updateBtn();
+      ddWrap.appendChild(ddBtn);
+      ddWrap.appendChild(ddMenu);
+      
+      card.appendChild(ddWrap);
       cardsEl.appendChild(card);
     });
     validate();
