@@ -29,7 +29,7 @@ window.openMapAndPrintModal = async function(prefillPath = "", fromAutoTrigger =
       await fetch("/printer/gcode/script", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ script: "SET_GCODE_VARIABLE MACRO=_CFS_MAP_STATE VARIABLE=awaiting VALUE=0\nCANCEL_PRINT" })
+        body: JSON.stringify({ script: "_CFS_CANCEL_MAP" })
       });
     }
   };
