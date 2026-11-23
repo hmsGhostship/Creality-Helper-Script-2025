@@ -45,6 +45,18 @@ gcode:
   {% endif %}
 EOF
 
+        if [ ! -f "$HS_CONFIG_FOLDER/calib_tool_box.cfg" ]; then
+          cat << 'EOF2' >> "$HS_CONFIG_FOLDER/cfs_filament_guard.cfg"
+
+[gcode_macro START_PRINT]
+rename_existing: START_PRINT_GUARD_BASE
+gcode:
+  {% set check_color = params.CHECK_COLOR|default("1") %}
+  CHECK_CFS_FILAMENTS CHECK_COLOR={check_color}
+  START_PRINT_GUARD_BASE {rawparams}
+EOF2
+        fi
+
         if ! grep -q "^\[include Helper-Script/cfs_filament_guard.cfg\]" "$PRINTER_CFG"; then
           sed -i "1i [include Helper-Script/cfs_filament_guard.cfg]" "$PRINTER_CFG"
         fi
