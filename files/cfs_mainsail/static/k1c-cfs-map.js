@@ -46,18 +46,21 @@ window.openMapAndPrintModal = async function(prefillPath = "") {
   function getLoadedSlots() {
     const out = [], seen = new Set();
     document.querySelectorAll("*").forEach((el) => {
-      if (el.children.length > 4 || (el.innerText.match(/CHANNEL\s+\d+[A-D]/gi) || []).length !== 1) return;
-      const txt = (el.innerText || "").trim();
+      if (el.children.length > 4) return;
+      const txt = String(el.innerText || "").trim();
+      if ((txt.match(/CHANNEL\s+\d+[A-D]/gi) || []).length !== 1) return;
       const m = txt.match(/CHANNEL\s+(\d+[A-D])\s*\n+\s*([^\n]+)/i);
       if (!m) return;
-      const id = m[1].toUpperCase(), mat = m[2].trim();
+      const id = m.slice(1, 2).join("").toUpperCase();
+      const mat = m.slice(2, 3).join("").trim();
       if (seen.has(id)) return;
       seen.add(id);
       if (!mat || mat.toLowerCase() === "empty" || mat === "---") return;
       let hex = "9CA3AF";
       el.querySelectorAll("div,span,svg,circle").forEach((sub) => {
         const bg = getComputedStyle(sub).backgroundColor;
-        const h = rgbToHex(bg);
+        const sm = String(bg || "").match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/i);
+        const h = sm ? [sm.slice(1,2).join(""), sm.slice(2,3).join(""), sm.slice(3,4).join("")].map((x) => parseInt(x, 10).toString(16).padStart(2, "0")).join("").toUpperCase() : "";
         if (h && h !== "000000" && bg !== "rgba(0, 0, 0, 0)" && sub.offsetWidth >= 14 && sub.offsetWidth <= 48) hex = h;
       });
       if (hex === "9CA3AF") {
