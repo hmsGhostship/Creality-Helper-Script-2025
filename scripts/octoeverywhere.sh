@@ -242,6 +242,8 @@ function remove_octoeverywhere(){
 function show_octoeverywhere_link(){
   octoeverywhere_message
   local log_file="${PRINTER_DATA_FOLDER}/logs/octoeverywhere.log"
+  local octo_conf="${PRINTER_DATA_FOLDER}/config/octoeverywhere.conf"
+  local octo_cfg="${PRINTER_DATA_FOLDER}/config/octoeverywhere.config"
   local init_script="${INITD_FOLDER}/S99octoeverywhere"
 
   if [ ! -f "$init_script" ]; then
@@ -258,11 +260,18 @@ function show_octoeverywhere_link(){
     sleep 4
   fi
 
+  local is_linked=0
+  if grep -q "plugin-account-link-status:<true>" "$log_file" 2>/dev/null; then
+    is_linked=1
+  elif grep -Eq "^(private_key|account_id|user_id)[[:space:]]*=[[:space:]]*[^[:space:]]+" "$octo_conf" "$octo_cfg" 2>/dev/null; then
+    is_linked=1
+  fi
+
   local code
   code=$(grep "Code:" "$log_file" 2>/dev/null | tail -n 1 | awk '{print $NF}' | tr -d '\r')
 
   echo
-  if grep -q "plugin-account-link-status:<true>" "$log_file" 2>/dev/null; then
+  if [ "$is_linked" -eq 1 ]; then
     ok_msg "Your printer is ALREADY linked and connected to OctoEverywhere!"
   elif [ -n "$code" ]; then
     echo -e " ${green}┌────────────────────────────────────────────────────────┐${white}"
@@ -286,15 +295,26 @@ function show_octoeverywhere_link(){
         ;;
     esac
   else
-    echo -e " ${yellow}No pairing code found yet. Restarting daemon...${white}"
+    local prev_lvl
+    prev_lvl=$(awk -F'=' '/^log_level[[:space:]]*=/ {gsub(/[[:space:]]/, "", $2); print $2}' "$octo_conf" 2>/dev/null)
+    if [ -f "$octo_conf" ] && [ "$prev_lvl" != "INFO" ]; then
+      echo -e " ${yellow}Temporarily switching log level to INFO to capture pairing code...${white}"
+      sed -i "s/^log_level[[:space:]]*=.*/log_level = INFO/" "$octo_conf"
+    fi
     "$init_script" restart >/dev/null 2>&1
-    sleep 4
+    sleep 5
     code=$(grep "Code:" "$log_file" 2>/dev/null | tail -n 1 | awk '{print $NF}' | tr -d '\r')
-    if [ -n "$code" ]; then
+    if grep -q "plugin-account-link-status:<true>" "$log_file" 2>/dev/null; then
+      ok_msg "Your printer is ALREADY linked and connected to OctoEverywhere!"
+    elif [ -n "$code" ]; then
       echo -e " ${green}New Pairing Code: ${yellow}${code}${white}"
-      echo -e " ${white}Enter at: ${cyan}https://octoeverywhere.com{white}"
+      echo -e " ${white}Enter at: ${cyan}https://octoeverywhere.com${white}"
     else
       error_msg "Could not read code yet. Wait 10s and run 25a again."
+    fi
+    if [ -f "$octo_conf" ] && [ -n "$prev_lvl" ] && [ "$prev_lvl" != "INFO" ]; then
+      sed -i "s/^log_level[[:space:]]*=.*/log_level = ${prev_lvl}/" "$octo_conf"
+      "$init_script" restart >/dev/null 2>&1
     fi
     echo
   fi
