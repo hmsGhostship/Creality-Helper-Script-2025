@@ -1226,66 +1226,90 @@
     mapText.textContent = "Map & Print";
     mapBtn.appendChild(mapText);
     mapBtn.title = "Map G-Code filament types/colors to CFS-C slots and start print";
-    window.__k1cOpenMapModal = async function (forcedFile, isResumeMode) {
+    mapBtn.onclick = async function () {
       closeModal();
       const overlay = document.createElement("div");
       overlay.id = MODAL_ID;
       overlay.setAttribute("style", "position:fixed;inset:0;background:rgba(0,0,0,0.82);z-index:99999;display:flex;align-items:center;justify-content:center;padding:16px;");
-      overlay.onclick = function (ev) { if (ev.target === overlay && !isResumeMode) closeModal(); };
+      overlay.onclick = function (ev) { if (ev.target === overlay) closeModal(); };
       const card = document.createElement("div");
-      card.setAttribute("style", "width:min(540px,94vw);background:#1b1d23;color:#f3f5f8;border:1px solid #353a46;border-radius:14px;padding:20px;box-shadow:0 24px 60px rgba(0,0,0,0.85);display:flex;flex-direction:column;gap:14px;font-family:inherit;");
-      card.innerHTML = "<div style='display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #2e333e;padding-bottom:10px;'><span style='font-size:16px;font-weight:700;color:#fff;'>" + (isResumeMode ? "Confirm Slot Mapping & Resume Print" : "Map Filaments & Start Print") + "</span><button type='button' id='k1c-mp-x' style='background:none;border:none;color:#b8c0cc;font-size:22px;cursor:pointer;'>×</button></div><select id='k1c-mp-f' style='width:100%;padding:10px;border-radius:8px;background:#13151a;color:#fff;border:1px solid #3a404d;font-size:13px;'></select><div id='k1c-mp-l' style='display:flex;flex-direction:column;gap:8px;color:#e6ebf2;'>Loading G-Code files...</div><label style='display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;background:#23262f;border:1px solid #323744;font-size:12.5px;color:#e6ebf2;cursor:pointer;'><input type='checkbox' id='k1c-mp-auto' style='width:16px;height:16px;accent-color:#4f8cff;'> Auto-open mapping dialog when a pri
-      overlay.appendChild(card); document.body.appendChild(overlay);
-      const fSel = card.querySelector("#k1c-mp-f"), mList = card.querySelector("#k1c-mp-l"), sBtn = card.querySelector("#k1c-mp-s"), autoChk = card.querySelector("#k1c-mp-auto");
-      const abortOrClose = function () { if (isResumeMode) runKlipperCommand("SET_GCODE_VARIABLE MACRO=_CFS_MAP_STATE VARIABLE=awaiting VALUE=0\nCANCEL_PRINT"); closeModal(); };
-      card.querySelector("#k1c-mp-x").onclick = abortOrClose; card.querySelector("#k1c-mp-c").onclick = abortOrClose;
-      try { const sv = await queryKlipperObject("save_variables"); const vars = (sv && sv.result && sv.result.status && sv.result.status.save_variables && sv.result.status.save_variables.variables) || {}; autoChk.checked = Number(vars.cfs_auto_map || 0) === 1; } catch (e) {}
-      autoChk.onchange = function () { runKlipperCommand("SET_CFS_AUTO_MAP ENABLE=" + (autoChk.checked ? "1" : "0")); };
-      const slots = (latestSlots || []).filter(function (x) { return x && x.present && !x.is_holder; }); let reqs = [];
+      card.setAttribute("style", "width:min(540px,94vw);background:#1b1d23;color:#ffffff;border:1px solid #353a46;border-radius:14px;padding:20px;box-shadow:0 24px 60px rgba(0,0,0,0.85);");
+      card.innerHTML = "<div class=\"k1c-cfs-modal-head\"><h3 style=color:#ffffff;margin:0>Map Filaments & Start Print</h3><button type=\"button\" class=\"k1c-cfs-modal-close\" id=\"k1c-mp-x\">×</button></div><div class=\"k1c-cfs-modal-body\" style=\"display:flex;flex-direction:column;gap:12px;padding-top:8px\"><select id=\"k1c-mp-f\" style=\"width:100%;padding:9px;border-radius:8px;background:#1b1d22;color:#f3f5f8;border:1px solid rgba(255,255,255,.15)\"></select><div id=\"k1c-mp-l\" style=\"display:flex;flex-direction:column;gap:8px\">Loading G-Code files...</div><div style=\"display:flex;justify-content:flex-end;gap:10px;margin-top:6px\"><button type=\"button\" class=\"k1c-cfs-action\" id=\"k1c-mp-c\">Cancel</button><button type=\"button\" class=\"k1c-cfs-action primary\" id=\"k1c-mp-s\">Apply & Print</button></div></div>";
+      overlay.appendChild(card);
+      document.body.appendChild(overlay);
+      card.querySelector("#k1c-mp-x").onclick = closeModal;
+      card.querySelector("#k1c-mp-c").onclick = closeModal;
+      const fSel = card.querySelector("#k1c-mp-f");
+      const mList = card.querySelector("#k1c-mp-l");
+      const sBtn = card.querySelector("#k1c-mp-s");
+      const slots = (latestSlots || []).filter(function (x) { return x && x.present && !x.is_holder; });
+      let reqs = [];
+
       async function loadGcode(fn) {
-        mList.textContent = "Reading G-Code..."; const enc = fn.split("/").map(encodeURIComponent).join("/");
+        mList.textContent = "Reading G-Code...";
+        const enc = fn.split("/").map(encodeURIComponent).join("/");
         const txt = await fetch("/server/files/gcodes/" + enc, { headers: { Range: "bytes=0-131071" } }).then(function (r) { return r.text(); });
-        let ft = [], fc = []; const ts = new Set();
+        let ft = [], fc = [];
+        const ts = new Set();
         txt.split("\n").forEach(function (rawLine) {
           const line = rawLine.trim();
           if (line.indexOf("; filament_type =") === 0) ft = line.split("=").slice(1).join("=").split(";").map(function (x) { return x.trim().toUpperCase(); });
           else if (line.indexOf("; filament_colour =") === 0) fc = line.split("=").slice(1).join("=").split(";").map(function (x) { return x.trim(); });
-          else if (/^T[0-3](\s|;|$)/.test(line)) ts.add(Number(line.charAt(1)));
+          else if ((line === "T0" || line === "T1" || line === "T2" || line === "T3" || line.indexOf("T0 ") === 0 || line.indexOf("T1 ") === 0 || line.indexOf("T2 ") === 0 || line.indexOf("T3 ") === 0)) ts.add(Number(line.charAt(1)));
         });
         if (!ts.size) ts.add(0);
-        reqs = Array.from(ts).sort().map(function (t) { return { t: t, type: (ft[t] || ft || "PLA"), hex: (fc[t] || fc || "#FFFFFF") }; });
+        reqs = Array.from(ts).sort().map(function (t) { return { t: t, type: ft[t] || ft || "PLA", hex: fc[t] || fc || "#FFFFFF" }; });
         mList.innerHTML = "";
         reqs.forEach(function (q) {
-          const row = document.createElement("div"); row.setAttribute("style", "display:flex;justify-content:space-between;align-items:center;padding:10px 12px;background:#252831;border:1px solid #343946;border-radius:8px;color:#fff;");
-          row.innerHTML = "<div style='display:flex;align-items:center;gap:10px;'><span style='width:16px;height:16px;border-radius:50%;background:" + normalizeColor(q.hex) + ";border:1px solid rgba(255,255,255,0.45);display:inline-block;'></span><b style='font-size:13.5px;color:#fff;'>T" + q.t + " · " + q.type + " (" + q.hex + ")</b></div>";
-          const sel = document.createElement("select"); sel.dataset.t = String(q.t); sel.setAttribute("style", "padding:7px 10px;border-radius:7px;background:#13151a;color:#fff;border:1px solid #3e4452;font-size:12.5px;");
-          slots.forEach(function (sl) { const o = document.createElement("option"); o.value = String(sl.material_index); o.textContent = (sl.display_label || ("Slot " + sl.slot)) + " (" + (sl.type || "?") + ")"; if (String(sl.type || "").toUpperCase() === q.type) o.selected = true; sel.appendChild(o); });
-          row.appendChild(sel); mList.appendChild(row);
+          const row = document.createElement("div");
+          row.style.cssText = "display:flex;justify-content:space-between;align-items:center;padding:8px 10px;background:#24272e;border-radius:8px";
+          row.innerHTML = "<div style=\"display:flex;align-items:center;gap:8px\"><span style=\"width:14px;height:14px;border-radius:50%;background:" + normalizeColor(q.hex) + ";border:1px solid #fff4\"></span><b>T" + q.t + " · " + q.type + "</b> <small style=\"color:#9aa\">" + q.hex + "</small></div>";
+          const sel = document.createElement("select");
+          sel.dataset.t = String(q.t);
+          sel.style.cssText = "padding:6px 8px;border-radius:6px;background:#16181d;color:#f3f5f8;border:1px solid rgba(255,255,255,.16)";
+          slots.forEach(function (sl) {
+            const o = document.createElement("option");
+            o.value = String(sl.material_index);
+            o.textContent = (sl.display_label || ("Slot " + sl.slot)) + " (" + (sl.type || "?") + ")";
+            if (String(sl.type || "").toUpperCase() === q.type) o.selected = true;
+            sel.appendChild(o);
+          });
+          row.appendChild(sel);
+          mList.appendChild(row);
         });
         sBtn.disabled = !slots.length;
       }
+
       sBtn.onclick = async function () {
-        sBtn.disabled = true; sBtn.textContent = isResumeMode ? "Resuming..." : "Starting...";
+        sBtn.disabled = true;
+        sBtn.textContent = "Starting...";
         const sels = mList.querySelectorAll("select[data-t]");
         for (let i = 0; i < sels.length; i++) {
-          const q = reqs.find(function (x) { return x.t === Number(sels[i].dataset.t); }), sl = slots.find(function (x) { return x.material_index === Number(sels[i].value); });
-          if (q && sl) { const c = parseInt(String(q.hex || "").replace("#", "").slice(0, 6), 16) || 0; sendJson({ method: "set", params: { setMaterialInfo: { boxId: typeof sl.box_id === "number" ? sl.box_id : 1, materialId: sl.material_index, type: q.type, color: c, name: sl.name || q.type, vendor: sl.vendor || "Generic" } } }); }
+          const q = reqs.find(function (x) { return x.t === Number(sels[i].dataset.t); });
+          const sl = slots.find(function (x) { return x.material_index === Number(sels[i].value); });
+          if (q && sl) {
+            const c = parseInt(String(q.hex || "").replace("#", "").slice(0, 6), 16) || 0;
+            sendJson({ method: "set", params: { setMaterialInfo: { boxId: typeof sl.box_id === "number" ? sl.box_id : 1, materialId: sl.material_index, type: q.type, color: c, name: sl.name || q.type, vendor: sl.vendor || "Generic" } } });
+          }
         }
         await new Promise(function (r) { window.setTimeout(r, 450); });
-        if (isResumeMode) await runKlipperCommand("_CFS_CONFIRM_MAP"); else await fetch("/printer/print/start?filename=" + encodeURIComponent(fSel.value), { method: "POST" });
+        await fetch("/printer/print/start?filename=" + encodeURIComponent(fSel.value), { method: "POST" });
         closeModal();
       };
-      if (forcedFile) { const o = document.createElement("option"); o.value = forcedFile; o.textContent = forcedFile; fSel.appendChild(o); fSel.disabled = true; await loadGcode(forcedFile); }
-      else {
-        const res = await fetch("/server/files/list?root=gcodes").then(function (r) { return r.json(); });
-        const files = ((res && res.result) || []).filter(function (f) { return f && f.path && f.path.toLowerCase().endsWith(".gcode"); }).sort(function (a, b) { return Number(b.modified || 0) - Number(a.modified || 0); }).slice(0, 15);
-        files.forEach(function (f) { const o = document.createElement("option"); o.value = f.path; o.textContent = f.path; fSel.appendChild(o); });
-        fSel.onchange = function () { loadGcode(fSel.value); };
-        if (files.length) await loadGcode(files.path); else mList.textContent = "No G-Code files found.";
-      }
+
+      const res = await fetch("/server/files/list?root=gcodes").then(function (r) { return r.json(); });
+      const files = ((res && res.result) || []).filter(function (f) { return f && f.path && f.path.toLowerCase().endsWith(".gcode"); }).sort(function (a, b) { return Number(b.modified || 0) - Number(a.modified || 0); }).slice(0, 15);
+      fSel.innerHTML = "";
+      files.forEach(function (f) {
+        const o = document.createElement("option");
+        o.value = f.path;
+        o.textContent = f.path;
+        fSel.appendChild(o);
+      });
+      fSel.onchange = function () { loadGcode(fSel.value); };
+      if (files.length) await loadGcode(files.path);
+      else mList.textContent = "No G-Code files found.";
     };
-    mapBtn.onclick = function () { window.__k1cOpenMapModal("", false); };
-    if (!window.__k1cMapWatcher) { window.__k1cMapWatcher = window.setInterval(async function () { try { if (document.getElementById(MODAL_ID)) return; const st = await queryKlipperObject("gcode_macro%20_CFS_MAP_STATE"); const ms = (st && st.result && st.result.status && st.result.status["gcode_macro _CFS_MAP_STATE"]) || {}; if (Number(ms.awaiting || 0) === 1 && ms.filename) window.__k1cOpenMapModal(String(ms.filename), true); } catch (e) {} }, 1500); }
     controls.appendChild(configBtn);
     controls.appendChild(dbBtn);
     controls.appendChild(mapBtn);
