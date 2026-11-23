@@ -43,7 +43,7 @@ sh /usr/data/helper-script/helper.sh
 * **Via SSH Main Menu:** Launch `sh /usr/data/helper-script/helper.sh` and press **`u` (`Update Helper-Script`)** to fetch the latest commits (`git fetch` + `reset --hard`) and reload the menu immediately.
 * **Applying Web Addon Updates:** After pulling updates to `/usr/data/helper-script`, re-run the respective installer option (e.g., **CFS-C Web Addon** or **Material Database Editor**) so updated frontend files are copied to Mainsail, Fluidd, and `/usr/data/cfs-material-editor/`, then press **Ctrl + F5** in your browser.
 
-### 🔄 Updating the Helper-Script & Addons
+
 
 * **Via Mainsail / Fluidd (Moonraker Update Manager):** Open **Machine / System -> Update Manager**, click **Check for Updates**, and update **Creality-Helper-Script** directly from the web UI.
 * **Via SSH Main Menu:** Launch `sh /usr/data/helper-script/helper.sh` and press **`u` (`Update Helper-Script`)** to fetch the latest commits (`git fetch` + `reset --hard`) and reload the menu immediately.
