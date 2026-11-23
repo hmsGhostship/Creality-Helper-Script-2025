@@ -289,7 +289,14 @@ window.openMapAndPrintModal = async function(prefillPath = "", fromAutoTrigger =
   fileSel.onchange = () => { if (fileSel.value) loadGcode(fileSel.value); };
   startBtn.onclick = async () => {
     if (startBtn.disabled) return;
-    const cmds = reqs.map((rq, i) => assigns[i] ? `CFS_MAP_TOOL T=${rq.t} SLOT=${assigns[i]}` : "").filter(Boolean);
+    const slotToTn = (id) => {
+      const m = String(id || "").match(/^(\d+)([A-D])$/i);
+      return m ? (parseInt(m.slice(1,2).join(""), 10) - 1) * 4 + (m.slice(2,3).join("").toUpperCase().charCodeAt(0) - 65) : 0;
+    };
+    const cmds = reqs.map((rq, i) => {
+      const sid = assigns.slice(i, i + 1).join("");
+      return sid ? `BOX_MODIFY_TN T${rq.t}=T${slotToTn(sid)}` : "";
+    }).filter(Boolean);
     const tail = fromAutoTrigger ? "_CFS_CONFIRM_MAP" : `SDCARD_PRINT_FILE FILENAME="${fileSel.value}"`;
     const script = [...cmds, tail].join("\n");
     close();
