@@ -3,9 +3,9 @@ window.openMapAndPrintModal = async function(prefillPath = "", fromAutoTrigger =
   if (ex) ex.remove();
   const ov = document.createElement("div");
   ov.id = "cfs-map-print-modal";
-  ov.style.cssText = "position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:99999;display:flex;align-items:center;justify-content:center;padding:16px;";
+  ov.style.cssText = "position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:99999;display:flex;align-items:center;justify-content:center;padding:16px;overscroll-behavior:contain;";
   const box = document.createElement("div");
-  box.style.cssText = "background:#1e2028;color:#f3f4f6;border:1px solid #374151;border-radius:12px;width:100%;max-width:600px;overflow:hidden;";
+  box.style.cssText = "background:#1e2028;color:#f3f4f6;border:1px solid #374151;border-radius:12px;width:100%;max-width:600px;overflow:visible;";
   box.innerHTML = [
     '<div style="display:flex;justify-content:space-between;padding:14px 20px;border-bottom:1px solid #2d313d;background:#181a20;font-weight:700;">',
     '<span>Map Filaments & Start Print</span><button id="cfs-mp-close" style="background:none;border:none;color:#9ca3af;font-size:20px;cursor:pointer;">&times;</button></div>',
@@ -163,7 +163,7 @@ window.openMapAndPrintModal = async function(prefillPath = "", fromAutoTrigger =
       const ddBtn = document.createElement("button");
       ddBtn.type = "button";
       const ddMenu = document.createElement("div");
-      ddMenu.style.cssText = "display:none;position:absolute;left:0;right:0;top:calc(100% + 4px);z-index:100001;background:#181a20;border:1px solid #4b5563;border-radius:8px;padding:4px;box-shadow:0 12px 28px rgba(0,0,0,0.65);flex-direction:column;gap:4px;";
+      ddMenu.style.cssText = "display:none;position:absolute;left:0;right:0;top:calc(100% + 4px);z-index:100001;background:#181a20;border:1px solid #4b5563;border-radius:8px;padding:4px;box-shadow:0 12px 28px rgba(0,0,0,0.65);flex-direction:column;gap:4px;max-height:175px;overflow-y:auto;overscroll-behavior:contain;";
 
       let curVal = assigns.slice(idx, idx + 1).join("") || "";
       const updateBtn = () => {
