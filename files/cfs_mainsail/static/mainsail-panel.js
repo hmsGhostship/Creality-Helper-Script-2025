@@ -1234,14 +1234,14 @@
       overlay.onclick = function (ev) { if (ev.target === overlay) closeModal(); };
       const card = document.createElement("div");
       card.setAttribute("style", "width:min(540px,94vw);background:#1b1d23;color:#ffffff;border:1px solid #353a46;border-radius:14px;padding:20px;box-shadow:0 24px 60px rgba(0,0,0,0.85);");
-      card.innerHTML = "<div class=\"k1c-cfs-modal-head\"><h3 style=color:#ffffff;margin:0>Map Filaments & Start Print</h3><button type=\"button\" class=\"k1c-cfs-modal-close\" id=\"k1c-mp-x\">×</button></div><div class=\"k1c-cfs-modal-body\" style=\"display:flex;flex-direction:column;gap:12px;padding-top:8px\"><select id=\"k1c-mp-f\" style=\"width:100%;padding:9px;border-radius:8px;background:#1b1d22;color:#f3f5f8;border:1px solid rgba(255,255,255,.15)\"></select><div id=\"k1c-mp-l\" style=\"display:flex;flex-direction:column;gap:8px\">Loading G-Code files...</div><div style=\"display:flex;justify-content:flex-end;gap:10px;margin-top:6px\"><button type=\"button\" class=\"k1c-cfs-action\" id=\"k1c-mp-c\">Cancel</button><button type=\"button\" class=\"k1c-cfs-action primary\" id=\"k1c-mp-s\">Apply & Print</button></div></div>";
+      card.innerHTML = "<div class=\"k1c-cfs-modal-head\"><h3 style=color:#ffffff;margin:0>Map Filaments & Start Print</h3><button type=\"button\" class=\"k1c-cfs-modal-close\" id=\"k1c-mp-x\">×</button></div><div class=\"k1c-cfs-modal-body\" style=\"display:flex;flex-direction:column;gap:12px;padding-top:8px\"><select id=\"k1c-mp-f\" style=\"width:100%;padding:9px;border-radius:8px;background:#1b1d22;color:#f3f5f8;border:1px solid rgba(255,255,255,.15)\"></select><div id=\"k1c-mp-l\" style=\"display:flex;flex-direction:column;gap:8px\">Loading G-Code files...</div><label style=\"display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;background:#23262f;border:1px solid #323744;font-size:12.5px;color:#e6ebf2;cursor:pointer\"><input type=\"checkbox\" id=\"k1c-mp-auto\" style=\"width:16px;height:16px;accent-color:#4f8cff\"> Auto-open this mapping dialog when a print starts</label><div style=\"display:flex;justify-content:flex-end;gap:10px;margin-top:6px\"><button type=\"button\" class=\"k1c-cfs-action\" id=\"k1c-mp-c\">Cancel</button><button type=\"button\" class=\"k1c-cfs-action primary\" id=\"k1c-mp-s\">Apply & Print</button></div></div>";
       overlay.appendChild(card);
       document.body.appendChild(overlay);
       card.querySelector("#k1c-mp-x").onclick = closeModal;
       card.querySelector("#k1c-mp-c").onclick = closeModal;
       const fSel = card.querySelector("#k1c-mp-f");
       const mList = card.querySelector("#k1c-mp-l");
-      const sBtn = card.querySelector("#k1c-mp-s");
+      const sBtn = card.querySelector("#k1c-mp-s"); const aChk = card.querySelector("#k1c-mp-auto"); queryKlipperObject("save_variables").then(function(sv){ var v=(sv&&sv.result&&sv.result.status&&sv.result.status.save_variables&&sv.result.status.save_variables.variables)||{}; aChk.checked=Number(v.cfs_auto_map||0)===1; }).catch(function(){}); aChk.onchange=function(){ runKlipperCommand("SET_CFS_AUTO_MAP ENABLE="+(aChk.checked?"1":"0")); };
       const slots = (latestSlots || []).filter(function (x) { return x && x.present && !x.is_holder; });
       let reqs = [];
 
