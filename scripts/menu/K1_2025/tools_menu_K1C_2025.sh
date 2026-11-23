@@ -47,11 +47,6 @@ function tools_menu_ui_k1_2025() {
   else
     unavailable_menu_option '19' 'Set' 'OctoEverywhere Log Level' 'DISABLED: OctoEverywhere is not installed'
   fi
-  if [ -f "${INITD_FOLDER}/S99octoeverywhere" ]; then
-    menu_option '20' 'Reset' 'OctoEverywhere Account Link [Unlink & Re-pair]'
-  else
-    unavailable_menu_option '20' 'Reset' 'OctoEverywhere Account Link' 'DISABLED: OctoEverywhere is not installed'
-  fi
   inner_line
   hr
   bottom_menu_option 'b' 'Back to [Main Menu]' "${yellow}"
@@ -220,9 +215,6 @@ function tools_menu_k1_2025() {
         ;;
       19)
         run "configure_octoeverywhere_log_level" "tools_menu_ui_k1_2025"
-        ;;
-      20)
-        run "reset_octoeverywhere_link" "tools_menu_ui_k1_2025"
         ;;
       B|b)
         clear

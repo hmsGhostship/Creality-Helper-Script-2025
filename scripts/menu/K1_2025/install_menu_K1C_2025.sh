@@ -62,6 +62,11 @@ function install_menu_ui_k1_2025() {
   else
     menu_option '23a' 'Show' 'OctoEverywhere [Show / renew link code]'
   fi
+  if [ -f "${INITD_FOLDER}/S99octoeverywhere" ]; then
+    menu_option '23b' 'Reset' 'OctoEverywhere Account Link [Unlink & Re-pair]'
+  else
+    unavailable_menu_option '23b' 'Reset' 'OctoEverywhere Account Link' 'DISABLED: Module must be installed first'
+  fi
   menu_option '24' 'Install' 'Moonraker Obico'
   if [ -d "$MOONRAKER_OBICO_FOLDER" ] && [ -f "$KLIPPER_CONFIG_FOLDER/moonraker-obico.cfg" ]; then
     menu_option '24a' 'Repair' 'Moonraker Obico [Link Code neu generieren]'
@@ -332,6 +337,15 @@ function install_menu_k1_2025() {
         clear
         if [ -f "${INITD_FOLDER}/S99octoeverywhere" ]; then
           run "show_octoeverywhere_link" "install_menu_ui_k1_2025"
+        else
+          error_msg "OctoEverywhere is not installed yet!"
+          echo
+        fi
+        ;;
+      23b|23B)
+        clear
+        if [ -f "${INITD_FOLDER}/S99octoeverywhere" ]; then
+          run "reset_octoeverywhere_link" "install_menu_ui_k1_2025"
         else
           error_msg "OctoEverywhere is not installed yet!"
           echo
