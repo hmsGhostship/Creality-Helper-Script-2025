@@ -89,11 +89,38 @@ window.openMapAndPrintModal = async function(prefillPath = "") {
       return lum > 145 ? "#111827" : "#ffffff";
     };
     reqs = list;
+    const baseMat = (m) => {
+      const u = String(m || "").toUpperCase().replace(/[^A-Z0-9]/g, "");
+      if (u.startsWith("PLACF")) return "PLACF";
+      if (u.startsWith("PETGCF")) return "PETGCF";
+      if (u.startsWith("PACF")) return "PACF";
+      if (u.startsWith("PLA")) return "PLA";
+      if (u.startsWith("PETG")) return "PETG";
+      if (u.startsWith("ABS")) return "ABS";
+      if (u.startsWith("ASA")) return "ASA";
+      if (u.startsWith("TPU")) return "TPU";
+      return u;
+    };
+    const colDist = (h1, h2) => {
+      if (!h1 || !h2 || h1.length !== 6 || h2.length !== 6) return 999999;
+      const dr = parseInt(h1.slice(0,2),16) - parseInt(h2.slice(0,2),16);
+      const dg = parseInt(h1.slice(2,4),16) - parseInt(h2.slice(2,4),16);
+      const db = parseInt(h1.slice(4,6),16) - parseInt(h2.slice(4,6),16);
+      return dr*dr + dg*dg + db*db;
+    };
+    const usedIds = new Set();
     assigns = reqs.map((r) => {
-      const ex = slots.find((s) => s.nm === r.nm && r.nc && s.nc === r.nc);
-      if (ex) return ex.id;
-      const mo = slots.find((s) => s.nm === r.nm);
-      return mo ? mo.id : "";
+      const rBase = baseMat(r.nm);
+      const compat = slots.filter((x) => baseMat(x.nm) === rBase);
+      if (!compat.length) return "";
+      const scored = compat.map((x) => {
+        const exactMat = x.nm === r.nm ? 0 : 5000;
+        const reused = usedIds.has(x.id) ? 200000 : 0;
+        return { id: x.id, score: colDist(r.nc, x.nc) + exactMat + reused };
+      }).sort((x, y) => x.score - y.score);
+      const best = scored.slice(0, 1).pop();
+      if (best) { usedIds.add(best.id); return best.id; }
+      return "";
     });
     cardsEl.innerHTML = "";
     reqs.forEach((r, idx) => {
