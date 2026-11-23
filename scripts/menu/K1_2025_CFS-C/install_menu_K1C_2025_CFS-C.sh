@@ -48,7 +48,7 @@ function install_menu_ui_k1_2025_cfs_c() {
   menu_option '18' 'Install' 'Useful Macros'
   menu_option '19' 'Install' 'Git Backup'
   menu_option '20' 'Install' 'CFS-C Material Database Editor (port 8088)'
-  menu_option '21' 'Install' 'CFS-C Pre-Print Filament Guard (Type & Color Check)'
+  menu_option '21' 'Install' 'CFS-C Pre-Print Filament Guard'
 # menu_option '22' 'Install' 'placeholder entry'
   hr
   subtitle '•REMOTE ACCESS:'
