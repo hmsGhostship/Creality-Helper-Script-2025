@@ -45,32 +45,63 @@ window.openMapAndPrintModal = async function(prefillPath = "") {
 
   function getLoadedSlots() {
     const out = [], seen = new Set();
-    document.querySelectorAll("*").forEach((el) => {
-      if (el.children.length > 4) return;
-      const txt = String(el.innerText || "").trim();
-      if ((txt.match(/CHANNEL\s+\d+[A-D]/gi) || []).length !== 1) return;
-      const m = txt.match(/CHANNEL\s+(\d+[A-D])\s*\n+\s*([^\n]+)/i);
-      if (!m) return;
-      const id = m.slice(1, 2).join("").toUpperCase();
-      const mat = m.slice(2, 3).join("").trim();
-      if (seen.has(id)) return;
-      seen.add(id);
-      if (!mat || mat.toLowerCase() === "empty" || mat === "---") return;
-      let hex = "9CA3AF";
-      el.querySelectorAll("div,span,svg,circle").forEach((sub) => {
-        const bg = getComputedStyle(sub).backgroundColor;
-        const sm = String(bg || "").match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/i);
-        const h = sm ? [sm.slice(1,2).join(""), sm.slice(2,3).join(""), sm.slice(3,4).join("")].map((x) => parseInt(x, 10).toString(16).padStart(2, "0")).join("").toUpperCase() : "";
-        if (h && h !== "000000" && bg !== "rgba(0, 0, 0, 0)" && sub.offsetWidth >= 14 && sub.offsetWidth <= 48) hex = h;
+    const parseColorAny = (raw) => {
+      if (!raw) return "";
+      const str = String(raw).trim();
+      if (str.startsWith("#")) return str.replace(/^#/, "").toUpperCase().slice(0, 6);
+      const m = str.match(/rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)(?:\s*,\s*([\d.]+))?/i);
+      if (!m) return "";
+      const alpha = m.slice(4, 5).join("");
+      if (alpha !== "" && parseFloat(alpha) === 0) return "";
+      return [m.slice(1,2).join(""), m.slice(2,3).join(""), m.slice(3,4).join("")]
+        .map((x) => parseInt(x, 10).toString(16).padStart(2, "0")).join("").toUpperCase();
+    };
+
+    const st = window.cfsLastState || window.__cfsState || {};
+    const units = st.units || st.cfs_units || [];
+    units.forEach((u, ui) => {
+      const chs = u.slots || u.channels || [];
+      chs.forEach((ch, ci) => {
+        const id = `${ui + 1}${String.fromCharCode(65 + ci)}`;
+        const mat = String(ch.material || "").trim();
+        const empty = ch.present === false || ch.loaded === false || ch.status === "empty" || !mat || mat.toLowerCase() === "empty" || mat === "---";
+        if (!empty && !seen.has(id)) {
+          seen.add(id);
+          const hex = parseColorAny(ch.color) || "9CA3AF";
+          out.push({ id, mat, nm: normMat(mat), col: `#${hex}`, nc: hex });
+        }
       });
-      if (hex === "9CA3AF") {
-        el.querySelectorAll("div,span").forEach((sub) => {
-          const bg = getComputedStyle(sub).backgroundColor;
-          if (bg === "rgb(0, 0, 0)" && sub.offsetWidth >= 14 && sub.offsetWidth <= 48) hex = "111111";
-        });
-      }
-      out.push({ id, mat, nm: normMat(mat), col: `#${hex}`, nc: hex });
     });
+
+    if (!out.length) {
+      document.querySelectorAll("*").forEach((el) => {
+        if (el.children.length > 8) return;
+        const txt = String(el.innerText || "").trim();
+        if ((txt.match(/CHANNEL\s+\d+[A-D]/gi) || []).length !== 1) return;
+        const m = txt.match(/CHANNEL\s+(\d+[A-D])\s*\n+\s*([^\n]+)/i);
+        if (!m) return;
+        const id = m.slice(1, 2).join("").toUpperCase();
+        const mat = m.slice(2, 3).join("").trim();
+        if (seen.has(id)) return;
+        seen.add(id);
+        if (!mat || mat.toLowerCase() === "empty" || mat === "---") return;
+        let hex = "";
+        const scan = [el].concat(Array.from(el.querySelectorAll("*")));
+        scan.forEach((sub) => {
+          if (hex && hex !== "000000" && hex !== "1E2028" && hex !== "181A20" && hex !== "232733") return;
+          const cs = getComputedStyle(sub);
+          const cands = [sub.getAttribute("fill"), cs.fill, cs.backgroundColor, cs.borderTopColor];
+          cands.forEach((c) => {
+            const h = parseColorAny(c);
+            if (h && h !== "1E2028" && h !== "181A20" && h !== "232733" && h !== "2D313D" && h !== "374151") {
+              if (!hex || hex === "000000") hex = h;
+            }
+          });
+        });
+        if (!hex) hex = "9CA3AF";
+        out.push({ id, mat, nm: normMat(mat), col: `#${hex}`, nc: hex });
+      });
+    }
     return out.sort((a, b) => a.id.localeCompare(b.id));
   }
 
