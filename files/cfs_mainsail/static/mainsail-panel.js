@@ -953,17 +953,18 @@
     if (!slot || !slot.present || slot.is_holder) return null;
     var raw = slot.raw || {};
     var rfidStr = String(slot.rfid || raw.rfid || "").trim();
-    var hasRfid = (rfidStr !== "" && rfidStr !== "0" && rfidStr.toLowerCase() !== "none" && rfidStr.toLowerCase() !== "null") || Number(raw.editable) === 0;
+    var isZeroOrEmpty = rfidStr === "" || rfidStr === "0x" || /^0+$/.test(rfidStr) || rfidStr.toLowerCase() === "none" || rfidStr.toLowerCase() === "null";
+    var hasRfid = !isZeroOrEmpty || (raw.editable !== undefined && Number(raw.editable) === 0);
+    if (!hasRfid) return null;
+
     var totalLen = Number(raw.total_len || raw.totalMaterialLength || raw.total_length || 0);
     var usedLen = Number(slot.used_material_length || raw.usedMaterialLength || raw.used_length || 0);
     var pct = raw.percent != null ? Number(raw.percent) : null;
 
-    if (totalLen > 0 && usedLen > 0) {
-      var calcPct = Math.max(0, Math.min(100, Math.round(((totalLen - usedLen) / totalLen) * 100)));
-      pct = calcPct;
+    if (totalLen > 0 && usedLen >= 0) {
+      pct = Math.max(0, Math.min(100, Math.round(((totalLen - usedLen) / totalLen) * 100)));
     }
-    if (!hasRfid && totalLen <= 0 && (pct == null || pct >= 100 || pct <= 0)) return null;
-    if (pct == null || isNaN(pct)) return null;
+    if (pct == null || isNaN(pct) || pct <= 0) return null;
     pct = Math.max(0, Math.min(100, Math.round(pct)));
 
     var grams = null;
@@ -971,10 +972,10 @@
       var totalMeters = totalLen > 5000 ? (totalLen / 1000.0) : totalLen;
       var estTotalGrams = Math.round(totalMeters * 2.98);
       if (estTotalGrams > 0) grams = Math.max(0, Math.round(estTotalGrams * (pct / 100.0)));
-    } else if (hasRfid) {
+    } else {
       grams = Math.round(1000 * (pct / 100.0));
     }
-    return { pct: pct, grams: grams, hasRfid: hasRfid };
+    return { pct: pct, grams: grams, hasRfid: true };
   }
 
   function openEditModal(slot) {
