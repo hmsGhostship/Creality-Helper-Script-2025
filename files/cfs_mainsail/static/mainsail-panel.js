@@ -1218,8 +1218,102 @@
     dbBtn.onclick = function () { openMaterialDbModal(); };
     dbBtnEl = dbBtn;
 
+    const mapBtn = document.createElement("button");
+    mapBtn.type = "button";
+    mapBtn.className = "k1c-cfs-action";
+    mapBtn.appendChild(createSvgPath("M4 6h10v2H4V6zm0 5h10v2H4v-2zm0 5h7v2H4v-2zm13-9l4 4-4 4v-3h-2v-2h2V7z"));
+    const mapText = document.createElement("span");
+    mapText.textContent = "Map & Print";
+    mapBtn.appendChild(mapText);
+    mapBtn.title = "Map G-Code filament types/colors to CFS-C slots and start print";
+    mapBtn.onclick = async function () {
+      closeModal();
+      const overlay = document.createElement("div");
+      overlay.id = MODAL_ID;
+      overlay.className = "k1c-cfs-modal-backdrop";
+      overlay.onclick = function (ev) { if (ev.target === overlay) closeModal(); };
+      const card = document.createElement("div");
+      card.className = "k1c-cfs-modal";
+      card.style.maxWidth = "540px";
+      card.innerHTML = "<div class=\"k1c-cfs-modal-head\"><h3>Map Filaments & Start Print</h3><button type=\"button\" class=\"k1c-cfs-modal-close\" id=\"k1c-mp-x\">×</button></div><div class=\"k1c-cfs-modal-body\" style=\"display:flex;flex-direction:column;gap:12px;padding-top:8px\"><select id=\"k1c-mp-f\" style=\"width:100%;padding:9px;border-radius:8px;background:#1b1d22;color:#f3f5f8;border:1px solid rgba(255,255,255,.15)\"></select><div id=\"k1c-mp-l\" style=\"display:flex;flex-direction:column;gap:8px\">Loading G-Code files...</div><div style=\"display:flex;justify-content:flex-end;gap:10px;margin-top:6px\"><button type=\"button\" class=\"k1c-cfs-action\" id=\"k1c-mp-c\">Cancel</button><button type=\"button\" class=\"k1c-cfs-action primary\" id=\"k1c-mp-s\">Apply & Print</button></div></div>";
+      overlay.appendChild(card);
+      document.body.appendChild(overlay);
+      card.querySelector("#k1c-mp-x").onclick = closeModal;
+      card.querySelector("#k1c-mp-c").onclick = closeModal;
+      const fSel = card.querySelector("#k1c-mp-f");
+      const mList = card.querySelector("#k1c-mp-l");
+      const sBtn = card.querySelector("#k1c-mp-s");
+      const slots = (latestSlots || []).filter(function (x) { return x && x.present && !x.is_holder; });
+      let reqs = [];
+
+      async function loadGcode(fn) {
+        mList.textContent = "Reading G-Code...";
+        const enc = fn.split("/").map(encodeURIComponent).join("/");
+        const txt = await fetch("/server/files/gcodes/" + enc, { headers: { Range: "bytes=0-131071" } }).then(function (r) { return r.text(); });
+        let ft = [], fc = [];
+        const ts = new Set();
+        txt.split("\n").forEach(function (rawLine) {
+          const line = rawLine.trim();
+          if (line.indexOf("; filament_type =") === 0) ft = line.split("=").slice(1).join("=").split(";").map(function (x) { return x.trim().toUpperCase(); });
+          else if (line.indexOf("; filament_colour =") === 0) fc = line.split("=").slice(1).join("=").split(";").map(function (x) { return x.trim(); });
+          else if ((line === "T0" || line === "T1" || line === "T2" || line === "T3" || line.indexOf("T0 ") === 0 || line.indexOf("T1 ") === 0 || line.indexOf("T2 ") === 0 || line.indexOf("T3 ") === 0)) ts.add(Number(line.charAt(1)));
+        });
+        if (!ts.size) ts.add(0);
+        reqs = Array.from(ts).sort().map(function (t) { return { t: t, type: ft[t] || ft || "PLA", hex: fc[t] || fc || "#FFFFFF" }; });
+        mList.innerHTML = "";
+        reqs.forEach(function (q) {
+          const row = document.createElement("div");
+          row.style.cssText = "display:flex;justify-content:space-between;align-items:center;padding:8px 10px;background:#24272e;border-radius:8px";
+          row.innerHTML = "<div style=\"display:flex;align-items:center;gap:8px\"><span style=\"width:14px;height:14px;border-radius:50%;background:" + normalizeColor(q.hex) + ";border:1px solid #fff4\"></span><b>T" + q.t + " · " + q.type + "</b> <small style=\"color:#9aa\">" + q.hex + "</small></div>";
+          const sel = document.createElement("select");
+          sel.dataset.t = String(q.t);
+          sel.style.cssText = "padding:6px 8px;border-radius:6px;background:#16181d;color:#f3f5f8;border:1px solid rgba(255,255,255,.16)";
+          slots.forEach(function (sl) {
+            const o = document.createElement("option");
+            o.value = String(sl.material_index);
+            o.textContent = (sl.display_label || ("Slot " + sl.slot)) + " (" + (sl.type || "?") + ")";
+            if (String(sl.type || "").toUpperCase() === q.type) o.selected = true;
+            sel.appendChild(o);
+          });
+          row.appendChild(sel);
+          mList.appendChild(row);
+        });
+        sBtn.disabled = !slots.length;
+      }
+
+      sBtn.onclick = async function () {
+        sBtn.disabled = true;
+        sBtn.textContent = "Starting...";
+        const sels = mList.querySelectorAll("select[data-t]");
+        for (let i = 0; i < sels.length; i++) {
+          const q = reqs.find(function (x) { return x.t === Number(sels[i].dataset.t); });
+          const sl = slots.find(function (x) { return x.material_index === Number(sels[i].value); });
+          if (q && sl) {
+            const c = parseInt(String(q.hex || "").replace("#", "").slice(0, 6), 16) || 0;
+            sendJson({ method: "set", params: { setMaterialInfo: { boxId: typeof sl.box_id === "number" ? sl.box_id : 1, materialId: sl.material_index, type: q.type, color: c, name: sl.name || q.type, vendor: sl.vendor || "Generic" } } });
+          }
+        }
+        await new Promise(function (r) { window.setTimeout(r, 450); });
+        await fetch("/printer/print/start?filename=" + encodeURIComponent(fSel.value), { method: "POST" });
+        closeModal();
+      };
+
+      const res = await fetch("/server/files/list?root=gcodes").then(function (r) { return r.json(); });
+      const files = ((res && res.result) || []).filter(function (f) { return f && f.path && f.path.toLowerCase().endsWith(".gcode"); }).sort(function (a, b) { return Number(b.modified || 0) - Number(a.modified || 0); }).slice(0, 15);
+      fSel.innerHTML = "";
+      files.forEach(function (f) {
+        const o = document.createElement("option");
+        o.value = f.path;
+        o.textContent = f.path;
+        fSel.appendChild(o);
+      });
+      fSel.onchange = function () { loadGcode(fSel.value); };
+      if (files.length) await loadGcode(files.path);
+      else mList.textContent = "No G-Code files found.";
+    };
     controls.appendChild(configBtn);
     controls.appendChild(dbBtn);
+    controls.appendChild(mapBtn);
     shell.appendChild(controls);
     return root;
   }
@@ -1820,4 +1914,4 @@
     .catch(err => {});
   }
 })();
-(function(){if(window.__k1cMapInit)return;window.__k1cMapInit=1;function addBtn(){var btns=Array.from(document.querySelectorAll(".k1c-cfs-action"));var ref=btns.find(x=>x.textContent.indexOf("Material DB")>=0)||btns[btns.length-1];if(!ref||document.getElementById("k1c-map-btn"))return;var btn=document.createElement("button");btn.id="k1c-map-btn";btn.type="button";btn.className="k1c-cfs-action";btn.innerHTML="<svg viewBox=\"0 0 24 24\" width=\"16\" height=\"16\" fill=\"currentColor\"><path d=\"M4 6h10v2H4V6zm0 5h10v2H4v-2zm0 5h7v2H4v-2zm13-9l4 4-4 4v-3h-2v-2h2V7z\"/></svg><span>Map & Print</span>";btn.onclick=openMap;ref.parentNode.appendChild(btn)}async function openMap(){var r=await fetch("/server/files/list?root=gcodes").then(x=>x.json());var fs=(r.result||[]).filter(f=>/\.gcode$/i.test(f.path)).sort((a,b)=>b.modified-a.modified).slice(0,15);if(!fs.length)return alert("No G-Code files found");var ov=document.createElement("div");ov.style.cssText="position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:9999;display:flex;align-items:center;justify-content:center";ov.onclick=e=>{if(e.target===ov)ov.remove()};var box=document.createElement("div");box.style.cssText="background:#1e2025;color:#f3f5f8;padding:18px;border-radius:12px;width:min(520
+var _ms=document.createElement("script");_ms.src="k1c-cfs-map.js";document.head.appendChild(_ms);
