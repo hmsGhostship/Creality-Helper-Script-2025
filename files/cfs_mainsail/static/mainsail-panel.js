@@ -1307,7 +1307,7 @@
         fSel.appendChild(o);
       });
       fSel.onchange = function () { loadGcode(fSel.value); };
-      if (files.length) await loadGcode(files.path);
+      if (files.length) await loadGcode(files.slice(0,1).map(function(x){return x.path;}).join(""));
       else mList.textContent = "No G-Code files found.";
     };
     controls.appendChild(configBtn);
