@@ -166,7 +166,7 @@ window.openMapAndPrintModal = async function(prefillPath = "") {
       if (usedArr.length && usedArr[i] <= 0 && count > 1) continue;
       toolIds.push(i);
     }
-    if (!toolIds.length) toolIds =;
+    if (!toolIds.length) toolIds = new Array(1).fill(0);
 
     const list = toolIds.map((t) => {
       const mat = types[t] || types || fb;
