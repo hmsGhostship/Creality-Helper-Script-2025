@@ -496,10 +496,12 @@ function restore_ota_state(){
 
         if [ "${HAS_CFS_MAINSAIL:-0}" = "1" ] && [ -d "$MAINSAIL_FOLDER" ] && [ -f "$HS_FILES/cfs_mainsail/static/mainsail-panel.js" ]; then
           cp -f "$HS_FILES/cfs_mainsail/static/mainsail-panel.js" "$MAINSAIL_FOLDER/k1c-cfs-panel.js"
+          [ -f "$HS_FILES/cfs_mainsail/static/k1c-cfs-map.js" ] && cp -f "$HS_FILES/cfs_mainsail/static/k1c-cfs-map.js" "$MAINSAIL_FOLDER/k1c-cfs-map.js"
           grep -q "k1c-cfs-panel.js" "$MAINSAIL_FOLDER/index.html" 2>/dev/null || sed -i 's|</body>|<script src="k1c-cfs-panel.js"></script></body>|' "$MAINSAIL_FOLDER/index.html"
         fi
         if [ "${HAS_CFS_FLUIDD:-0}" = "1" ] && [ -d "$FLUIDD_FOLDER" ] && [ -f "$HS_FILES/cfs_mainsail/static/mainsail-panel.js" ]; then
           cp -f "$HS_FILES/cfs_mainsail/static/mainsail-panel.js" "$FLUIDD_FOLDER/k1c-cfs-panel.js"
+          [ -f "$HS_FILES/cfs_mainsail/static/k1c-cfs-map.js" ] && cp -f "$HS_FILES/cfs_mainsail/static/k1c-cfs-map.js" "$FLUIDD_FOLDER/k1c-cfs-map.js"
           grep -q "k1c-cfs-panel.js" "$FLUIDD_FOLDER/index.html" 2>/dev/null || sed -i 's|</body>|<script src="k1c-cfs-panel.js"></script></body>|' "$FLUIDD_FOLDER/index.html"
         fi
 

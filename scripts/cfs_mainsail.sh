@@ -23,6 +23,7 @@ apply_cfs_to_frontend() {
     echo -e "Info: Installing CFS-C Panel into ${FRONTEND}..."
     cp -f "$CFS_WEB_UI_JS" "${TARGET_DIR}/k1c-cfs-panel.js"
     chmod 644 "${TARGET_DIR}/k1c-cfs-panel.js"
+    [ -f "$(dirname "$CFS_WEB_UI_JS")/k1c-cfs-map.js" ] && cp -f "$(dirname "$CFS_WEB_UI_JS")/k1c-cfs-map.js" "${TARGET_DIR}/k1c-cfs-map.js" && chmod 644 "${TARGET_DIR}/k1c-cfs-map.js"
 
     sed -i '/<!-- K1C_CFS_INJECT_START -->/,/<!-- K1C_CFS_INJECT_END -->/d' "${TARGET_DIR}/index.html"
     local LOADER_BLOCK='<!-- K1C_CFS_INJECT_START -->\n<script>\nwindow.K1C_CFS_WS_URL = "ws://" + window.location.hostname + ":9999";\nif (!window.__k1c_cfs_loader_loaded) {\n  window.__k1c_cfs_loader_loaded = true;\n  const script = document.createElement("script");\n  script.src = "/k1c-cfs-panel.js?ts=" + Date.now();\n  document.head.appendChild(script);\n}\n</script>\n<!-- K1C_CFS_INJECT_END -->'
@@ -166,7 +167,7 @@ remove_cfs_integration() {
     if [ -f "${MAINSAIL_FOLDER}/index.html" ]; then
       sed -i '/<!-- K1C_CFS_INJECT_START -->/,/<!-- K1C_CFS_INJECT_END -->/d' "${MAINSAIL_FOLDER}/index.html"
     fi
-    rm -f "${MAINSAIL_FOLDER}/k1c-cfs-panel.js"
+    rm -f "${MAINSAIL_FOLDER}/k1c-cfs-panel.js" "${MAINSAIL_FOLDER}/k1c-cfs-map.js"
     rm -f "${HS_CONFIG_FOLDER}/.cfs_addon_mainsail"
     echo -e "Info: Removed CFS-C Addon from Mainsail."
   fi
@@ -175,7 +176,7 @@ remove_cfs_integration() {
     if [ -f "${FLUIDD_FOLDER}/index.html" ]; then
       sed -i '/<!-- K1C_CFS_INJECT_START -->/,/<!-- K1C_CFS_INJECT_END -->/d' "${FLUIDD_FOLDER}/index.html"
     fi
-    rm -f "${FLUIDD_FOLDER}/k1c-cfs-panel.js"
+    rm -f "${FLUIDD_FOLDER}/k1c-cfs-panel.js" "${FLUIDD_FOLDER}/k1c-cfs-map.js"
     rm -f "${HS_CONFIG_FOLDER}/.cfs_addon_fluidd"
     echo -e "Info: Removed CFS-C Addon from Fluidd."
   fi
