@@ -2103,3 +2103,105 @@ if (!window.__cfsHttpStartInterceptor) {
     return origXhrSend.apply(this, arguments);
   };
 }
+
+;(function(){
+  if (window.__k1cDomI18n) return;
+  window.__k1cDomI18n = true;
+  const MAP = {
+    de: {
+      "Map Filaments & Start Print": "Filamente zuordnen & Druck starten",
+      "Please select the CFS slot matching each filament:": "Bitte wählen Sie den CFS-Slot aus, der dem jeweiligen Filament entspricht:",
+      "Unassigned filaments remaining – printing disabled.": "Es gibt Filamente ohne Zuordnung – Drucken nicht möglich.",
+      "-- Empty --": "-- Leer --",
+      "Always open before starting a print": "Immer vor dem Druckstart öffnen",
+      "When unchecked, opens only if matching filament is missing in CFS-C": "Ohne Haken öffnet sich der Dialog nur, wenn passendes Filament im CFS-C fehlt",
+      "Apply & Print": "Übernehmen & Drucken",
+      "Reading G-Code...": "Lese G-Code...",
+      "No G-Code files found.": "Keine G-Code-Dateien gefunden.",
+      "Feed": "Einziehen",
+      "Retract": "Zurückziehen",
+      "Purge Settings": "Spüleinstellungen",
+      "Purge Config": "Spül-Konfig",
+      "Material DB": "Material-DB",
+      "Cancel": "Abbrechen",
+      "Close": "Schließen",
+      "Save": "Speichern",
+      "Saving": "Speichere",
+      "COLOR": "FARBE",
+      "Empty": "Leer",
+      "External": "Extern",
+      "Spool Holder": "Spulenhalter",
+      "Please assign in Screen": "Bitte am Display zuweisen"
+    },
+    fr: {
+      "Map Filaments & Start Print": "Associer les filaments et démarrer l'impression",
+      "Please select the CFS slot matching each filament:": "Veuillez sélectionner l'emplacement CFS correspondant à chaque filament :",
+      "Unassigned filaments remaining – printing disabled.": "Filaments non attribués – impression impossible.",
+      "-- Empty --": "-- Vide --",
+      "Always open before starting a print": "Toujours ouvrir avant de démarrer l'impression",
+      "When unchecked, opens only if matching filament is missing in CFS-C": "Si décoché, s'ouvre uniquement si un filament manque dans le CFS-C",
+      "Apply & Print": "Appliquer et imprimer",
+      "Reading G-Code...": "Lecture du G-Code...",
+      "Feed": "Charger",
+      "Retract": "Rétracter",
+      "Purge Settings": "Paramètres de purge",
+      "Material DB": "Base matériaux",
+      "Cancel": "Annuler",
+      "Close": "Fermer",
+      "Save": "Enregistrer",
+      "COLOR": "COULEUR",
+      "Empty": "Vide"
+    },
+    es: {
+      "Map Filaments & Start Print": "Asignar filamentos e iniciar impresión",
+      "Please select the CFS slot matching each filament:": "Seleccione la ranura CFS correspondiente a cada filamento:",
+      "Unassigned filaments remaining – printing disabled.": "Hay filamentos sin asignar – no se puede imprimir.",
+      "-- Empty --": "-- Vacío --",
+      "Always open before starting a print": "Abrir siempre antes de iniciar una impresión",
+      "When unchecked, opens only if matching filament is missing in CFS-C": "Si está desmarcado, solo se abre si falta el filamento en el CFS-C",
+      "Apply & Print": "Aplicar e imprimir",
+      "Reading G-Code...": "Leyendo G-Code...",
+      "Feed": "Cargar",
+      "Retract": "Retraer",
+      "Purge Settings": "Ajustes de purga",
+      "Material DB": "Base materiales",
+      "Cancel": "Cancelar",
+      "Close": "Cerrar",
+      "Save": "Guardar",
+      "COLOR": "COLOR",
+      "Empty": "Vacío"
+    }
+  };
+  let lang = "en";
+  const norm = r => { const b = String(r||"").trim().toLowerCase().split(/[-_]/).shift(); return MAP[b] ? b : ""; };
+  async function checkLang() {
+    for (const u of ["/server/database/item?namespace=mainsail&key=general","/server/database/item?namespace=fluidd&key=config"]) {
+      try {
+        const r = await fetch(u);
+        if (r.ok) {
+          const j = await r.json(), v = j && j.result && j.result.value;
+          const n = norm(v && (v.locale || (v.uiSettings && v.uiSettings.general && v.uiSettings.general.locale)));
+          if (n) { lang = n; apply(); return; }
+        }
+      } catch(e) {}
+    }
+    const hl = norm(document.documentElement && document.documentElement.lang);
+    if (hl) { lang = hl; apply(); }
+  }
+  function apply() {
+    const dict = MAP[lang];
+    if (!dict) return;
+    document.querySelectorAll(".k1c-cfs-panel-card *, #k1c-cfs-modal *, #cfs-map-print-modal *").forEach(el => {
+      el.childNodes.forEach(n => {
+        if (n.nodeType === 3) {
+          const raw = n.nodeValue, tr = raw.trim();
+          if (dict[tr]) n.nodeValue = raw.replace(tr, dict[tr]);
+          else if (tr.endsWith(" Edit Material") && lang === "de") n.nodeValue = raw.replace("Edit Material", "Material bearbeiten");
+        }
+      });
+    });
+  }
+  new MutationObserver(apply).observe(document.body, { childList: true, subtree: true });
+  checkLang();
+  setInterval(checkLang, 4000);
+})();
