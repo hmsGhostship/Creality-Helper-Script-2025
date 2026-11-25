@@ -2206,14 +2206,16 @@ if (!window.__cfsHttpStartInterceptor) {
           if (!store) return;
           const g = db.transaction(store, "readonly").objectStore(store).get("general");
           g.onsuccess = function() {
-            const n = norm(g.result && g.result.locale);
+            const rawLoc = String((g.result && (g.result.language || g.result.locale)) || "").trim().toLowerCase();
+            if (rawLoc.startsWith("en")) { lang = "en"; apply(); return; }
+            const n = norm(rawLoc);
             if (n) { lang = n; apply(); }
           };
         } catch(err) {}
       };
     } catch(e) {}
-    const hl = norm(document.documentElement && document.documentElement.lang);
-    if (hl) { lang = hl; apply(); }
+    lang = "en";
+    apply();
   }
   function apply() {
     const dict = MAP[lang] || {};
