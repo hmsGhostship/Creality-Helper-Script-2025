@@ -47,6 +47,7 @@ window.openMapAndPrintModal = async function(prefillPath = "", fromAutoTrigger =
   autoCb.onchange = () => {
     localStorage.setItem("cfs_auto_map_modal", autoCb.checked ? "1" : "0");
     syncAutoVar(autoCb.checked);
+    fetch("/cfs-gate/enabled", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ enabled: autoCb.checked }) }).catch(()=>{});
   };
   const fileSel = box.querySelector("#cfs-mp-file");
   const cardsEl = box.querySelector("#cfs-mp-cards");
@@ -312,7 +313,6 @@ window.openMapAndPrintModal = async function(prefillPath = "", fromAutoTrigger =
   window.__cfsOrcaGatePoller = true;
   setInterval(async function(){
     try {
-      if (localStorage.getItem("cfs_auto_map_modal") === "0") return;
       if (document.getElementById("cfs-map-print-modal")) return;
       const r = await fetch("/cfs-gate/pending", { cache: "no-store" });
       if (!r.ok) return;

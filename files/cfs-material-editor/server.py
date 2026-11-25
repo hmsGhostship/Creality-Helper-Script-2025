@@ -1,7 +1,45 @@
 
 import re as _re, urllib.request as _ureq
 
-_PENDING_ORCA_PRINT = {"filename": ""}
+_PENDING_ORCA_PRINT = {"filename": "", "enabled": True}
+
+
+def _cfs_has_matching_materials(gcode_bytes):
+    try:
+        head = gcode_bytes[:65536].decode("utf-8", errors="ignore")
+        types = []
+        for line in head.splitlines():
+            if line.startswith("; filament_type ="):
+                types = [t.strip().upper().replace("-", "") for t in line.split("=", 1)[1].split(";") if t.strip()]
+                break
+        used = sorted({int(m.group(1)) for m in _re.finditer(r'(?m)^T([0-3])\b', gcode_bytes[:262144].decode("utf-8", errors="ignore"))})
+        if not used:
+            used = [0]
+        req_mats = []
+        for t in used:
+            m = types[t] if t < len(types) else (types[0] if types else "")
+            if m:
+                req_mats.append(m)
+        if not req_mats:
+            return True
+        con = sqlite3.connect("/usr/data/printer_data/database/nexusp-sql.db")
+        row = con.execute("SELECT value FROM namespace_store WHERE namespace='color_box' AND key='box_info'").fetchone()
+        con.close()
+        if not row:
+            return False
+        slots = json.loads(row[0]).get("T1", {}).get("list", [])
+        avail = [str(s.get("type", "")).strip().upper().replace("-", "") for s in slots if s.get("enable") == 1 and str(s.get("type", "")).strip()]
+        pool = list(avail)
+        for rm in req_mats:
+            if rm in pool:
+                pool.remove(rm)
+            elif rm in avail:
+                pass
+            else:
+                return False
+        return True
+    except Exception:
+        return True
 
 def _forward_upload_no_autoprint(handler, target_path="/server/files/upload"):
     ctype = handler.headers.get("Content-Type", "")
@@ -10,10 +48,21 @@ def _forward_upload_no_autoprint(handler, target_path="/server/files/upload"):
     m = _re.search(r'boundary=([^;]+)', ctype)
     want_print = False
     uploaded_name = ""
+    gcode_bytes = b""
     if m:
         boundary = m.group(1).strip().strip('"').encode("utf-8")
         delim = b"--" + boundary
         parts = body.split(delim)
+        for part in parts:
+            if b"\r\n\r\n" not in part:
+                continue
+            hdr_raw, val = part.split(b"\r\n\r\n", 1)
+            hdr_str = hdr_raw.decode("utf-8", errors="ignore")
+            fn_m = _re.search(r'filename="([^"]+)"', hdr_str)
+            if fn_m:
+                uploaded_name = fn_m.group(1)
+                gcode_bytes = val[:-2] if val.endswith(b"\r\n") else val
+        should_intercept = _PENDING_ORCA_PRINT.get("enabled", True) or (not _cfs_has_matching_materials(gcode_bytes))
         new_parts = []
         for part in parts:
             if b"\r\n\r\n" not in part:
@@ -23,13 +72,11 @@ def _forward_upload_no_autoprint(handler, target_path="/server/files/upload"):
             hdr_str = hdr_raw.decode("utf-8", errors="ignore")
             if 'name="print"' in hdr_str:
                 if val.rstrip(b"\r\n").strip().lower() in (b"true", b"1", b"yes"):
-                    want_print = True
-                    val = b"false\r\n"
+                    if should_intercept:
+                        want_print = True
+                        val = b"false\r\n"
                 new_parts.append(hdr_raw + b"\r\n\r\n" + val)
             else:
-                fn_m = _re.search(r'filename="([^"]+)"', hdr_str)
-                if fn_m:
-                    uploaded_name = fn_m.group(1)
                 new_parts.append(part)
         body = delim.join(new_parts)
     req = _ureq.Request("http://localhost:7126" + target_path, data=body, method="POST")
@@ -273,6 +320,12 @@ class Handler(BaseHTTPRequestHandler):
         if _pp == "/cfs-gate/clear":
             _PENDING_ORCA_PRINT["filename"] = ""
             self._send_json(200, {"ok": True})
+            return
+        if _pp == "/cfs-gate/enabled":
+            cl = int(self.headers.get("Content-Length", "0") or "0")
+            body = json.loads(self.rfile.read(cl).decode("utf-8") or "{}")
+            _PENDING_ORCA_PRINT["enabled"] = bool(body.get("enabled", True))
+            self._send_json(200, {"ok": True, "enabled": _PENDING_ORCA_PRINT["enabled"]})
             return
         p = urlparse(self.path).path
         length = int(self.headers.get("Content-Length", 0))
