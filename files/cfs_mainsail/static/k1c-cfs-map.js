@@ -253,7 +253,7 @@ window.openMapAndPrintModal = async function(prefillPath = "", fromAutoTrigger =
   }
 
   async function loadGcode(path) {
-    cardsEl.innerHTML = '<div style="color:#9ca3af;font-size:13px;">${__k1cI18n.t('map_reading')}</div>';
+    cardsEl.innerHTML = `<div style="color:#9ca3af;font-size:13px;">${__k1cI18n.t('map_reading')}</div>`;
     warnEl.style.display = "none"; startBtn.disabled = true;
     try {
       let types = [], cols = [];
