@@ -61,7 +61,7 @@ This modified version by @hmsGhostship introduces full automation for K1 2025 pr
 
 This custom module integrates a native, high-performance CFS multi-material control panel directly into your active Mainsail or Fluidd web interface.
 
-<img width="656" height="553" alt="grafik" src="https://github.com/user-attachments/assets/dbfc0293-97d2-49d2-9d1f-5da4370d87b6" />
+<img width="660" height="624" alt="grafik" src="https://github.com/user-attachments/assets/4e570ea7-49dd-487a-b062-a05adde4321b" />
 
 It completely bypasses the legacy port `9999` socket by communicating directly with the Klipper core and the modern Moonraker database API (`:7125`), making it fully compatible with next-gen 2025/2026 mainboard architectures.
 
