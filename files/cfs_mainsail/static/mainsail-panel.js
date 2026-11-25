@@ -2216,14 +2216,16 @@ if (!window.__cfsHttpStartInterceptor) {
     if (hl) { lang = hl; apply(); }
   }
   function apply() {
-    const dict = MAP[lang];
-    if (!dict) return;
+    const dict = MAP[lang] || {};
     document.querySelectorAll("body *").forEach(el => {
       el.childNodes.forEach(n => {
         if (n.nodeType === 3) {
-          const raw = n.nodeValue, tr = raw.trim();
-          if (dict[tr]) n.nodeValue = raw.replace(tr, dict[tr]);
-          else if (tr.endsWith(" Edit Material") && lang === "de") n.nodeValue = raw.replace("Edit Material", "Material bearbeiten");
+          if (n.__k1cOrig === undefined) n.__k1cOrig = n.nodeValue;
+          const orig = n.__k1cOrig, tr = orig.trim();
+          let target = orig;
+          if (dict[tr]) target = orig.replace(tr, dict[tr]);
+          else if (tr.endsWith(" Edit Material") && lang === "de") target = orig.replace("Edit Material", "Material bearbeiten");
+          if (n.nodeValue !== target) n.nodeValue = target;
         }
       });
     });
