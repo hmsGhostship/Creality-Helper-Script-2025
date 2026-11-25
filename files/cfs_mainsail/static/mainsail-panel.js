@@ -1318,14 +1318,14 @@
     controls.appendChild(configBtn);
     controls.appendChild(dbBtn);
     const mapGroup = document.createElement("div");
-    mapGroup.style.cssText = "display:inline-flex;align-items:stretch;border:1px solid rgba(255,255,255,0.16);border-radius:8px;overflow:hidden;background:rgba(255,255,255,0.03);";
+    mapGroup.style.cssText = "display:flex;width:100%;align-items:stretch;border:1px solid rgba(255,255,255,0.16);border-radius:8px;overflow:hidden;background:rgba(255,255,255,0.03);";
     mapBtn.style.border = "none";
     mapBtn.style.borderRadius = "0";
-    mapBtn.style.margin = "0";
+    mapBtn.style.margin = "0"; mapBtn.style.flex = "1"; mapBtn.style.justifyContent = "center";
     const autoLbl = document.createElement("button");
     autoLbl.type = "button";
     autoLbl.className = "k1c-cfs-action";
-    autoLbl.style.cssText = "display:inline-flex;align-items:center;gap:6px;cursor:pointer;user-select:none;border:none;border-left:1px solid rgba(255,255,255,0.16);border-radius:0;margin:0;padding:0 10px;background:rgba(0,0,0,0.18);";
+    autoLbl.style.cssText = "display:flex;flex:1;justify-content:center;align-items:center;gap:7px;cursor:pointer;user-select:none;border:none;border-left:1px solid rgba(255,255,255,0.16);border-radius:0;margin:0;padding:0 10px;background:rgba(0,0,0,0.18);";
     autoLbl.title = "Auto: Ask = always open Map & Print before print | Auto: Match = start immediately if matching filament is loaded";
     const swTrack = document.createElement("span");
     swTrack.style.cssText = "position:relative;display:inline-block;width:26px;height:14px;border-radius:999px;background:#4b5563;transition:background .18s;flex-shrink:0;";
