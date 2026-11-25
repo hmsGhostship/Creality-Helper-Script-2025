@@ -2185,6 +2185,13 @@ if (!window.__cfsHttpStartInterceptor) {
         }
       } catch(e) {}
     }
+    try {
+      for (let i = 0; i < localStorage.length; i++) {
+        const v = localStorage.getItem(localStorage.key(i)) || "";
+        const m = v.match(/"locale"\s*:\s*"([a-zA-Z_-]+)"/);
+        if (m && norm(m.slice(1,2).join(""))) { lang = norm(m.slice(1,2).join("")); apply(); return; }
+      }
+    } catch(e) {}
     const hl = norm(document.documentElement && document.documentElement.lang);
     if (hl) { lang = hl; apply(); }
   }
