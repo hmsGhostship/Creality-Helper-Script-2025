@@ -1,3 +1,33 @@
+(function(){
+  if (window.__k1cI18n) return;
+  const D = {
+    en: {map_title:"Map Filaments & Start Print",map_select_hint:"Please select the CFS slot matching each filament:",map_warn_unassigned:"Unassigned filaments remaining – printing disabled.",map_empty:"-- Empty --",map_auto_main:"Always open before starting a print",map_auto_sub:"When unchecked, opens only if matching filament is missing in CFS-C",map_cancel:"Cancel",map_apply:"Apply & Print",map_reading:"Reading G-Code..."},
+    de: {map_title:"Filamente zuordnen & Druck starten",map_select_hint:"Bitte wählen Sie den CFS-Slot aus, der dem jeweiligen Filament entspricht:",map_warn_unassigned:"Es gibt Filamente ohne Zuordnung – Drucken nicht möglich.",map_empty:"-- Leer --",map_auto_main:"Immer vor dem Druckstart öffnen",map_auto_sub:"Ohne Haken öffnet sich der Dialog nur, wenn passendes Filament im CFS-C fehlt",map_cancel:"Abbrechen",map_apply:"Übernehmen & Drucken",map_reading:"Lese G-Code..."},
+    fr: {map_title:"Associer les filaments et démarrer l'impression",map_select_hint:"Veuillez sélectionner l'emplacement CFS correspondant à chaque filament :",map_warn_unassigned:"Filaments non attribués – impression impossible.",map_empty:"-- Vide --",map_auto_main:"Toujours ouvrir avant de démarrer l'impression",map_auto_sub:"Si décoché, s'ouvre uniquement si un filament manque dans le CFS-C",map_cancel:"Annuler",map_apply:"Appliquer et imprimer",map_reading:"Lecture du G-Code..."},
+    es: {map_title:"Asignar filamentos e iniciar impresión",map_select_hint:"Seleccione la ranura CFS correspondiente a cada filamento:",map_warn_unassigned:"Hay filamentos sin asignar – no se puede imprimir.",map_empty:"-- Vacío --",map_auto_main:"Abrir siempre antes de iniciar una impresión",map_auto_sub:"Si está desmarcado, solo se abre si falta el filamento en el CFS-C",map_cancel:"Cancelar",map_apply:"Aplicar e imprimir",map_reading:"Leyendo G-Code..."},
+    it: {map_title:"Assegna filamenti e avvia stampa",map_select_hint:"Seleziona lo slot CFS corrispondente a ciascun filamento:",map_warn_unassigned:"Filamenti non assegnati – stampa disabilitata.",map_empty:"-- Vuoto --",map_auto_main:"Apri sempre prima di avviare una stampa",map_auto_sub:"Se deselezionato, si apre solo se manca il filamento nel CFS-C",map_cancel:"Annulla",map_apply:"Applica e stampa",map_reading:"Lettura G-Code..."},
+    nl: {map_title:"Filamenten toewijzen & print starten",map_select_hint:"Selecteer het CFS-slot dat overeenkomt met elk filament:",map_warn_unassigned:"Niet-toegewezen filamenten – printen uitgeschakeld.",map_empty:"-- Leeg --",map_auto_main:"Altijd openen voor het starten van een print",map_auto_sub:"Indien uitgevinkt, opent alleen als passend filament ontbreekt in CFS-C",map_cancel:"Annuleren",map_apply:"Toepassen & printen",map_reading:"G-Code lezen..."}
+  };
+  let cur = "en";
+  const norm = r => { const b = String(r||"").trim().toLowerCase().split(/[-_]/)[0]; return D[b] ? b : ""; };
+  const det = () => {
+    try {
+      const h = norm(document.documentElement && document.documentElement.lang); if (h) return h;
+      for (let i=0;i<localStorage.length;i++){const k=localStorage.key(i)||"";if(/locale|lang/i.test(k)){const v=localStorage.getItem(k)||"",m=v.match(/"locale"\s*:\s*"([a-zA-Z_-]+)"/)||v.match(/^"?([a-zA-Z_-]{2,5})"?$/),n=norm(m?m[1]:v);if(n)return n;}}
+      const nv = norm(navigator.language||navigator.userLanguage); if (nv) return nv;
+    } catch(e){}
+    return "en";
+  };
+  async function sync(){
+    for (const u of ["/server/database/item?namespace=mainsail&key=general","/server/database/item?namespace=fluidd&key=config"]){
+      try{const r=await fetch(u);if(r.ok){const j=await r.json(),v=j&&j.result&&j.result.value,n=norm(v&&(v.locale||(v.uiSettings&&v.uiSettings.general&&v.uiSettings.general.locale)));if(n){cur=n;return;}}}catch(e){}
+    }
+    cur = det();
+  }
+  cur = det(); sync(); setInterval(sync, 4000);
+  window.__k1cI18n = { t: k => (D[cur]&&D[cur][k]!==undefined)?D[cur][k]:(D.en[k]||k), lang: () => cur };
+})();
+
 window.openMapAndPrintModal = async function(prefillPath = "", fromAutoTrigger = false) {
   const ex = document.getElementById("cfs-map-print-modal");
   if (ex) ex.remove();
@@ -8,18 +38,18 @@ window.openMapAndPrintModal = async function(prefillPath = "", fromAutoTrigger =
   box.style.cssText = "background:#1e2028;color:#f3f4f6;border:1px solid #374151;border-radius:12px;width:100%;max-width:600px;overflow:visible;";
   box.innerHTML = [
     '<div style="display:flex;justify-content:space-between;padding:14px 20px;border-bottom:1px solid #2d313d;background:#181a20;font-weight:700;">',
-    '<span>Map Filaments & Start Print</span><button id="cfs-mp-close" style="background:none;border:none;color:#9ca3af;font-size:20px;cursor:pointer;">&times;</button></div>',
+    '<span>' + __k1cI18n.t('map_title') + '</span><button id="cfs-mp-close" style="background:none;border:none;color:#9ca3af;font-size:20px;cursor:pointer;">&times;</button></div>',
     '<div style="padding:18px 20px;display:flex;flex-direction:column;gap:12px;">',
     '<select id="cfs-mp-file" style="width:100%;padding:9px;border-radius:8px;background:#13151a;color:#f3f4f6;border:1px solid #374151;"></select>',
-    '<div style="font-size:13px;color:#d1d5db;">Please select the CFS slot matching each filament:</div>',
+    '<div style="font-size:13px;color:#d1d5db;">' + __k1cI18n.t('map_select_hint') + '</div>',
     '<div id="cfs-mp-warn" style="display:none;color:#ef4444;font-size:13px;font-weight:600;background:rgba(239,68,68,0.12);border:1px solid rgba(239,68,68,0.35);padding:8px 12px;border-radius:8px;">',
-    'Unassigned filaments remaining – printing disabled.</div>',
+    '' + __k1cI18n.t('map_warn_unassigned') + '</div>',
     '<div id="cfs-mp-cards" style="display:flex;flex-wrap:wrap;gap:12px;min-height:105px;"></div>',
     '<label style="display:flex;align-items:center;gap:8px;font-size:13px;background:#262934;padding:10px;border-radius:8px;cursor:pointer;">',
-    '<input type="checkbox" id="cfs-mp-auto"><span style="display:flex;flex-direction:column;line-height:1.25;"><span>Always open before starting a print</span><span style="font-size:11px;color:#9ca3af;font-weight:400;">When unchecked, opens only if matching filament is missing in CFS-C</span></span></label>',
+    '<input type="checkbox" id="cfs-mp-auto"><span style="display:flex;flex-direction:column;line-height:1.25;"><span>' + __k1cI18n.t('map_auto_main') + '</span><span style="font-size:11px;color:#9ca3af;font-weight:400;">' + __k1cI18n.t('map_auto_sub') + '</span></span></label>',
     '<div style="display:flex;justify-content:flex-end;gap:10px;">',
-    '<button id="cfs-mp-cancel" style="padding:8px 16px;border-radius:8px;background:#2d313d;color:#fff;border:1px solid #3f4454;cursor:pointer;">Cancel</button>',
-    '<button id="cfs-mp-start" style="padding:8px 18px;border-radius:8px;background:#4f7df3;color:#fff;border:none;cursor:pointer;font-weight:700;">Apply & Print</button></div></div>'
+    '<button id="cfs-mp-cancel" style="padding:8px 16px;border-radius:8px;background:#2d313d;color:#fff;border:1px solid #3f4454;cursor:pointer;">' + __k1cI18n.t('map_cancel') + '</button>',
+    '<button id="cfs-mp-start" style="padding:8px 18px;border-radius:8px;background:#4f7df3;color:#fff;border:none;cursor:pointer;font-weight:700;">' + __k1cI18n.t('map_apply') + '</button></div></div>'
   ].join("");
   ov.appendChild(box); document.body.appendChild(ov);
   const close = () => { ov.remove(); window.__cfsAutoMapOpenFor = ""; };
@@ -182,7 +212,7 @@ window.openMapAndPrintModal = async function(prefillPath = "", fromAutoTrigger =
 
       const buildItems = () => {
         ddMenu.innerHTML = "";
-        const items = [{ id: "", label: "-- Empty --", rem: "", bg: "#1f222b", fg: "#9ca3af", dashed: true }].concat(
+        const items = [{ id: "", label: __k1cI18n.t('map_empty'), rem: "", bg: "#1f222b", fg: "#9ca3af", dashed: true }].concat(
           slots.map((x) => ({ id: x.id, label: `${x.id} / ${x.mat}`, rem: x.rem || "", bg: x.col, fg: fgFor(x.col), dashed: false }))
         );
         items.forEach((it) => {
@@ -223,7 +253,7 @@ window.openMapAndPrintModal = async function(prefillPath = "", fromAutoTrigger =
   }
 
   async function loadGcode(path) {
-    cardsEl.innerHTML = '<div style="color:#9ca3af;font-size:13px;">Reading G-Code...</div>';
+    cardsEl.innerHTML = '<div style="color:#9ca3af;font-size:13px;">' + __k1cI18n.t('map_reading') + '</div>';
     warnEl.style.display = "none"; startBtn.disabled = true;
     try {
       let types = [], cols = [];
