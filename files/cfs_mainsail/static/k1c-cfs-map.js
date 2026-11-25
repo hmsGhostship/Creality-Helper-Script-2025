@@ -16,7 +16,7 @@ window.openMapAndPrintModal = async function(prefillPath = "", fromAutoTrigger =
     'Es gibt Verbrauchsmaterialien ohne Zuordnung – Drucken nicht möglich.</div>',
     '<div id="cfs-mp-cards" style="display:flex;flex-wrap:wrap;gap:12px;min-height:105px;"></div>',
     '<label style="display:flex;align-items:center;gap:8px;font-size:13px;background:#262934;padding:10px;border-radius:8px;cursor:pointer;">',
-    '<input type="checkbox" id="cfs-mp-auto"><span>Auto-open this mapping dialog when a print starts</span></label>',
+    '<input type="checkbox" id="cfs-mp-auto"><span style="display:flex;flex-direction:column;line-height:1.25;"><span>Always open before starting a print</span><span style="font-size:11px;color:#9ca3af;font-weight:400;">When unchecked, opens only if matching filament is missing in CFS-C</span></span></label>',
     '<div style="display:flex;justify-content:flex-end;gap:10px;">',
     '<button id="cfs-mp-cancel" style="padding:8px 16px;border-radius:8px;background:#2d313d;color:#fff;border:1px solid #3f4454;cursor:pointer;">Cancel</button>',
     '<button id="cfs-mp-start" style="padding:8px 18px;border-radius:8px;background:#4f7df3;color:#fff;border:none;cursor:pointer;font-weight:700;">Apply & Print</button></div></div>'
