@@ -1338,7 +1338,7 @@
     const renderToggle = () => {
       swTrack.style.background = autoEn ? "#4f7df3" : "#4b5563";
       swKnob.style.transform = autoEn ? "translateX(12px)" : "translateX(0)";
-      const enStr = autoEn ? "Auto: Ask" : "Auto: Match";
+      const enStr = autoEn ? "Open on Print" : "Only on Mismatch";
       autoTxt.__k1cOrig = enStr;
       autoTxt.textContent = enStr;
     };
@@ -2162,8 +2162,8 @@ if (!window.__cfsHttpStartInterceptor) {
       "Apply & Print": "Übernehmen & Drucken",
       "Reading G-Code...": "Lese G-Code...",
       "No G-Code files found.": "Keine G-Code-Dateien gefunden.",
-      "Auto: Ask": "Auto: Fragen",
-      "Auto: Match": "Auto: Erkennen",
+      "Open on Print": "Vor Druck öffnen",
+      "Only on Mismatch": "Nur bei Mismatch",
       "Feed": "Einziehen",
       "Retract": "Zurückziehen",
       "Purge Settings": "Spüleinstellungen",
