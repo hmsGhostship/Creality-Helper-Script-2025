@@ -136,7 +136,7 @@ install_calib_toolbox() {
 # LIVE RUNTIME DETECTION (via gcode_shell_command)
 # =========================================================================
 [gcode_shell_command _SYNC_NEXUSP_STATE]
-command: sh -c "if pidof nexusp >/dev/null 2>&1; then val=1; else val=0; fi; f=/usr/data/printer_data/config/variables.cfg; [ ! -f \"\$f\" ] && echo [Variables] > \"\$f\"; if grep -q ^nexusp_active[[:space:]]*= \"\$f\"; then sed -i \"s/^nexusp_active[[:space:]]*=.*/nexusp_active = \$val/\" \"\$f\"; else echo \"nexusp_active = \$val\" >> \"\$f\"; fi"
+command: sh -c 'if pidof nexusp >/dev/null 2>&1; then val=1; else val=0; fi; f=/usr/data/printer_data/config/variables.cfg; [ ! -f "$f" ] && echo "[Variables]" > "$f"; if grep -q "^nexusp_active[[:space:]]*=" "$f"; then sed -i "s/^nexusp_active[[:space:]]*=.*/nexusp_active = $val/" "$f"; else echo "nexusp_active = $val" >> "$f"; fi'
 timeout: 2.0
 verbose: False
 
