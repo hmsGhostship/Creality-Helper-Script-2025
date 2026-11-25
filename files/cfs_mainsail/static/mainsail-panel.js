@@ -1,3 +1,33 @@
+(function(){
+  if (window.__k1cI18n) return;
+  const D = {
+    en: {map_title:"Map Filaments & Start Print",map_select_hint:"Please select the CFS slot matching each filament:",map_warn_unassigned:"Unassigned filaments remaining – printing disabled.",map_empty:"-- Empty --",map_auto_main:"Always open before starting a print",map_auto_sub:"When unchecked, opens only if matching filament is missing in CFS-C",map_cancel:"Cancel",map_apply:"Apply & Print",map_reading:"Reading G-Code...",empty:"Empty",external:"External",spool_holder:"Spool Holder",loaded:"Loaded",feed:"Feed",retract:"Retract",map_print:"Map & Print",material_db:"Material DB",edit:"Edit",close:"Close",cancel:"Cancel",save:"Save",saving:"Saving",color:"COLOR",type:"Type",vendor:"Vendor",name:"Name",min_temp:"Min Temp",max_temp:"Max Temp",edit_material:"Edit Material",purge_config:"Purge Config",purge_settings:"Purge Settings",humidity:"Humidity ",temp:"Temp ",assign_screen:"Please assign in Screen",unknown:"Unknown",ready:"Ready",printing:"Printing",running:"Running"},
+    de: {map_title:"Filamente zuordnen & Druck starten",map_select_hint:"Bitte wählen Sie den CFS-Slot aus, der dem jeweiligen Filament entspricht:",map_warn_unassigned:"Es gibt Filamente ohne Zuordnung – Drucken nicht möglich.",map_empty:"-- Leer --",map_auto_main:"Immer vor dem Druckstart öffnen",map_auto_sub:"Ohne Haken öffnet sich der Dialog nur, wenn passendes Filament im CFS-C fehlt",map_cancel:"Abbrechen",map_apply:"Übernehmen & Drucken",map_reading:"Lese G-Code...",empty:"Leer",external:"Extern",spool_holder:"Spulenhalter",loaded:"Geladen",feed:"Einziehen",retract:"Zurückziehen",map_print:"Map & Print",material_db:"Material-DB",edit:"Bearbeiten",close:"Schließen",cancel:"Abbrechen",save:"Speichern",saving:"Speichere",color:"FARBE",type:"Typ",vendor:"Hersteller",name:"Name",min_temp:"Min. Temp",max_temp:"Max. Temp",edit_material:"Material bearbeiten",purge_config:"Spül-Konfig",purge_settings:"Spüleinstellungen",humidity:"Luftfeuchte ",temp:"Temp. ",assign_screen:"Bitte am Display zuweisen"
+    fr: {map_title:"Associer les filaments et démarrer l'impression",map_select_hint:"Veuillez sélectionner l'emplacement CFS correspondant à chaque filament :",map_warn_unassigned:"Filaments non attribués – impression impossible.",map_empty:"-- Vide --",map_auto_main:"Toujours ouvrir avant de démarrer l'impression",map_auto_sub:"Si décoché, s'ouvre uniquement si un filament manque dans le CFS-C",map_cancel:"Annuler",map_apply:"Appliquer et imprimer",map_reading:"Lecture du G-Code...",empty:"Vide",external:"Externe",spool_holder:"Support bobine",loaded:"Chargé",feed:"Charger",retract:"Rétracter",map_print:"Map & Print",material_db:"Base matériaux",edit:"Modifier",close:"Fermer",cancel:"Annuler",save:"Enregistrer",saving:"Enregistrement",color:"COULEUR",type:"Type",vendor:"Marque",name:"Nom",min_temp:"Temp. min",max_temp:"Temp. max",edit_material:"Modifier le matériau",purge_config:"Config purge",purge_settings:"Paramètres de purge",humidity:"Humidité ",temp:"Temp. ",assign_screen:"Attribuer s
+    es: {map_title:"Asignar filamentos e iniciar impresión",map_select_hint:"Seleccione la ranura CFS correspondiente a cada filamento:",map_warn_unassigned:"Hay filamentos sin asignar – no se puede imprimir.",map_empty:"-- Vacío --",map_auto_main:"Abrir siempre antes de iniciar una impresión",map_auto_sub:"Si está desmarcado, solo se abre si falta el filamento en el CFS-C",map_cancel:"Cancelar",map_apply:"Aplicar e imprimir",map_reading:"Leyendo G-Code...",empty:"Vacío",external:"Externo",spool_holder:"Portabobinas",loaded:"Cargado",feed:"Cargar",retract:"Retraer",map_print:"Map & Print",material_db:"Base materiales",edit:"Editar",close:"Cerrar",cancel:"Cancelar",save:"Guardar",saving:"Guardando",color:"COLOR",type:"Tipo",vendor:"Marca",name:"Nombre",min_temp:"Temp. mín.",max_temp:"Temp. máx.",edit_material:"Editar material",purge_config:"Config. purga",purge_settings:"Ajustes de purga",humidity:"Humedad ",temp:"Temp. ",assign_screen:"Asignar en pantalla",unknown:"Desconocido",ready:"Listo",printi
+    it: {map_title:"Assegna filamenti e avvia stampa",map_select_hint:"Seleziona lo slot CFS corrispondente a ciascun filamento:",map_warn_unassigned:"Filamenti non assegnati – stampa disabilitata.",map_empty:"-- Vuoto --",map_auto_main:"Apri sempre prima di avviare una stampa",map_auto_sub:"Se deselezionato, si apre solo se manca il filamento nel CFS-C",map_cancel:"Annulla",map_apply:"Applica e stampa",map_reading:"Lettura G-Code...",empty:"Vuoto",external:"Esterno",spool_holder:"Portabobina",loaded:"Caricato",feed:"Carica",retract:"Ritrai",map_print:"Map & Print",material_db:"DB Materiali",edit:"Modifica",close:"Chiudi",cancel:"Annulla",save:"Salva",saving:"Salvataggio",color:"COLORE",type:"Tipo",vendor:"Marca",name:"Nome",min_temp:"Temp. min",max_temp:"Temp. max",edit_material:"Modifica materiale",purge_config:"Config. spurgo",purge_settings:"Impostazioni spurgo",humidity:"Umidità ",temp:"Temp. ",assign_screen:"Assegna sullo schermo",unknown:"Sconosciuto",ready:"Pronto",printing:"In stampa",running:"I
+    nl: {map_title:"Filamenten toewijzen & print starten",map_select_hint:"Selecteer het CFS-slot dat overeenkomt met elk filament:",map_warn_unassigned:"Niet-toegewezen filamenten – printen uitgeschakeld.",map_empty:"-- Leeg --",map_auto_main:"Altijd openen voor het starten van een print",map_auto_sub:"Indien uitgevinkt, opent alleen als passend filament ontbreekt in CFS-C",map_cancel:"Annuleren",map_apply:"Toepassen & printen",map_reading:"G-Code lezen...",empty:"Leeg",external:"Extern",spool_holder:"Spoelhouder",loaded:"Geladen",feed:"Invoeren",retract:"Terugtrekken",map_print:"Map & Print",material_db:"Materiaal-DB",edit:"Bewerken",close:"Sluiten",cancel:"Annuleren",save:"Opslaan",saving:"Opslaan...",color:"KLEUR",type:"Type",vendor:"Merk",name:"Naam",min_temp:"Min. temp",max_temp:"Max. temp",edit_material:"Materiaal bewerken",purge_config:"Spoelconfig",purge_settings:"Spoelinstellingen",humidity:"Luchtvochtigheid ",temp:"Temp. ",assign_screen:"Toewijzen op scherm",unknown:"Onbekend",ready:"Gereed",pr
+  };
+  let cur = "en";
+  const norm = r => { const b = String(r||"").trim().toLowerCase().split(/[-_]/).shift(); return D[b] ? b : ""; };
+  const det = () => {
+    try {
+      const h = norm(document.documentElement && document.documentElement.lang); if (h) return h;
+      for (let i=0;i<localStorage.length;i++){const k=localStorage.key(i)||"";if(/locale|lang/i.test(k)){const v=localStorage.getItem(k)||"",m=v.match(/"locale"\s*:\s*"([a-zA-Z_-]+)"/)||v.match(/^"?([a-zA-Z_-]{2,5})"?$/),n=norm(m?m.pop():v);if(n)return n;}}
+      const nv = norm(navigator.language||navigator.userLanguage); if (nv) return nv;
+    } catch(e){}
+    return "en";
+  };
+  async function sync(){
+    for (const u of ["/server/database/item?namespace=mainsail&key=general","/server/database/item?namespace=fluidd&key=config"]){
+      try{const r=await fetch(u);if(r.ok){const j=await r.json(),v=j&&j.result&&j.result.value,n=norm(v&&(v.locale||(v.uiSettings&&v.uiSettings.general&&v.uiSettings.general.locale)));if(n){cur=n;return;}}}catch(e){}
+    }
+    cur = det();
+  }
+  cur = det(); sync(); setInterval(sync, 4000);
+  window.__k1cI18n = { t: k => (D[cur]&&D[cur][k]!==undefined)?D[cur][k]:(D.en[k]||k), lang: () => cur };
+})();
+
 (function () {
   "use strict";
 
@@ -369,7 +399,7 @@
       // Applies when a spool is present without an assigned filament type (e.g. Slot 1D)
       if (hardwareDetected && (stateValue === 0 || materialType === "" || materialType === "-1" || materialType === "NONE")) {
           materialType = "UNASSIGNED";
-          name = "Please assign in Screen";
+          name = __k1cI18n.t("assign_screen");
           stateValue = 1; // Zwingt das UI in den aktiven Status
           present = true;
       }
@@ -419,16 +449,16 @@
     const hLoaded = hPresent && extFilamentDetected && !anyCfsSelected;
     const holderSlot = {
       slot: "EXT",
-      display_label: "Spool Holder",
+      display_label: __k1cI18n.t("spool_holder"),
       is_holder: true,
       box_id: holderBox && Number.isInteger(holderBox.id) ? holderBox.id : 0,
       material_index: 0,
       state: hPresent ? 1 : 0,
-      status: hPresent ? (hHasMat ? "Ready" : "Loaded") : "Empty",
+      status: hPresent ? (hHasMat ? __k1cI18n.t("ready") : __k1cI18n.t("loaded")) : __k1cI18n.t("empty"),
       present: hPresent,
       selected: hLoaded || Number(holderMat.selected || 0) === 1,
       rfid: String(holderMat.rfid || ""),
-      type: hPresent ? (hHasMat ? hTypeRaw : "External") : "Empty",
+      type: hPresent ? (hHasMat ? hTypeRaw : __k1cI18n.t("external")) : __k1cI18n.t("empty"),
       name: hHasMat ? hNameRaw : "",
       vendor: hVendorRaw,
       manufacturer: hVendorRaw,
@@ -593,10 +623,10 @@
       tempLabelEl.textContent = tempValue + "C";
     }
     if (humidityLabelEl.parentElement) {
-      humidityLabelEl.parentElement.title = "Humidity " + humidityValue + "%";
+      humidityLabelEl.parentElement.title = __k1cI18n.t("humidity") + humidityValue + "%";
     }
     if (tempLabelEl && tempLabelEl.parentElement) {
-      tempLabelEl.parentElement.title = "Temp " + tempValue + "C";
+      tempLabelEl.parentElement.title = __k1cI18n.t("temp") + tempValue + "C";
     }
   }
 
@@ -738,7 +768,7 @@
     if (savingSlot) return;
     savingSlot = slot.slot;
     saveButton.disabled = true;
-    saveButton.textContent = "Saving";
+    saveButton.textContent = __k1cI18n.t("saving");
     try {
       const normalizedType = String(draft.type || "").trim().toUpperCase();
       const preset = findPresetByTypeAndName(normalizedType, draft.name) || MATERIAL_PRESETS[normalizedType] || null;
@@ -771,7 +801,7 @@
     } finally {
       savingSlot = "";
       saveButton.disabled = false;
-      saveButton.textContent = "Save";
+      saveButton.textContent = __k1cI18n.t("save");
     }
   }
 
@@ -790,7 +820,7 @@
     head.className = "k1c-cfs-modal-head";
     const title = document.createElement("div");
     title.className = "k1c-cfs-modal-title";
-    title.textContent = "Purge Config";
+    title.textContent = __k1cI18n.t("purge_config");
     head.appendChild(title);
     card.appendChild(head);
 
@@ -845,16 +875,16 @@
     const cancel = document.createElement("button");
     cancel.type = "button";
     cancel.className = "k1c-cfs-cancel-btn";
-    cancel.textContent = "Cancel";
+    cancel.textContent = __k1cI18n.t("cancel");
     cancel.onclick = closeModal;
 
     const save = document.createElement("button");
     save.type = "button";
     save.className = "k1c-cfs-save-btn";
-    save.textContent = "Save";
+    save.textContent = __k1cI18n.t("save");
     save.onclick = async function () {
       save.disabled = true;
-      save.textContent = "Saving";
+      save.textContent = __k1cI18n.t("saving");
       try {
         var commandParts = ["CFS_SET_MATERIAL_DB_TEMPS"];
         for (var i = 0; i < purgeMaterials.length; i += 1) {
@@ -870,7 +900,7 @@
         window.alert("Failed to save material config: " + (error.message || String(error)));
       } finally {
         save.disabled = false;
-        save.textContent = "Save";
+        save.textContent = __k1cI18n.t("save");
       }
     };
 
@@ -926,7 +956,7 @@
     const closeBtn = document.createElement("button");
     closeBtn.type = "button";
     closeBtn.className = "k1c-cfs-cancel-btn";
-    closeBtn.textContent = "Close";
+    closeBtn.textContent = __k1cI18n.t("close");
     const onDone = function () {
       closeModal();
       if (typeof window.__k1c_reload_mat_db === "function") window.__k1c_reload_mat_db();
@@ -994,11 +1024,11 @@
     head.className = "k1c-cfs-modal-head";
     const title = document.createElement("div");
     title.className = "k1c-cfs-modal-title";
-    title.textContent = slot.slot + " Edit Material";
+    title.textContent = slot.slot + " " + __k1cI18n.t("edit_material");
     const closeBtn = document.createElement("button");
     closeBtn.type = "button";
     closeBtn.className = "k1c-cfs-cancel-btn";
-    closeBtn.textContent = "Close";
+    closeBtn.textContent = __k1cI18n.t("close");
     closeBtn.onclick = closeModal;
     head.appendChild(title);
     head.appendChild(closeBtn);
@@ -1022,7 +1052,7 @@
     colorAvatar.appendChild(colorOverlay);
     const colorLabel = document.createElement("span");
     colorLabel.className = "k1c-cfs-color-label";
-    colorLabel.textContent = "COLOR";
+    colorLabel.textContent = __k1cI18n.t("color");
     colorWrap.appendChild(colorAvatar);
     colorWrap.appendChild(colorLabel);
     body.appendChild(colorWrap);
@@ -1096,13 +1126,13 @@
 
     const grid = document.createElement("div");
     grid.className = "k1c-cfs-edit-grid";
-    grid.appendChild(createField("Type", select));
-    grid.appendChild(createField("Vendor", vendorInput));
-    const nameField = createField("Name", nameSelect);
+    grid.appendChild(createField(__k1cI18n.t("type"), select));
+    grid.appendChild(createField(__k1cI18n.t("vendor"), vendorInput));
+    const nameField = createField(__k1cI18n.t("name"), nameSelect);
     nameField.classList.add("wide");
     grid.appendChild(nameField);
-    grid.appendChild(createField("Min Temp", tempMinInput));
-    grid.appendChild(createField("Max Temp", tempMaxInput));
+    grid.appendChild(createField(__k1cI18n.t("min_temp"), tempMinInput));
+    grid.appendChild(createField(__k1cI18n.t("max_temp"), tempMaxInput));
     body.appendChild(grid);
     card.appendChild(body);
 
@@ -1111,12 +1141,12 @@
     const cancel = document.createElement("button");
     cancel.type = "button";
     cancel.className = "k1c-cfs-cancel-btn";
-    cancel.textContent = "Cancel";
+    cancel.textContent = __k1cI18n.t("cancel");
     cancel.onclick = closeModal;
     const save = document.createElement("button");
     save.type = "button";
     save.className = "k1c-cfs-save-btn";
-    save.textContent = "Save";
+    save.textContent = __k1cI18n.t("save");
     save.onclick = function () {
       saveSlot(
         slot,
@@ -1171,7 +1201,7 @@
     feedBtn.disabled = true;
     feedBtn.appendChild(createSvgPath("M11 4v11.2l-3.6-3.6-1.4 1.4 6 6 6-6-1.4-1.4-3.6 3.6V4h-2z"));
     const feedText = document.createElement("span");
-    feedText.textContent = "Feed";
+    feedText.textContent = __k1cI18n.t("feed");
     feedBtn.appendChild(feedText);
     feedBtn.onclick = function () {
       const slot = latestSlots.find(function (item) { return item.slot === selectedSlot; });
@@ -1186,7 +1216,7 @@
     configBtn.className = "k1c-cfs-action";
     configBtn.appendChild(createSvgPath("M19.4 13a7.8 7.8 0 0 0 .1-1 7.8 7.8 0 0 0-.1-1l2.1-1.6-2-3.4-2.5 1a7.2 7.2 0 0 0-1.7-1l-.4-2.7h-4l-.4 2.7a7.2 7.2 0 0 0-1.7 1l-2.5-1-2 3.4L4.6 11a7.8 7.8 0 0 0-.1 1 7.8 7.8 0 0 0 .1 1l-2.1 1.6 2 3.4 2.5-1a7.2 7.2 0 0 0 1.7 1l.4 2.7h4l.4-2.7a7.2 7.2 0 0 0 1.7-1l2.5 1 2-3.4-2.1-1.6zM12 15.5A3.5 3.5 0 1 1 12 8a3.5 3.5 0 0 1 0 7.5z"));
     const configText = document.createElement("span");
-    configText.textContent = "Purge Settings";
+    configText.textContent = __k1cI18n.t("purge_settings");
     configBtn.appendChild(configText);
     configBtn.title = "Config";
     configBtn.onclick = function () {
@@ -1200,7 +1230,7 @@
     retractBtn.disabled = true;
     retractBtn.appendChild(createSvgPath("M13 20V8.8l3.6 3.6 1.4-1.4-6-6-6 6 1.4 1.4 3.6-3.6V20h2z"));
     const retractText = document.createElement("span");
-    retractText.textContent = "Retract";
+    retractText.textContent = __k1cI18n.t("retract");
     retractBtn.appendChild(retractText);
     retractBtn.onclick = function () {
       const slot = latestSlots.find(function (item) { return item.slot === selectedSlot; });
@@ -1217,7 +1247,7 @@
     dbBtn.className = "k1c-cfs-action";
     dbBtn.appendChild(createSvgPath("M12 3C7.58 3 4 4.79 4 7v10c0 2.21 3.58 4 8 4s8-1.79 8-4V7c0-2.21-3.58-4-8-4zm0 2c3.87 0 6 .9 6 2s-2.13 2-6 2-6-.9-6-2 2.13-2 6-2zm0 14c-3.87 0-6-.9-6-2v-2.23c1.61.78 3.72 1.23 6 1.23s4.39-.45 6-1.23V17c0 1.1-2.13 2-6 2zm0-5c-3.87 0-6-.9-6-2V9.77C7.61 10.55 9.72 11 12 11s4.39-.45 6-1.23V12c0 1.1-2.13 2-6 2z"));
     const dbText = document.createElement("span");
-    dbText.textContent = "Material DB";
+    dbText.textContent = __k1cI18n.t("material_db");
     dbBtn.appendChild(dbText);
     dbBtn.title = "Open Material Database Editor";
     dbBtn.onclick = function () { openMaterialDbModal(); };
@@ -1228,7 +1258,7 @@
     mapBtn.className = "k1c-cfs-action";
     mapBtn.appendChild(createSvgPath("M4 6h10v2H4V6zm0 5h10v2H4v-2zm0 5h7v2H4v-2zm13-9l4 4-4 4v-3h-2v-2h2V7z"));
     const mapText = document.createElement("span");
-    mapText.textContent = "Map & Print";
+    mapText.textContent = __k1cI18n.t("map_print");
     mapBtn.appendChild(mapText);
     mapBtn.title = "Map G-Code filament types/colors to CFS-C slots and start print";
     mapBtn.onclick = async function () {
@@ -1409,16 +1439,16 @@
     const hLoaded = hPresent && extFilamentDetected && !anyCfsSelected;
     return {
       slot: "EXT",
-      display_label: "Spool Holder",
+      display_label: __k1cI18n.t("spool_holder"),
       is_holder: true,
       box_id: 0,
       material_index: 0,
       state: hPresent ? 1 : 0,
-      status: hPresent ? (hHasMat ? "Ready" : "Loaded") : "Empty",
+      status: hPresent ? (hHasMat ? __k1cI18n.t("ready") : __k1cI18n.t("loaded")) : __k1cI18n.t("empty"),
       present: hPresent,
       selected: hLoaded,
       rfid: "",
-      type: hPresent ? (hHasMat ? hTypeRaw : "External") : "Empty",
+      type: hPresent ? (hHasMat ? hTypeRaw : __k1cI18n.t("external")) : __k1cI18n.t("empty"),
       name: hHasMat ? hNameRaw : "",
       vendor: hVendorRaw,
       manufacturer: hVendorRaw,
@@ -1441,7 +1471,7 @@
     }
     if (!connected) {
       incoming = incoming.map(function (x) {
-        return x.is_holder ? x : Object.assign({}, x, { present: false, selected: false, type: "Empty" });
+        return x.is_holder ? x : Object.assign({}, x, { present: false, selected: false, type: __k1cI18n.t("empty") });
       });
     }
     latestSlots = incoming;
@@ -1510,7 +1540,7 @@
         b.style.display = hasCfsBox ? "" : "none";
       });
       const titleEl = cardEl.querySelector(".v-card__title span, .v-toolbar__title");
-      if (titleEl && !hasCfsBox) titleEl.textContent = "Spool Holder";
+      if (titleEl && !hasCfsBox) titleEl.textContent = __k1cI18n.t("spool_holder");
     }
     if (configBtnEl) configBtnEl.style.display = hasCfsBox ? "" : "none";
     if (dbBtnEl) dbBtnEl.style.display = hasCfsBox ? "" : "none";
@@ -1540,7 +1570,7 @@
       channel.textContent = slot.display_label || ("Channel " + slot.slot);
       const type = document.createElement("span");
       type.className = "k1c-cfs-type";
-      type.textContent = slot.is_holder ? String(slot.type || "Empty") : (slot.present ? String(slot.type || "Unknown") : "Empty");
+      type.textContent = slot.is_holder ? String(slot.type || __k1cI18n.t("empty")) : (slot.present ? String(slot.type || __k1cI18n.t("unknown")) : __k1cI18n.t("empty"));
       info.appendChild(channel);
       info.appendChild(type);
       var rem = computeSlotRemaining(slot);
@@ -1566,7 +1596,7 @@
       const edit = document.createElement("button");
       edit.type = "button";
       edit.className = "k1c-cfs-edit-inline";
-      edit.title = "Edit";
+      edit.title = __k1cI18n.t("edit");
       edit.disabled = !slot.present;
       edit.appendChild(createSvgPath("M3 17.2v4.5h4.5l11-11.1-4.5-4.5L3 17.2zm18.7-10.3c.4-.4.4-1 0-1.4l-3.1-3.1c-.4-.4-1-.4-1.4 0l-2.2 2.2 4.5 4.5 2.2-2.2z"));
       edit.onclick = function (event) {
@@ -1580,12 +1610,12 @@
       if (slotIsPending) {
         const spinner = document.createElement("div");
         spinner.className = "k1c-cfs-loading-dot";
-        spinner.title = "Running";
+        spinner.title = __k1cI18n.t("running");
         item.appendChild(spinner);
       } else if (slot.selected) {
         const dot = document.createElement("div");
         dot.className = "k1c-cfs-loaded-dot";
-        dot.title = "Loaded";
+        dot.title = __k1cI18n.t("loaded");
         item.appendChild(dot);
       }
       item.appendChild(edit);
@@ -1617,7 +1647,7 @@
         if (externalFeedPending) {
           feedTextEl.innerHTML = '<span class="k1c-cfs-action-loading"><span class="k1c-cfs-action-loading-dot"></span><span>Loading</span></span>';
         } else {
-          feedTextEl.textContent = (selectedSlotData && selectedSlotData.is_holder) ? "Feed" : ((isPresent && currentLoadedSlotName && !isLoaded) ? "Switch" : "Feed");
+          feedTextEl.textContent = (selectedSlotData && selectedSlotData.is_holder) ? __k1cI18n.t("feed") : ((isPresent && currentLoadedSlotName && !isLoaded) ? "Switch" : __k1cI18n.t("feed"));
         }
       }
     }
@@ -1664,14 +1694,14 @@
           const hPresent = lllSensorInstalled ? lllFilamentDetected : true;
           const anyCfs = baseList.some(function (x) { return !x.is_holder && x.selected; });
           const hLoaded = hPresent && extFilamentDetected && !anyCfs;
-          const knownType = (item.type && item.type !== "Empty" && item.type !== "External") ? item.type : cType;
+          const knownType = (item.type && item.type !== __k1cI18n.t("empty") && item.type !== __k1cI18n.t("external")) ? item.type : cType;
           const hasMat = knownType !== "";
           return Object.assign({}, item, {
             present: hPresent,
             state: hPresent ? 1 : 0,
-            status: hPresent ? (hasMat ? "Ready" : "Loaded") : "Empty",
+            status: hPresent ? (hasMat ? __k1cI18n.t("ready") : __k1cI18n.t("loaded")) : __k1cI18n.t("empty"),
             selected: hLoaded,
-            type: hPresent ? (hasMat ? knownType : "External") : "Empty",
+            type: hPresent ? (hasMat ? knownType : __k1cI18n.t("external")) : __k1cI18n.t("empty"),
             color: (hPresent && (cColor || (item.color && item.color !== "#64748b"))) ? (cColor || item.color) : "#64748b",
           });
         });
@@ -1880,12 +1910,12 @@
       latestConnected = true;
 
       // 1. MOTION DETECTION (Once Klipper is operational)
-      if (klipperState === "Printing") {
+      if (klipperState === __k1cI18n.t("printing")) {
         cfsIsMoving = true;
       }
 
-      // 2. COMPLETION TRIGGER (Once Klipper returns to a stable "Ready" state)
-      if (cfsIsMoving && klipperState === "Ready") {
+      // 2. COMPLETION TRIGGER (Once Klipper returns to a stable __k1cI18n.t("ready") state)
+      if (cfsIsMoving && klipperState === __k1cI18n.t("ready")) {
         
         // We determine whether the action was successful, based on the original state of the add-on
         // pendingAction keeps track of whether we pressed "feed" or "retract"
