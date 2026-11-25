@@ -67,29 +67,27 @@ EOF2
         fi
 
         if [ -f "$HS_CONFIG_FOLDER/calib_tool_box.cfg" ]; then
-          /usr/data/moonraker/moonraker-env/bin/python -c '
+          /usr/data/moonraker/moonraker-env/bin/python - << 'PYEOF'
 p = "/usr/data/printer_data/config/Helper-Script/calib_tool_box.cfg"
 s = open(p, "r", encoding="utf-8").read()
 if "[gcode_shell_command _CHECK_CFS_FILAMENTS_CMD]" in s:
     a = s.index("[gcode_shell_command _CHECK_CFS_FILAMENTS_CMD]")
     b = s.index("[gcode_macro START_PRINT]")
     s = s[:a] + s[b:]
-target = "[gcode_macro START_PRINT]
-rename_existing: START_PRINT_BASE
-gcode:
-"
-hook = '''  {% set check_color = params.CHECK_COLOR|default("1") %}
-  {% set skip_once = printer.save_variables.variables.cfs_skip_guard_once|default(0)|int %}
-  {% if skip_once == 1 %}
-    SAVE_VARIABLE VARIABLE=cfs_skip_guard_once VALUE=0
-  {% else %}
-    CHECK_CFS_FILAMENTS CHECK_COLOR={check_color}
-  {% endif %}
-'''
+target = "[gcode_macro START_PRINT]\nrename_existing: START_PRINT_BASE\ngcode:\n"
+hook = (
+    '  {% set check_color = params.CHECK_COLOR|default("1") %}\n'
+    '  {% set skip_once = printer.save_variables.variables.cfs_skip_guard_once|default(0)|int %}\n'
+    '  {% if skip_once == 1 %}\n'
+    '    SAVE_VARIABLE VARIABLE=cfs_skip_guard_once VALUE=0\n'
+    '  {% else %}\n'
+    '    CHECK_CFS_FILAMENTS CHECK_COLOR={check_color}\n'
+    '  {% endif %}\n'
+)
 if target in s and "CHECK_CFS_FILAMENTS" not in s:
     s = s.replace(target, target + hook, 1)
 open(p, "w", encoding="utf-8").write(s)
-'
+PYEOF
         fi
 
         echo -e "Info: Restarting Klipper service..."
