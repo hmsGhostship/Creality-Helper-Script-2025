@@ -1317,23 +1317,28 @@
     };
     controls.appendChild(configBtn);
     controls.appendChild(dbBtn);
-    controls.appendChild(mapBtn);
+    const mapGroup = document.createElement("div");
+    mapGroup.style.cssText = "display:inline-flex;align-items:stretch;border:1px solid rgba(255,255,255,0.16);border-radius:8px;overflow:hidden;background:rgba(255,255,255,0.03);";
+    mapBtn.style.border = "none";
+    mapBtn.style.borderRadius = "0";
+    mapBtn.style.margin = "0";
     const autoLbl = document.createElement("button");
     autoLbl.type = "button";
     autoLbl.className = "k1c-cfs-action";
-    autoLbl.style.cssText = "display:inline-flex;align-items:center;gap:7px;cursor:pointer;user-select:none;";
-    autoLbl.title = "Manual Slot Map = always confirm CFS-C slots before print | Auto Slot Match = start immediately if matching filament is loaded";
+    autoLbl.style.cssText = "display:inline-flex;align-items:center;gap:6px;cursor:pointer;user-select:none;border:none;border-left:1px solid rgba(255,255,255,0.16);border-radius:0;margin:0;padding:0 10px;background:rgba(0,0,0,0.18);";
+    autoLbl.title = "Auto: Ask = always open Map & Print before print | Auto: Match = start immediately if matching filament is loaded";
     const swTrack = document.createElement("span");
-    swTrack.style.cssText = "position:relative;display:inline-block;width:28px;height:16px;border-radius:999px;background:#4b5563;transition:background .18s;flex-shrink:0;";
+    swTrack.style.cssText = "position:relative;display:inline-block;width:26px;height:14px;border-radius:999px;background:#4b5563;transition:background .18s;flex-shrink:0;";
     const swKnob = document.createElement("span");
-    swKnob.style.cssText = "position:absolute;top:2px;left:2px;width:12px;height:12px;border-radius:50%;background:#fff;transition:transform .18s;";
+    swKnob.style.cssText = "position:absolute;top:2px;left:2px;width:10px;height:10px;border-radius:50%;background:#fff;transition:transform .18s;";
     swTrack.appendChild(swKnob);
     const autoTxt = document.createElement("span");
+    autoTxt.style.fontSize = "12px";
     let autoEn = localStorage.getItem("cfs_auto_map_modal") !== "0";
     const renderToggle = () => {
       swTrack.style.background = autoEn ? "#4f7df3" : "#4b5563";
       swKnob.style.transform = autoEn ? "translateX(12px)" : "translateX(0)";
-      const enStr = autoEn ? "Manual Slot Map" : "Auto Slot Match";
+      const enStr = autoEn ? "Auto: Ask" : "Auto: Match";
       autoTxt.__k1cOrig = enStr;
       autoTxt.textContent = enStr;
     };
@@ -1354,7 +1359,9 @@
       fetch("/cfs-gate/enabled", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ enabled: autoEn }) }).catch(()=>{});
       fetch("/printer/gcode/script", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ script: "SAVE_VARIABLE VARIABLE=cfs_auto_map VALUE=" + (autoEn ? 1 : 0) }) }).catch(()=>{});
     };
-    controls.appendChild(autoLbl);
+    mapGroup.appendChild(mapBtn);
+    mapGroup.appendChild(autoLbl);
+    controls.appendChild(mapGroup);
     shell.appendChild(controls);
     return root;
   }
@@ -2155,8 +2162,8 @@ if (!window.__cfsHttpStartInterceptor) {
       "Apply & Print": "Übernehmen & Drucken",
       "Reading G-Code...": "Lese G-Code...",
       "No G-Code files found.": "Keine G-Code-Dateien gefunden.",
-      "Manual Slot Map": "Manuelle Slot-Wahl",
-      "Auto Slot Match": "Auto-Slot-Erkennung",
+      "Auto: Ask": "Auto: Fragen",
+      "Auto: Match": "Auto: Erkennen",
       "Feed": "Einziehen",
       "Retract": "Zurückziehen",
       "Purge Settings": "Spüleinstellungen",
