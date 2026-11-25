@@ -49,7 +49,7 @@ window.openMapAndPrintModal = async function(prefillPath = "", fromAutoTrigger =
     `<input type="checkbox" id="cfs-mp-auto"><span style="display:flex;flex-direction:column;line-height:1.25;"><span>${__k1cI18n.t('map_auto_main')}</span><span style="font-size:11px;color:#9ca3af;font-weight:400;">${__k1cI18n.t('map_auto_sub')}</span></span></label>`,
     '<div style="display:flex;justify-content:flex-end;gap:10px;">',
     `<button id="cfs-mp-cancel" style="padding:8px 16px;border-radius:8px;background:#2d313d;color:#fff;border:1px solid #3f4454;cursor:pointer;">${__k1cI18n.t('map_cancel')}</button>`,
-    '<button id="cfs-mp-start" style="padding:8px 18px;border-radius:8px;background:#4f7df3;color:#fff;border:none;cursor:pointer;font-weight:700;">${__k1cI18n.t('map_apply')}</button></div></div>'
+    `<button id="cfs-mp-start" style="padding:8px 18px;border-radius:8px;background:#4f7df3;color:#fff;border:none;cursor:pointer;font-weight:700;">${__k1cI18n.t('map_apply')}</button></div></div>`
   ].join("");
   ov.appendChild(box); document.body.appendChild(ov);
   const close = () => { ov.remove(); window.__cfsAutoMapOpenFor = ""; };
