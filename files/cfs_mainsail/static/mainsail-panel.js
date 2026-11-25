@@ -738,7 +738,7 @@
     if (savingSlot) return;
     savingSlot = slot.slot;
     saveButton.disabled = true;
-    saveButton.textContent = "Saving";
+    saveButton.textContent = window.__k1cI18n ? __k1cI18n.t("saving") : "Saving";
     try {
       const normalizedType = String(draft.type || "").trim().toUpperCase();
       const preset = findPresetByTypeAndName(normalizedType, draft.name) || MATERIAL_PRESETS[normalizedType] || null;
@@ -771,7 +771,7 @@
     } finally {
       savingSlot = "";
       saveButton.disabled = false;
-      saveButton.textContent = "Save";
+      saveButton.textContent = window.__k1cI18n ? __k1cI18n.t("save") : "Save";
     }
   }
 
@@ -790,7 +790,7 @@
     head.className = "k1c-cfs-modal-head";
     const title = document.createElement("div");
     title.className = "k1c-cfs-modal-title";
-    title.textContent = "Purge Config";
+    title.textContent = window.__k1cI18n ? __k1cI18n.t("purge_config") : "Purge Config";
     head.appendChild(title);
     card.appendChild(head);
 
@@ -845,16 +845,16 @@
     const cancel = document.createElement("button");
     cancel.type = "button";
     cancel.className = "k1c-cfs-cancel-btn";
-    cancel.textContent = "Cancel";
+    cancel.textContent = window.__k1cI18n ? __k1cI18n.t("cancel") : "Cancel";
     cancel.onclick = closeModal;
 
     const save = document.createElement("button");
     save.type = "button";
     save.className = "k1c-cfs-save-btn";
-    save.textContent = "Save";
+    save.textContent = window.__k1cI18n ? __k1cI18n.t("save") : "Save";
     save.onclick = async function () {
       save.disabled = true;
-      save.textContent = "Saving";
+      save.textContent = window.__k1cI18n ? __k1cI18n.t("saving") : "Saving";
       try {
         var commandParts = ["CFS_SET_MATERIAL_DB_TEMPS"];
         for (var i = 0; i < purgeMaterials.length; i += 1) {
@@ -870,7 +870,7 @@
         window.alert("Failed to save material config: " + (error.message || String(error)));
       } finally {
         save.disabled = false;
-        save.textContent = "Save";
+        save.textContent = window.__k1cI18n ? __k1cI18n.t("save") : "Save";
       }
     };
 
@@ -926,7 +926,7 @@
     const closeBtn = document.createElement("button");
     closeBtn.type = "button";
     closeBtn.className = "k1c-cfs-cancel-btn";
-    closeBtn.textContent = "Close";
+    closeBtn.textContent = window.__k1cI18n ? __k1cI18n.t("close") : "Close";
     const onDone = function () {
       closeModal();
       if (typeof window.__k1c_reload_mat_db === "function") window.__k1c_reload_mat_db();
@@ -994,11 +994,11 @@
     head.className = "k1c-cfs-modal-head";
     const title = document.createElement("div");
     title.className = "k1c-cfs-modal-title";
-    title.textContent = slot.slot + " Edit Material";
+    title.textContent = slot.slot + " " + (window.__k1cI18n ? __k1cI18n.t("edit_material") : "Edit Material");
     const closeBtn = document.createElement("button");
     closeBtn.type = "button";
     closeBtn.className = "k1c-cfs-cancel-btn";
-    closeBtn.textContent = "Close";
+    closeBtn.textContent = window.__k1cI18n ? __k1cI18n.t("close") : "Close";
     closeBtn.onclick = closeModal;
     head.appendChild(title);
     head.appendChild(closeBtn);
@@ -1022,7 +1022,7 @@
     colorAvatar.appendChild(colorOverlay);
     const colorLabel = document.createElement("span");
     colorLabel.className = "k1c-cfs-color-label";
-    colorLabel.textContent = "COLOR";
+    colorLabel.textContent = window.__k1cI18n ? __k1cI18n.t("color") : "COLOR";
     colorWrap.appendChild(colorAvatar);
     colorWrap.appendChild(colorLabel);
     body.appendChild(colorWrap);
@@ -1111,12 +1111,12 @@
     const cancel = document.createElement("button");
     cancel.type = "button";
     cancel.className = "k1c-cfs-cancel-btn";
-    cancel.textContent = "Cancel";
+    cancel.textContent = window.__k1cI18n ? __k1cI18n.t("cancel") : "Cancel";
     cancel.onclick = closeModal;
     const save = document.createElement("button");
     save.type = "button";
     save.className = "k1c-cfs-save-btn";
-    save.textContent = "Save";
+    save.textContent = window.__k1cI18n ? __k1cI18n.t("save") : "Save";
     save.onclick = function () {
       saveSlot(
         slot,
@@ -1171,7 +1171,7 @@
     feedBtn.disabled = true;
     feedBtn.appendChild(createSvgPath("M11 4v11.2l-3.6-3.6-1.4 1.4 6 6 6-6-1.4-1.4-3.6 3.6V4h-2z"));
     const feedText = document.createElement("span");
-    feedText.textContent = "Feed";
+    feedText.textContent = window.__k1cI18n ? __k1cI18n.t("feed") : "Feed";
     feedBtn.appendChild(feedText);
     feedBtn.onclick = function () {
       const slot = latestSlots.find(function (item) { return item.slot === selectedSlot; });
@@ -1186,7 +1186,7 @@
     configBtn.className = "k1c-cfs-action";
     configBtn.appendChild(createSvgPath("M19.4 13a7.8 7.8 0 0 0 .1-1 7.8 7.8 0 0 0-.1-1l2.1-1.6-2-3.4-2.5 1a7.2 7.2 0 0 0-1.7-1l-.4-2.7h-4l-.4 2.7a7.2 7.2 0 0 0-1.7 1l-2.5-1-2 3.4L4.6 11a7.8 7.8 0 0 0-.1 1 7.8 7.8 0 0 0 .1 1l-2.1 1.6 2 3.4 2.5-1a7.2 7.2 0 0 0 1.7 1l.4 2.7h4l.4-2.7a7.2 7.2 0 0 0 1.7-1l2.5 1 2-3.4-2.1-1.6zM12 15.5A3.5 3.5 0 1 1 12 8a3.5 3.5 0 0 1 0 7.5z"));
     const configText = document.createElement("span");
-    configText.textContent = "Purge Settings";
+    configText.textContent = window.__k1cI18n ? __k1cI18n.t("purge_settings") : "Purge Settings";
     configBtn.appendChild(configText);
     configBtn.title = "Config";
     configBtn.onclick = function () {
@@ -1200,7 +1200,7 @@
     retractBtn.disabled = true;
     retractBtn.appendChild(createSvgPath("M13 20V8.8l3.6 3.6 1.4-1.4-6-6-6 6 1.4 1.4 3.6-3.6V20h2z"));
     const retractText = document.createElement("span");
-    retractText.textContent = "Retract";
+    retractText.textContent = window.__k1cI18n ? __k1cI18n.t("retract") : "Retract";
     retractBtn.appendChild(retractText);
     retractBtn.onclick = function () {
       const slot = latestSlots.find(function (item) { return item.slot === selectedSlot; });
@@ -1217,7 +1217,7 @@
     dbBtn.className = "k1c-cfs-action";
     dbBtn.appendChild(createSvgPath("M12 3C7.58 3 4 4.79 4 7v10c0 2.21 3.58 4 8 4s8-1.79 8-4V7c0-2.21-3.58-4-8-4zm0 2c3.87 0 6 .9 6 2s-2.13 2-6 2-6-.9-6-2 2.13-2 6-2zm0 14c-3.87 0-6-.9-6-2v-2.23c1.61.78 3.72 1.23 6 1.23s4.39-.45 6-1.23V17c0 1.1-2.13 2-6 2zm0-5c-3.87 0-6-.9-6-2V9.77C7.61 10.55 9.72 11 12 11s4.39-.45 6-1.23V12c0 1.1-2.13 2-6 2z"));
     const dbText = document.createElement("span");
-    dbText.textContent = "Material DB";
+    dbText.textContent = window.__k1cI18n ? __k1cI18n.t("material_db") : "Material DB";
     dbBtn.appendChild(dbText);
     dbBtn.title = "Open Material Database Editor";
     dbBtn.onclick = function () { openMaterialDbModal(); };
@@ -1228,7 +1228,7 @@
     mapBtn.className = "k1c-cfs-action";
     mapBtn.appendChild(createSvgPath("M4 6h10v2H4V6zm0 5h10v2H4v-2zm0 5h7v2H4v-2zm13-9l4 4-4 4v-3h-2v-2h2V7z"));
     const mapText = document.createElement("span");
-    mapText.textContent = "Map & Print";
+    mapText.textContent = window.__k1cI18n ? __k1cI18n.t("map_print") : "Map & Print";
     mapBtn.appendChild(mapText);
     mapBtn.title = "Map G-Code filament types/colors to CFS-C slots and start print";
     mapBtn.onclick = async function () {
@@ -1540,7 +1540,7 @@
       channel.textContent = slot.display_label || ("Channel " + slot.slot);
       const type = document.createElement("span");
       type.className = "k1c-cfs-type";
-      type.textContent = slot.is_holder ? String(slot.type || "Empty") : (slot.present ? String(slot.type || "Unknown") : "Empty");
+      type.textContent = slot.is_holder ? (slot.type && slot.type !== "Empty" ? String(slot.type) : (window.__k1cI18n ? __k1cI18n.t("empty") : "Empty")) : (slot.present ? String(slot.type || (window.__k1cI18n ? __k1cI18n.t("unknown") : "Unknown")) : (window.__k1cI18n ? __k1cI18n.t("empty") : "Empty"));
       info.appendChild(channel);
       info.appendChild(type);
       var rem = computeSlotRemaining(slot);
