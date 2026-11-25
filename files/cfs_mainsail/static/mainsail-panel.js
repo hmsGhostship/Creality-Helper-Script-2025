@@ -1327,7 +1327,7 @@
     autoChk.checked = localStorage.getItem("cfs_auto_map_modal") !== "0";
     autoChk.style.cssText = "accent-color:#4f7df3;width:15px;height:15px;cursor:pointer;margin:0;";
     const autoTxt = document.createElement("span");
-    autoTxt.textContent = "Auto-Map";
+    autoTxt.textContent = "Ask Before Print";
     autoLbl.appendChild(autoChk);
     autoLbl.appendChild(autoTxt);
     fetch("/cfs-gate/enabled").then(r => r.ok ? r.json() : null).then(d => {
@@ -2143,6 +2143,7 @@ if (!window.__cfsHttpStartInterceptor) {
       "Apply & Print": "Übernehmen & Drucken",
       "Reading G-Code...": "Lese G-Code...",
       "No G-Code files found.": "Keine G-Code-Dateien gefunden.",
+      "Ask Before Print": "Vor Druck fragen",
       "Feed": "Einziehen",
       "Retract": "Zurückziehen",
       "Purge Settings": "Spüleinstellungen",
