@@ -1318,29 +1318,41 @@
     controls.appendChild(configBtn);
     controls.appendChild(dbBtn);
     controls.appendChild(mapBtn);
-    const autoLbl = document.createElement("label");
+    const autoLbl = document.createElement("button");
+    autoLbl.type = "button";
     autoLbl.className = "k1c-cfs-action";
-    autoLbl.style.cssText = "display:inline-flex;align-items:center;gap:6px;cursor:pointer;user-select:none;";
-    autoLbl.title = "Always open Map & Print before starting a print (unchecked = open only if matching filament is missing in CFS-C)";
-    const autoChk = document.createElement("input");
-    autoChk.type = "checkbox";
-    autoChk.checked = localStorage.getItem("cfs_auto_map_modal") !== "0";
-    autoChk.style.cssText = "accent-color:#4f7df3;width:15px;height:15px;cursor:pointer;margin:0;";
+    autoLbl.style.cssText = "display:inline-flex;align-items:center;gap:7px;cursor:pointer;user-select:none;";
+    autoLbl.title = "Manual Slot Map = always confirm CFS-C slots before print | Auto Slot Match = start immediately if matching filament is loaded";
+    const swTrack = document.createElement("span");
+    swTrack.style.cssText = "position:relative;display:inline-block;width:28px;height:16px;border-radius:999px;background:#4b5563;transition:background .18s;flex-shrink:0;";
+    const swKnob = document.createElement("span");
+    swKnob.style.cssText = "position:absolute;top:2px;left:2px;width:12px;height:12px;border-radius:50%;background:#fff;transition:transform .18s;";
+    swTrack.appendChild(swKnob);
     const autoTxt = document.createElement("span");
-    autoTxt.textContent = "Ask Before Print";
-    autoLbl.appendChild(autoChk);
+    let autoEn = localStorage.getItem("cfs_auto_map_modal") !== "0";
+    const renderToggle = () => {
+      swTrack.style.background = autoEn ? "#4f7df3" : "#4b5563";
+      swKnob.style.transform = autoEn ? "translateX(12px)" : "translateX(0)";
+      const enStr = autoEn ? "Manual Slot Map" : "Auto Slot Match";
+      autoTxt.__k1cOrig = enStr;
+      autoTxt.textContent = enStr;
+    };
+    renderToggle();
+    autoLbl.appendChild(swTrack);
     autoLbl.appendChild(autoTxt);
     fetch("/cfs-gate/enabled").then(r => r.ok ? r.json() : null).then(d => {
       if (d && typeof d.enabled === "boolean") {
-        autoChk.checked = d.enabled;
-        localStorage.setItem("cfs_auto_map_modal", d.enabled ? "1" : "0");
+        autoEn = d.enabled;
+        localStorage.setItem("cfs_auto_map_modal", autoEn ? "1" : "0");
+        renderToggle();
       }
     }).catch(()=>{});
-    autoChk.onchange = () => {
-      const en = autoChk.checked;
-      localStorage.setItem("cfs_auto_map_modal", en ? "1" : "0");
-      fetch("/cfs-gate/enabled", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ enabled: en }) }).catch(()=>{});
-      fetch("/printer/gcode/script", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ script: "SAVE_VARIABLE VARIABLE=cfs_auto_map VALUE=" + (en ? 1 : 0) }) }).catch(()=>{});
+    autoLbl.onclick = () => {
+      autoEn = !autoEn;
+      localStorage.setItem("cfs_auto_map_modal", autoEn ? "1" : "0");
+      renderToggle();
+      fetch("/cfs-gate/enabled", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ enabled: autoEn }) }).catch(()=>{});
+      fetch("/printer/gcode/script", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ script: "SAVE_VARIABLE VARIABLE=cfs_auto_map VALUE=" + (autoEn ? 1 : 0) }) }).catch(()=>{});
     };
     controls.appendChild(autoLbl);
     shell.appendChild(controls);
@@ -2143,7 +2155,8 @@ if (!window.__cfsHttpStartInterceptor) {
       "Apply & Print": "Übernehmen & Drucken",
       "Reading G-Code...": "Lese G-Code...",
       "No G-Code files found.": "Keine G-Code-Dateien gefunden.",
-      "Ask Before Print": "Vor Druck fragen",
+      "Manual Slot Map": "Manuelle Slot-Wahl",
+      "Auto Slot Match": "Auto-Slot-Erkennung",
       "Feed": "Einziehen",
       "Retract": "Zurückziehen",
       "Purge Settings": "Spüleinstellungen",
