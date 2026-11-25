@@ -147,6 +147,8 @@ EOF
         # 6. Clean up Moonraker configuration (no legacy [octoeverywhere] header needed)
         if [ -f "$MOONRAKER_CFG" ]; then
           sed -i '/^\[octoeverywhere\]$/d' "$MOONRAKER_CFG" 2>/dev/null || true
+          sed -i '/octoeverywhere-system\.cfg/d' "$MOONRAKER_CFG" 2>/dev/null || true
+          rm -f "${PRINTER_DATA_FOLDER}/config/octoeverywhere-system.cfg" 2>/dev/null || true
         fi
 
         # 7. Write persistent init script with Base64 JSON config & boot delay
@@ -161,6 +163,8 @@ EOF
 case "\$1" in
   start)
     echo "Starting OctoEverywhere Daemon..."
+    sed -i '/octoeverywhere-system\.cfg/d' "$MOONRAKER_CFG" 2>/dev/null || true
+    rm -f "${PRINTER_DATA_FOLDER}/config/octoeverywhere-system.cfg" 2>/dev/null || true
     nohup /bin/sh -c '[ "\$1" != "now" ] && sleep 20; cd $OCTOEVERYWHERE_FOLDER && PYTHONPATH=$OCTOEVERYWHERE_FOLDER exec $active_python -m moonraker_octoeverywhere "$B64_ARGS" > ${PRINTER_DATA_FOLDER}/logs/octoeverywhere.log 2>&1' _ "\$2" </dev/null >/dev/null 2>&1 &
     ;;
   stop)
