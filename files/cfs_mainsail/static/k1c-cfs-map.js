@@ -11,9 +11,9 @@ window.openMapAndPrintModal = async function(prefillPath = "", fromAutoTrigger =
     '<span>Map Filaments & Start Print</span><button id="cfs-mp-close" style="background:none;border:none;color:#9ca3af;font-size:20px;cursor:pointer;">&times;</button></div>',
     '<div style="padding:18px 20px;display:flex;flex-direction:column;gap:12px;">',
     '<select id="cfs-mp-file" style="width:100%;padding:9px;border-radius:8px;background:#13151a;color:#f3f4f6;border:1px solid #374151;"></select>',
-    '<div style="font-size:13px;color:#d1d5db;">Bitte wählen Sie den CFS-Slot aus, der den Verbrauchsmaterialien entspricht:</div>',
+    '<div style="font-size:13px;color:#d1d5db;">Please select the CFS slot matching each filament:</div>',
     '<div id="cfs-mp-warn" style="display:none;color:#ef4444;font-size:13px;font-weight:600;background:rgba(239,68,68,0.12);border:1px solid rgba(239,68,68,0.35);padding:8px 12px;border-radius:8px;">',
-    'Es gibt Verbrauchsmaterialien ohne Zuordnung – Drucken nicht möglich.</div>',
+    'Unassigned filaments remaining – printing disabled.</div>',
     '<div id="cfs-mp-cards" style="display:flex;flex-wrap:wrap;gap:12px;min-height:105px;"></div>',
     '<label style="display:flex;align-items:center;gap:8px;font-size:13px;background:#262934;padding:10px;border-radius:8px;cursor:pointer;">',
     '<input type="checkbox" id="cfs-mp-auto"><span style="display:flex;flex-direction:column;line-height:1.25;"><span>Always open before starting a print</span><span style="font-size:11px;color:#9ca3af;font-weight:400;">When unchecked, opens only if matching filament is missing in CFS-C</span></span></label>',
@@ -172,7 +172,7 @@ window.openMapAndPrintModal = async function(prefillPath = "", fromAutoTrigger =
         const ch = slots.find((x) => x.id === curVal);
         if (!ch) {
           ddBtn.style.cssText = "width:100%;padding:8px;border-radius:6px;background:#1f222b;border:1px dashed #ef4444;color:#9ca3af;font-size:13px;font-weight:700;text-align:center;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;";
-          ddBtn.innerHTML = '<span>-- Leer --</span><span style="font-size:10px;opacity:0.8;">▼</span>';
+          ddBtn.innerHTML = '<span>-- Empty --</span><span style="font-size:10px;opacity:0.8;">▼</span>';
         } else {
           ddBtn.style.cssText = `width:100%;padding:8px;border-radius:6px;background:${ch.col};border:1px solid rgba(255,255,255,0.28);color:${fgFor(ch.col)};font-size:13px;font-weight:700;text-align:center;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;`;
           const subLine = ch.rem ? `<span style="font-size:11px;font-weight:600;opacity:0.88;">${ch.rem}</span>` : "";
@@ -182,7 +182,7 @@ window.openMapAndPrintModal = async function(prefillPath = "", fromAutoTrigger =
 
       const buildItems = () => {
         ddMenu.innerHTML = "";
-        const items = [{ id: "", label: "-- Leer --", rem: "", bg: "#1f222b", fg: "#9ca3af", dashed: true }].concat(
+        const items = [{ id: "", label: "-- Empty --", rem: "", bg: "#1f222b", fg: "#9ca3af", dashed: true }].concat(
           slots.map((x) => ({ id: x.id, label: `${x.id} / ${x.mat}`, rem: x.rem || "", bg: x.col, fg: fgFor(x.col), dashed: false }))
         );
         items.forEach((it) => {
