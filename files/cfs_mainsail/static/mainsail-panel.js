@@ -2175,12 +2175,17 @@ if (!window.__cfsHttpStartInterceptor) {
   let lang = "en";
   const norm = r => { const b = String(r||"").trim().toLowerCase().split(/[-_]/).shift(); return MAP[b] ? b : ""; };
   async function checkLang() {
-    for (const u of ["/server/database/item?namespace=mainsail&key=general","/server/database/item?namespace=fluidd&key=config"]) {
+    const isFluidd = /4408/.test(location.port) || /fluidd/i.test(document.title);
+    const urls = isFluidd
+      ? ["/server/database/item?namespace=fluidd", "/server/database/item?namespace=mainsail"]
+      : ["/server/database/item?namespace=mainsail", "/server/database/item?namespace=fluidd"];
+    for (const u of urls) {
       try {
         const r = await fetch(u);
         if (r.ok) {
-          const j = await r.json(), v = j && j.result && j.result.value;
-          const n = norm(v && (v.locale || (v.uiSettings && v.uiSettings.general && v.uiSettings.general.locale)));
+          const raw = await r.text();
+          const m = raw.match(/"(?:language|locale)"\s*:\s*"([a-zA-Z_-]+)"/);
+          const n = norm(m ? m.slice(1,2).join("") : "");
           if (n) { lang = n; apply(); return; }
         }
       } catch(e) {}
