@@ -2192,6 +2192,21 @@ if (!window.__cfsHttpStartInterceptor) {
         if (m && norm(m.slice(1,2).join(""))) { lang = norm(m.slice(1,2).join("")); apply(); return; }
       }
     } catch(e) {}
+    try {
+      const req = indexedDB.open("mainsail");
+      req.onsuccess = function(e) {
+        try {
+          const db = e.target.result;
+          const store = db.objectStoreNames.contains("mainsail") ? "mainsail" : db.objectStoreNames.item(0);
+          if (!store) return;
+          const g = db.transaction(store, "readonly").objectStore(store).get("general");
+          g.onsuccess = function() {
+            const n = norm(g.result && g.result.locale);
+            if (n) { lang = n; apply(); }
+          };
+        } catch(err) {}
+      };
+    } catch(e) {}
     const hl = norm(document.documentElement && document.documentElement.lang);
     if (hl) { lang = hl; apply(); }
   }
