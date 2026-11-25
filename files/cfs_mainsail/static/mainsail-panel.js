@@ -2198,7 +2198,7 @@ if (!window.__cfsHttpStartInterceptor) {
   function apply() {
     const dict = MAP[lang];
     if (!dict) return;
-    document.querySelectorAll(".k1c-cfs-panel-card *, #k1c-cfs-modal *, #cfs-map-print-modal *").forEach(el => {
+    document.querySelectorAll("body *").forEach(el => {
       el.childNodes.forEach(n => {
         if (n.nodeType === 3) {
           const raw = n.nodeValue, tr = raw.trim();
