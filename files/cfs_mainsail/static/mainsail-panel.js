@@ -952,9 +952,13 @@
   let latestBoxInfoList = [];
   function computeSlotRemaining(slot) {
     if (!slot || !slot.present || slot.is_holder) return null;
-    var idx = Number(slot.material_index);
+    var idx = (slot.material_index != null && slot.material_index !== "" && !isNaN(Number(slot.material_index)) && Number(slot.material_index) >= 0) ? Number(slot.material_index) : -1;
+    if (idx < 0 || idx >= latestBoxInfoList.length) {
+      var sm = String(slot.slot || slot.id || "").match(/([A-D])$/i);
+      if (sm) idx = "ABCD".indexOf(sm[1].toUpperCase());
+    }
     var bi = (Array.isArray(latestBoxInfoList) && idx >= 0 && idx < latestBoxInfoList.length) ? latestBoxInfoList[idx] : null;
-    if (!bi || Number(bi.editable) !== 0 || Number(bi.total_len || 0) <= 0) return null;
+    if (!bi || (Number(bi.editable) !== 0 && !String(bi.vender || "").trim()) || Number(bi.total_len || 0) <= 0) return null;
 
     var raw = slot.raw || {};
     var totalLen = Number(bi.total_len || raw.total_len || raw.totalMaterialLength || 0);
@@ -970,7 +974,8 @@
     var totalMeters = totalLen > 5000 ? (totalLen / 1000.0) : totalLen;
     var estTotalGrams = Math.round(totalMeters * 2.98);
     var grams = estTotalGrams > 0 ? Math.max(0, Math.round(estTotalGrams * (pct / 100.0))) : null;
-    return { pct: pct, grams: grams, hasRfid: true };
+    var remMeters = totalMeters > 0 ? Math.round(totalMeters * (pct / 100.0)) : null;
+    return { pct: pct, grams: grams, meters: remMeters, totalMeters: Math.round(totalMeters), hasRfid: true };
   }
 
   function openEditModal(slot) {
@@ -1540,6 +1545,9 @@
       info.appendChild(type);
       var rem = computeSlotRemaining(slot);
       if (rem) {
+        if (typeof item !== "undefined" && item && item.dataset) {
+          item.dataset.rfidRem = rem.pct + "%" + (rem.grams != null ? " (~" + rem.grams + "g)" : "");
+        }
         var remWrap = document.createElement("div");
         remWrap.style.cssText = "display:flex;align-items:center;gap:6px;margin-top:4px;font-size:11px;color:#b8c0cc;";
         var bar = document.createElement("div");
@@ -1836,7 +1844,7 @@
   let cfsIsMoving = false;
 
   function pollCfsCStatus() {
-    const urlDb = "/server/database/item?namespace=color_box&key=box_info";
+    const urlDb = "/nexusp-api/server/database/item?namespace=color_box&key=box_info";
     const urlKlipper = "/printer/objects/query?idle_timeout";
 
     Promise.all([
@@ -1845,10 +1853,13 @@
     ])
     .then(([dbData, klipperData]) => {
       if (!dbData.result || !dbData.result.value || !dbData.result.value.T1) return;
-      if (Array.isArray(dbData.result.value.T1.list)) latestBoxInfoList = dbData.result.value.T1.list;
-      if (!hasCfsBox) {
-        hasCfsBox = true;
-        render(latestSlots, latestConnected);
+      if (Array.isArray(dbData.result.value.T1.list)) {
+        var prevJson = JSON.stringify(latestBoxInfoList);
+        latestBoxInfoList = dbData.result.value.T1.list;
+        if (!hasCfsBox || prevJson !== JSON.stringify(latestBoxInfoList)) {
+          hasCfsBox = true;
+          render(latestSlots, latestConnected);
+        }
       }
       if (!klipperData.result || !klipperData.result.status || !klipperData.result.status.idle_timeout) return;
 

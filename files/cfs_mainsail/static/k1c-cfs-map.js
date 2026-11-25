@@ -95,7 +95,8 @@ window.openMapAndPrintModal = async function(prefillPath = "", fromAutoTrigger =
         || getComputedStyle(item).getPropertyValue("--spool-color")
         || getComputedStyle(spEl).backgroundColor;
       const hex = parseColorAny(rawVar) || "9CA3AF";
-      out.push({ id, mat, nm: normMat(mat), col: `#${hex}`, nc: hex });
+      const rem = (item.dataset && item.dataset.rfidRem) ? item.dataset.rfidRem : "";
+      out.push({ id, mat, rem, nm: normMat(mat), col: `#${hex}`, nc: hex });
     });
 
     return out.sort((a, b) => a.id.localeCompare(b.id));
@@ -173,21 +174,22 @@ window.openMapAndPrintModal = async function(prefillPath = "", fromAutoTrigger =
           ddBtn.innerHTML = '<span>-- Leer --</span><span style="font-size:10px;opacity:0.8;">▼</span>';
         } else {
           ddBtn.style.cssText = `width:100%;padding:8px;border-radius:6px;background:${ch.col};border:1px solid rgba(255,255,255,0.28);color:${fgFor(ch.col)};font-size:13px;font-weight:700;text-align:center;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;`;
-          ddBtn.innerHTML = `<span>${ch.id} / ${ch.mat}</span><span style="font-size:10px;opacity:0.8;">▼</span>`;
+          const subLine = ch.rem ? `<span style="font-size:11px;font-weight:600;opacity:0.88;">${ch.rem}</span>` : "";
+          ddBtn.innerHTML = `<span style="display:flex;flex-direction:column;align-items:center;line-height:1.2;"><span>${ch.id} / ${ch.mat}</span>${subLine}</span><span style="font-size:10px;opacity:0.8;">▼</span>`;
         }
       };
 
       const buildItems = () => {
         ddMenu.innerHTML = "";
-        const items = [{ id: "", label: "-- Leer --", bg: "#1f222b", fg: "#9ca3af", dashed: true }].concat(
-          slots.map((x) => ({ id: x.id, label: `${x.id} / ${x.mat}`, bg: x.col, fg: fgFor(x.col), dashed: false }))
+        const items = [{ id: "", label: "-- Leer --", rem: "", bg: "#1f222b", fg: "#9ca3af", dashed: true }].concat(
+          slots.map((x) => ({ id: x.id, label: `${x.id} / ${x.mat}`, rem: x.rem || "", bg: x.col, fg: fgFor(x.col), dashed: false }))
         );
         items.forEach((it) => {
           const item = document.createElement("button");
           item.type = "button";
           const active = it.id === curVal;
           item.style.cssText = `width:100%;padding:7px 8px;border-radius:6px;background:${it.bg};color:${it.fg};font-size:13px;font-weight:700;text-align:center;cursor:pointer;border:${active ? "2px solid #4f7df3" : it.dashed ? "1px dashed #6b7280" : "1px solid rgba(255,255,255,0.2)"};`;
-          item.textContent = it.label;
+          item.innerHTML = it.rem ? `<div style="line-height:1.2;"><div>${it.label}</div><div style="font-size:11px;font-weight:600;opacity:0.88;">${it.rem}</div></div>` : it.label;
           item.onclick = (ev) => {
             ev.stopPropagation();
             curVal = it.id;
@@ -303,3 +305,24 @@ window.openMapAndPrintModal = async function(prefillPath = "", fromAutoTrigger =
     await fetch("/printer/gcode/script", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ script }) });
   };
 };
+
+
+(function(){
+  if (window.__cfsOrcaGatePoller) return;
+  window.__cfsOrcaGatePoller = true;
+  setInterval(async function(){
+    try {
+      if (localStorage.getItem("cfs_auto_map_modal") === "0") return;
+      if (document.getElementById("cfs-map-print-modal")) return;
+      const r = await fetch("/cfs-gate/pending", { cache: "no-store" });
+      if (!r.ok) return;
+      const d = await r.json();
+      if (d && d.filename) {
+        await fetch("/cfs-gate/clear", { method: "POST" });
+        if (typeof window.openMapAndPrintModal === "function") {
+          window.openMapAndPrintModal(d.filename, false);
+        }
+      }
+    } catch (e) {}
+  }, 1500);
+})();

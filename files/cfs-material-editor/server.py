@@ -1,3 +1,56 @@
+
+import re as _re, urllib.request as _ureq
+
+_PENDING_ORCA_PRINT = {"filename": ""}
+
+def _forward_upload_no_autoprint(handler, target_path="/server/files/upload"):
+    ctype = handler.headers.get("Content-Type", "")
+    clen = int(handler.headers.get("Content-Length", "0") or "0")
+    body = handler.rfile.read(clen)
+    m = _re.search(r'boundary=([^;]+)', ctype)
+    want_print = False
+    uploaded_name = ""
+    if m:
+        boundary = m.group(1).strip().strip('"').encode("utf-8")
+        delim = b"--" + boundary
+        parts = body.split(delim)
+        new_parts = []
+        for part in parts:
+            if b"\r\n\r\n" not in part:
+                new_parts.append(part)
+                continue
+            hdr_raw, val = part.split(b"\r\n\r\n", 1)
+            hdr_str = hdr_raw.decode("utf-8", errors="ignore")
+            if 'name="print"' in hdr_str:
+                if val.rstrip(b"\r\n").strip().lower() in (b"true", b"1", b"yes"):
+                    want_print = True
+                    val = b"false\r\n"
+                new_parts.append(hdr_raw + b"\r\n\r\n" + val)
+            else:
+                fn_m = _re.search(r'filename="([^"]+)"', hdr_str)
+                if fn_m:
+                    uploaded_name = fn_m.group(1)
+                new_parts.append(part)
+        body = delim.join(new_parts)
+    req = _ureq.Request("http://localhost:7126" + target_path, data=body, method="POST")
+    if ctype:
+        req.add_header("Content-Type", ctype)
+    with _ureq.urlopen(req, timeout=60) as resp:
+        st, rbody, rct = resp.status, resp.read(), resp.headers.get("Content-Type", "application/json")
+    if want_print and st in (200, 201):
+        try:
+            rj = json.loads(rbody.decode("utf-8", errors="ignore"))
+            fn = rj.get("item", {}).get("path") or uploaded_name
+        except Exception:
+            fn = uploaded_name
+        if fn:
+            _PENDING_ORCA_PRINT["filename"] = fn
+    handler.send_response(st)
+    handler.send_header("Content-Type", rct)
+    handler.send_header("Content-Length", str(len(rbody)))
+    handler.end_headers()
+    handler.wfile.write(rbody)
+
 #!/usr/bin/env python3
 import copy, json, os, shutil, tempfile
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
@@ -145,6 +198,10 @@ class Handler(BaseHTTPRequestHandler):
         self.wfile.write(body)
 
     def do_GET(self):
+        if urlparse(self.path).path == "/cfs-gate/pending":
+            fn = _PENDING_ORCA_PRINT.get("filename", "")
+            self._send_json(200, {"filename": fn})
+            return
         p = urlparse(self.path).path
         if p == "/api/materials":
             try:
@@ -209,6 +266,14 @@ class Handler(BaseHTTPRequestHandler):
         self.wfile.write(html)
 
     def do_POST(self):
+        _pp = urlparse(self.path).path
+        if _pp in ("/server/files/upload", "/api/files/local"):
+            _forward_upload_no_autoprint(self, _pp)
+            return
+        if _pp == "/cfs-gate/clear":
+            _PENDING_ORCA_PRINT["filename"] = ""
+            self._send_json(200, {"ok": True})
+            return
         p = urlparse(self.path).path
         length = int(self.headers.get("Content-Length", 0))
         body = json.loads(self.rfile.read(length).decode("utf-8")) if length else {}
