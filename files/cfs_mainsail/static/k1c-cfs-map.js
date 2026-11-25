@@ -15,8 +15,6 @@ window.openMapAndPrintModal = async function(prefillPath = "", fromAutoTrigger =
     '<div id="cfs-mp-warn" style="display:none;color:#ef4444;font-size:13px;font-weight:600;background:rgba(239,68,68,0.12);border:1px solid rgba(239,68,68,0.35);padding:8px 12px;border-radius:8px;">',
     'Unassigned filaments remaining – printing disabled.</div>',
     '<div id="cfs-mp-cards" style="display:flex;flex-wrap:wrap;gap:12px;min-height:105px;"></div>',
-    '<label style="display:flex;align-items:center;gap:8px;font-size:13px;background:#262934;padding:10px;border-radius:8px;cursor:pointer;">',
-    '<input type="checkbox" id="cfs-mp-auto"><span style="display:flex;flex-direction:column;line-height:1.25;"><span>Always open before starting a print</span><span style="font-size:11px;color:#9ca3af;font-weight:400;">When unchecked, opens only if matching filament is missing in CFS-C</span></span></label>',
     '<div style="display:flex;justify-content:flex-end;gap:10px;">',
     '<button id="cfs-mp-cancel" style="padding:8px 16px;border-radius:8px;background:#2d313d;color:#fff;border:1px solid #3f4454;cursor:pointer;">Cancel</button>',
     '<button id="cfs-mp-start" style="padding:8px 18px;border-radius:8px;background:#4f7df3;color:#fff;border:none;cursor:pointer;font-weight:700;">Apply & Print</button></div></div>'
@@ -35,20 +33,6 @@ window.openMapAndPrintModal = async function(prefillPath = "", fromAutoTrigger =
   };
   box.querySelector("#cfs-mp-close").onclick = cancelAuto;
   box.querySelector("#cfs-mp-cancel").onclick = cancelAuto;
-  const autoCb = box.querySelector("#cfs-mp-auto");
-  autoCb.checked = localStorage.getItem("cfs_auto_map_modal") !== "0";
-  const syncAutoVar = async (en) => {
-    await fetch("/printer/gcode/script", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ script: `SAVE_VARIABLE VARIABLE=cfs_auto_map VALUE=${en ? 1 : 0}` })
-    });
-  };
-  autoCb.onchange = () => {
-    localStorage.setItem("cfs_auto_map_modal", autoCb.checked ? "1" : "0");
-    syncAutoVar(autoCb.checked);
-    fetch("/cfs-gate/enabled", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ enabled: autoCb.checked }) }).catch(()=>{});
-  };
   const fileSel = box.querySelector("#cfs-mp-file");
   const cardsEl = box.querySelector("#cfs-mp-cards");
   const warnEl = box.querySelector("#cfs-mp-warn");

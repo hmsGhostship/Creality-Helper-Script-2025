@@ -1318,6 +1318,31 @@
     controls.appendChild(configBtn);
     controls.appendChild(dbBtn);
     controls.appendChild(mapBtn);
+    const autoLbl = document.createElement("label");
+    autoLbl.className = "k1c-cfs-action";
+    autoLbl.style.cssText = "display:inline-flex;align-items:center;gap:6px;cursor:pointer;user-select:none;";
+    autoLbl.title = "Always open Map & Print before starting a print (unchecked = open only if matching filament is missing in CFS-C)";
+    const autoChk = document.createElement("input");
+    autoChk.type = "checkbox";
+    autoChk.checked = localStorage.getItem("cfs_auto_map_modal") !== "0";
+    autoChk.style.cssText = "accent-color:#4f7df3;width:15px;height:15px;cursor:pointer;margin:0;";
+    const autoTxt = document.createElement("span");
+    autoTxt.textContent = "Auto-Map";
+    autoLbl.appendChild(autoChk);
+    autoLbl.appendChild(autoTxt);
+    fetch("/cfs-gate/enabled").then(r => r.ok ? r.json() : null).then(d => {
+      if (d && typeof d.enabled === "boolean") {
+        autoChk.checked = d.enabled;
+        localStorage.setItem("cfs_auto_map_modal", d.enabled ? "1" : "0");
+      }
+    }).catch(()=>{});
+    autoChk.onchange = () => {
+      const en = autoChk.checked;
+      localStorage.setItem("cfs_auto_map_modal", en ? "1" : "0");
+      fetch("/cfs-gate/enabled", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ enabled: en }) }).catch(()=>{});
+      fetch("/printer/gcode/script", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ script: "SAVE_VARIABLE VARIABLE=cfs_auto_map VALUE=" + (en ? 1 : 0) }) }).catch(()=>{});
+    };
+    controls.appendChild(autoLbl);
     shell.appendChild(controls);
     return root;
   }
