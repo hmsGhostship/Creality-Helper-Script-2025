@@ -52,7 +52,12 @@ EOF
 rename_existing: START_PRINT_GUARD_BASE
 gcode:
   {% set check_color = params.CHECK_COLOR|default("1") %}
-  CHECK_CFS_FILAMENTS CHECK_COLOR={check_color}
+  {% set skip_once = printer.save_variables.variables.cfs_skip_guard_once|default(0)|int %}
+  {% if skip_once == 1 %}
+    SAVE_VARIABLE VARIABLE=cfs_skip_guard_once VALUE=0
+  {% else %}
+    CHECK_CFS_FILAMENTS CHECK_COLOR={check_color}
+  {% endif %}
   START_PRINT_GUARD_BASE {rawparams}
 EOF2
         fi
@@ -73,9 +78,14 @@ target = "[gcode_macro START_PRINT]
 rename_existing: START_PRINT_BASE
 gcode:
 "
-hook = "  {% set check_color = params.CHECK_COLOR|default("1") %}
-  CHECK_CFS_FILAMENTS CHECK_COLOR={check_color}
-"
+hook = '''  {% set check_color = params.CHECK_COLOR|default("1") %}
+  {% set skip_once = printer.save_variables.variables.cfs_skip_guard_once|default(0)|int %}
+  {% if skip_once == 1 %}
+    SAVE_VARIABLE VARIABLE=cfs_skip_guard_once VALUE=0
+  {% else %}
+    CHECK_CFS_FILAMENTS CHECK_COLOR={check_color}
+  {% endif %}
+'''
 if target in s and "CHECK_CFS_FILAMENTS" not in s:
     s = s.replace(target, target + hook, 1)
 open(p, "w", encoding="utf-8").write(s)
