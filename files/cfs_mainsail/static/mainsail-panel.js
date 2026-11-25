@@ -2177,8 +2177,8 @@ if (!window.__cfsHttpStartInterceptor) {
   async function checkLang() {
     const isFluidd = /4408/.test(location.port) || /fluidd/i.test(document.title);
     const urls = isFluidd
-      ? ["/server/database/item?namespace=fluidd", "/server/database/item?namespace=mainsail"]
-      : ["/server/database/item?namespace=mainsail", "/server/database/item?namespace=fluidd"];
+      ? ["/server/database/item?namespace=fluidd"]
+      : ["/server/database/item?namespace=mainsail"];
     for (const u of urls) {
       try {
         const r = await fetch(u);
