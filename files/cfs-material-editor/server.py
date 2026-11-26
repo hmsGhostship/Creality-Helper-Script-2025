@@ -20,49 +20,79 @@ def _save_gate_enabled(val):
 _PENDING_ORCA_PRINT = {"filename": "", "enabled": _load_gate_enabled()}
 
 
+def _cfs_color_to_hex(val):
+    if isinstance(val, int):
+        return f"{val & 0xFFFFFF:06X}"
+    s = str(val or "").strip().lstrip("#").upper()
+    if s.isdigit():
+        return f"{int(s) & 0xFFFFFF:06X}"
+    s = _re.sub(r"[^0-9A-F]", "", s)
+    return s[-6:] if len(s) >= 6 else ""
+
 def _cfs_has_matching_materials(gcode_bytes):
     try:
-        head = (gcode_bytes[:65536] + b"\n" + gcode_bytes[-65536:]).decode("utf-8", errors="ignore")
-        types = []
+        head = (gcode_bytes[:131072] + b"\\n" + gcode_bytes[-131072:]).decode("utf-8", errors="ignore")
+        types, colors, used_mm = [], [], []
         for line in head.splitlines():
             if line.startswith("; filament_type ="):
-                types = [t.strip().upper().replace("-", "") for t in line.split("=", 1)[1].split(";") if t.strip()]
-                break
-        used = sorted({int(m.group(1)) for m in _re.finditer(r'(?m)^T([0-3])\b', gcode_bytes[:262144].decode("utf-8", errors="ignore"))})
+                types = [t.strip().upper().replace("-", "") for t in line.split("=", 1)[1].split(";")]
+            elif line.startswith("; filament_colour =") or line.startswith("; extruder_colour ="):
+                if not colors:
+                    colors = [_cfs_color_to_hex(c) for c in line.split("=", 1)[1].split(";")]
+            elif line.startswith("; filament_used_mm ="):
+                used_mm = [float(x.strip() or 0) for x in line.split("=", 1)[1].split(";")]
+        used = [i for i, mm in enumerate(used_mm) if mm > 0.01]
+        if not used:
+            used = sorted({int(m.group(1)) for m in _re.finditer(r'(?m)^T([0-3])', head)})
         if not used:
             used = [0]
-        req_mats = []
+        def _base_mat(m):
+            u = _re.sub(r"[^A-Z0-9]", "", str(m or "").upper())
+            for pr in ("PLACF", "PETGCF", "PACF", "PLA", "PETG", "ABS", "ASA", "TPU"):
+                if u.startswith(pr):
+                    return pr
+            return u
+        def _rgb(h):
+            h = _cfs_color_to_hex(h)
+            return (int(h[0:2], 16), int(h[2:4], 16), int(h[4:6], 16)) if len(h) == 6 else None
+        def _cmatch(c1, c2):
+            a, b = _rgb(c1), _rgb(c2)
+            return True if (not a or not b) else (abs(a[0] - b[0]) <= 35 and abs(a[1] - b[1]) <= 35 and abs(a[2] - b[2]) <= 35)
+        reqs = []
         for t in used:
-            m = types[t] if t < len(types) else (types[0] if types else "")
+            m = types[t].strip() if t < len(types) and types[t].strip() else (types[0].strip() if types else "")
+            c = colors[t] if t < len(colors) else (colors[0] if colors else "")
             if m:
-                req_mats.append(m)
-        if not req_mats:
+                reqs.append((_base_mat(m), c))
+        if not reqs:
             return True
         con = sqlite3.connect("/usr/data/printer_data/database/nexusp-sql.db")
         row = con.execute("SELECT value FROM namespace_store WHERE namespace='color_box' AND key='box_info'").fetchone()
         con.close()
         if not row:
             return False
-        slots = json.loads(row[0]).get("T1", {}).get("list", [])
-        def _base_mat(m):
-            u = _re.sub(r"[^A-Z0-9]", "", str(m or "").upper())
-            for p in ("PLACF", "PETGCF", "PACF", "PLA", "PETG", "ABS", "ASA", "TPU"):
-                if u.startswith(p):
-                    return p
-            return u
-        avail = [_base_mat(s.get("type", "")) for s in slots if s.get("enable") == 1 and str(s.get("type", "")).strip()]
-        req_mats = [_base_mat(m) for m in req_mats]
+        raw_boxes = json.loads(row[0])
+        avail = []
+        for bid in sorted(raw_boxes.keys()):
+            bdata = raw_boxes.get(bid)
+            if not isinstance(bdata, dict):
+                continue
+            for sl in bdata.get("list", []):
+                if sl.get("enable") == 1 and str(sl.get("type", "")).strip():
+                    avail.append((_base_mat(sl.get("type", "")), _cfs_color_to_hex(sl.get("color", ""))))
         pool = list(avail)
-        for rm in req_mats:
-            if rm in pool:
-                pool.remove(rm)
-            elif rm in avail:
+        for rm, rc in reqs:
+            hit = next((i for i, (am, ac) in enumerate(pool) if am == rm and _cmatch(rc, ac)), None)
+            if hit is not None:
+                pool.pop(hit)
+            elif any(am == rm and _cmatch(rc, ac) for am, ac in avail):
                 pass
             else:
                 return False
         return True
     except Exception:
         return True
+
 
 def _forward_upload_no_autoprint(handler, target_path="/server/files/upload"):
     from urllib.parse import parse_qs, urlencode, urlsplit, urlunsplit
@@ -288,7 +318,7 @@ class Handler(BaseHTTPRequestHandler):
                     bnum = bid.lstrip("T") or "1"
                     for idx, sl in enumerate(raw.get(bid, {}).get("list", [])):
                         if sl.get("enable") == 1 and str(sl.get("type", "")).strip():
-                            col = str(sl.get("color", "9CA3AF")).lstrip("#").upper()[:6] or "9CA3AF"
+                            col = _cfs_color_to_hex(sl.get("color", "")) or "9CA3AF"
                             out.append({"id": f"{bnum}{chr(65+idx)}", "mat": str(sl.get("type", "")).strip(), "col": f"#{col}", "nc": col})
                 self._send_json(200, {"slots": out})
             except Exception as e:
