@@ -1,5 +1,5 @@
 
-import re as _re, urllib.request as _ureq
+import json, os, sqlite3, re as _re, urllib.request as _ureq
 
 _GATE_STATE_FILE = "/usr/data/printer_data/database/cfs_gate_state.json"
 def _load_gate_enabled():
@@ -22,7 +22,7 @@ _PENDING_ORCA_PRINT = {"filename": "", "enabled": _load_gate_enabled()}
 
 def _cfs_has_matching_materials(gcode_bytes):
     try:
-        head = gcode_bytes[:65536].decode("utf-8", errors="ignore")
+        head = (gcode_bytes[:65536] + b"\n" + gcode_bytes[-65536:]).decode("utf-8", errors="ignore")
         types = []
         for line in head.splitlines():
             if line.startswith("; filament_type ="):
