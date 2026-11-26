@@ -213,10 +213,11 @@ TIMELAPSE_TAKE_FRAME
 To ensure **Send & Print** uploads trigger the automatic **`Map & Print`** dialog and live camera streams work seamlessly:
 1. Click the **Wi-Fi / Connection icon** next to your printer profile in OrcaSlicer.
 2. Select **Octo/Klipper** as **Host Type**.
-3. Enter your printer's IP address together with the active web frontend port (**important:** use `:4409` or `:4408`, **not** `:7125` / `:7126`):
+3. Enter your printer's IP address together with the active web frontend port under **Hostname, IP or URL** (**important:** use `:4409` or `:4408`, **not** `:7125` / `:7126`):
    * **Mainsail:** `http://<printer-ip>:4409`
    * **Fluidd:** `http://<printer-ip>:4408`
-4. Leave **API Key** empty and click **Test** -> **OK**.
+4. Leave the **Device** field either **empty** (OrcaSlicer automatically mirrors the Hostname/IP URL above) or enter the exact same `:4409` / `:4408` URL so the embedded Device tab loads the web UI with `Map & Print`.
+5. Leave **API Key** empty and click **Test** -> **OK**.
 
 ---
 *Disclaimer: This software is provided "as is" without warranty of any kind. Use it at your own risk.*
