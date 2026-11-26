@@ -90,6 +90,13 @@ function install_fluidd(){
         unzip "$FLUIDD_FOLDER"/fluidd.zip -d "$FLUIDD_FOLDER"
         echo -e "Info: Removing temporary files..."
         rm -f "$FLUIDD_FOLDER"/fluidd.zip
+
+        # -> Pre-configure local Moonraker endpoint so embedded WebViews (e.g. OrcaSlicer) persist cameras & settings
+        local printer_ip
+        printer_ip="$(check_ipaddress)"
+        if [ -n "$printer_ip" ] && [ -f "$FLUIDD_FOLDER/config.json" ]; then
+          python3 -c 'import json, sys; p, ep = sys.argv.pop(1), sys.argv.pop(1); d = json.load(open(p, "r", encoding="utf-8")); d["endpoints"] = [ep]; json.dump(d, open(p, "w", encoding="utf-8"), indent=2)' "http://${printer_ip}:4408" "$FLUIDD_FOLDER/config.json" 2>/dev/null || true
+        fi
         
         # -> ORIGINAL MOONRAKER WORKING CONFIGURATION
         if grep -q "#\[update_manager fluidd\]" "$MOONRAKER_CFG" ; then
