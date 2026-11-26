@@ -874,7 +874,7 @@ function retire_nexusp(){
           echo "nexusp_active = 0" >> "$VARS_FILE"
         fi
         # Migrate any companion services from port 7126 to 7125
-        for cfg in "${PRINTER_DATA_FOLDER}/config/octoeverywhere.conf" "${PRINTER_DATA_FOLDER}/config/mobileraker.conf" "${PRINTER_DATA_FOLDER}/config/octoapp.conf" "${PRINTER_DATA_FOLDER}/config/moonraker-obico.cfg" "/usr/data/guppyscreen/guppyscreen.json"; do
+        for cfg in "${PRINTER_DATA_FOLDER}/config/octoeverywhere.conf" "${PRINTER_DATA_FOLDER}/config/mobileraker.conf" "${PRINTER_DATA_FOLDER}/config/octoapp.conf" "${PRINTER_DATA_FOLDER}/config/moonraker-obico.cfg" "/usr/data/guppyscreen/guppyscreen.json" "${FLUIDD_FOLDER}/config.json"; do
           [ -f "$cfg" ] && sed -i "s/7126/7125/g" "$cfg" 2>/dev/null || true
         done
         [ -x "${INITD_FOLDER}/S99octoeverywhere" ] && "${INITD_FOLDER}/S99octoeverywhere" restart >/dev/null 2>&1 || true
@@ -1073,7 +1073,7 @@ function restore_nexusp(){
           echo "nexusp_active = 1" >> "$VARS_FILE"
         fi
         # Migrate any companion services back from port 7125 to 7126
-        for cfg in "${PRINTER_DATA_FOLDER}/config/octoeverywhere.conf" "${PRINTER_DATA_FOLDER}/config/mobileraker.conf" "${PRINTER_DATA_FOLDER}/config/octoapp.conf" "${PRINTER_DATA_FOLDER}/config/moonraker-obico.cfg" "/usr/data/guppyscreen/guppyscreen.json"; do
+        for cfg in "${PRINTER_DATA_FOLDER}/config/octoeverywhere.conf" "${PRINTER_DATA_FOLDER}/config/mobileraker.conf" "${PRINTER_DATA_FOLDER}/config/octoapp.conf" "${PRINTER_DATA_FOLDER}/config/moonraker-obico.cfg" "/usr/data/guppyscreen/guppyscreen.json" "${FLUIDD_FOLDER}/config.json"; do
           [ -f "$cfg" ] && sed -i "s/7125/7126/g" "$cfg" 2>/dev/null || true
         done
         [ -x "${INITD_FOLDER}/S99octoeverywhere" ] && "${INITD_FOLDER}/S99octoeverywhere" restart >/dev/null 2>&1 || true
