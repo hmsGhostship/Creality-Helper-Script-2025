@@ -2300,3 +2300,37 @@ if (!window.__cfsHttpStartInterceptor) {
   checkLang();
   setInterval(checkLang, 4000);
 })();
+
+// Suppress Fluidd's automatic layout-autosave "Saved!" toast during initial WebView boot (first 6s)
+(function () {
+  if (typeof window === "undefined" || typeof document === "undefined") return;
+  const bootUntil = Date.now() + 6000;
+  function hideSavedToast(root) {
+    if (Date.now() > bootUntil) return;
+    const snacks = (root || document).querySelectorAll(".v-snack__wrapper, .v-snack__content");
+    for (let i = 0; i < snacks.length; i++) {
+      const el = snacks[i];
+      const txt = (el.textContent || "").replace(/close|schliessen|schließen/gi, "").trim();
+      if (txt === "Saved!") {
+        const wrapper = el.closest(".v-snack__wrapper") || el;
+        wrapper.style.display = "none";
+      }
+    }
+  }
+  const obs = new MutationObserver(function () {
+    if (Date.now() > bootUntil) {
+      obs.disconnect();
+      return;
+    }
+    hideSavedToast(document);
+  });
+  if (document.body) {
+    obs.observe(document.body, { childList: true, subtree: true });
+    hideSavedToast(document);
+  } else {
+    window.addEventListener("DOMContentLoaded", function () {
+      obs.observe(document.body, { childList: true, subtree: true });
+      hideSavedToast(document);
+    });
+  }
+})();
