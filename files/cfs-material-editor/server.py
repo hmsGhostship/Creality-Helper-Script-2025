@@ -42,13 +42,18 @@ def _cfs_has_matching_materials(gcode_bytes):
         return True
 
 def _forward_upload_no_autoprint(handler, target_path="/server/files/upload"):
+    from urllib.parse import parse_qs, urlencode, urlsplit, urlunsplit
     ctype = handler.headers.get("Content-Type", "")
     clen = int(handler.headers.get("Content-Length", "0") or "0")
     body = handler.rfile.read(clen)
-    m = _re.search(r'boundary=([^;]+)', ctype)
-    want_print = False
+    sp = urlsplit(handler.path or target_path)
+    qs = parse_qs(sp.query, keep_blank_values=True)
+    q_print = any(v.strip().lower() in ("true", "1", "yes") for v in qs.get("print", []))
+    want_print = q_print
     uploaded_name = ""
     gcode_bytes = b""
+    should_intercept = _PENDING_ORCA_PRINT.get("enabled", True)
+    m = _re.search(r'boundary=([^;]+)', ctype)
     if m:
         boundary = m.group(1).strip().strip('"').encode("utf-8")
         delim = b"--" + boundary
@@ -62,6 +67,9 @@ def _forward_upload_no_autoprint(handler, target_path="/server/files/upload"):
             if fn_m:
                 uploaded_name = fn_m.group(1)
                 gcode_bytes = val[:-2] if val.endswith(b"\r\n") else val
+            if 'name="print"' in hdr_str:
+                if val.rstrip(b"\r\n").strip().lower() in (b"true", b"1", b"yes"):
+                    want_print = True
         should_intercept = _PENDING_ORCA_PRINT.get("enabled", True) or (not _cfs_has_matching_materials(gcode_bytes))
         new_parts = []
         for part in parts:
@@ -71,15 +79,16 @@ def _forward_upload_no_autoprint(handler, target_path="/server/files/upload"):
             hdr_raw, val = part.split(b"\r\n\r\n", 1)
             hdr_str = hdr_raw.decode("utf-8", errors="ignore")
             if 'name="print"' in hdr_str:
-                if val.rstrip(b"\r\n").strip().lower() in (b"true", b"1", b"yes"):
-                    if should_intercept:
-                        want_print = True
-                        val = b"false\r\n"
+                if want_print and should_intercept:
+                    val = b"false\r\n"
                 new_parts.append(hdr_raw + b"\r\n\r\n" + val)
             else:
                 new_parts.append(part)
         body = delim.join(new_parts)
-    req = _ureq.Request("http://localhost:7126" + target_path, data=body, method="POST")
+    if q_print and should_intercept:
+        qs["print"] = ["false"]
+    fwd_path = urlunsplit(("", "", sp.path or target_path, urlencode(qs, doseq=True), ""))
+    req = _ureq.Request("http://localhost:7126" + fwd_path, data=body, method="POST")
     if ctype:
         req.add_header("Content-Type", ctype)
     with _ureq.urlopen(req, timeout=60) as resp:
