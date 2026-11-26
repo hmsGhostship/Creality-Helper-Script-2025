@@ -35,6 +35,8 @@ class CfsMaterialDb:
         self.gcode = self.printer.lookup_object("gcode")
         self.material_db_path = "/usr/data/creality/gui/config/material_database.json" if os.path.exists("/usr/data/creality/gui/config/material_database.json") else "/usr/data/creality/userdata/box/material_database.json"
         self.generic_materials = GENERIC_MATERIALS
+        self._cached_mtime = None
+        self._cached_purge_temps = {}
         self.gcode.register_command(
             "CFS_SET_MATERIAL_DB_TEMP",
             self.cmd_CFS_SET_MATERIAL_DB_TEMP,
@@ -98,7 +100,11 @@ class CfsMaterialDb:
 
     def get_status(self, eventtime):
         try:
-            return {"purge_temps": self._read_purge_temps()}
+            mtime = os.path.getmtime(self.material_db_path)
+            if mtime != self._cached_mtime:
+                self._cached_purge_temps = self._read_purge_temps()
+                self._cached_mtime = mtime
+            return {"purge_temps": self._cached_purge_temps}
         except Exception as err:
             logging.exception("cfs_material_db get_status failed")
             return {"purge_temps": {}, "error": str(err)}

@@ -116,7 +116,7 @@ def _forward_upload_no_autoprint(handler, target_path="/server/files/upload"):
         req.add_header("Content-Type", ctype)
     with _ureq.urlopen(req, timeout=60) as resp:
         st, rbody, rct = resp.status, resp.read(), resp.headers.get("Content-Type", "application/json")
-    if want_print and st in (200, 201):
+    if want_print and should_intercept and st in (200, 201):
         try:
             rj = json.loads(rbody.decode("utf-8", errors="ignore"))
             fn = rj.get("item", {}).get("path") or uploaded_name
@@ -277,6 +277,23 @@ class Handler(BaseHTTPRequestHandler):
         self.wfile.write(body)
 
     def do_GET(self):
+        if urlparse(self.path).path == "/cfs-gate/slots":
+            try:
+                con = sqlite3.connect("/usr/data/printer_data/database/nexusp-sql.db")
+                row = con.execute("SELECT value FROM namespace_store WHERE namespace='color_box' AND key='box_info'").fetchone()
+                con.close()
+                raw = json.loads(row[0]) if row else {}
+                out = []
+                for bid in sorted(raw.keys()):
+                    bnum = bid.lstrip("T") or "1"
+                    for idx, sl in enumerate(raw.get(bid, {}).get("list", [])):
+                        if sl.get("enable") == 1 and str(sl.get("type", "")).strip():
+                            col = str(sl.get("color", "9CA3AF")).lstrip("#").upper()[:6] or "9CA3AF"
+                            out.append({"id": f"{bnum}{chr(65+idx)}", "mat": str(sl.get("type", "")).strip(), "col": f"#{col}", "nc": col})
+                self._send_json(200, {"slots": out})
+            except Exception as e:
+                self._send_json(200, {"slots": []})
+            return
         if urlparse(self.path).path == "/cfs-gate/pending":
             fn = _PENDING_ORCA_PRINT.get("filename", "")
             self._send_json(200, {"filename": fn})

@@ -2304,8 +2304,8 @@ if (!window.__cfsHttpStartInterceptor) {
     document.querySelectorAll("body *").forEach(el => {
       el.childNodes.forEach(n => {
         if (n.nodeType === 3) {
-          if (n.__k1cOrig === undefined) n.__k1cOrig = n.nodeValue;
-          const orig = n.__k1cOrig, tr = orig.trim();
+          const orig = n.nodeValue, tr = orig.trim();
+          if (!tr || /^[0-9.,:%°/\s-]+$/.test(tr)) return;
           let target = orig;
           if (dict[tr]) target = orig.replace(tr, dict[tr]);
           else if (tr.endsWith(" Edit Material") && lang === "de") target = orig.replace("Edit Material", "Material bearbeiten");

@@ -264,18 +264,11 @@ window.openMapAndPrintModal = async function(prefillPath = "", fromAutoTrigger =
       let loaded = getLoadedSlots();
       if (!loaded.length) {
         try {
-          const br = await fetch("/nexusp-api/server/database/item?namespace=color_box&key=box_info", { cache: "no-store" });
-          if (br.ok) {
-            const bj = await br.json();
-            const rawVal = (((bj.result || {}).value) || {});
-            const boxObj = typeof rawVal === "string" ? JSON.parse(rawVal) : rawVal;
-            const t1 = (boxObj.T1 && boxObj.T1.list) || [];
-            t1.forEach((sl, idx) => {
-              const mat = String(sl.type || "").trim();
-              if (Number(sl.enable) === 1 && mat && mat.toLowerCase() !== "empty") {
-                const hex = parseColorAny(sl.color || sl.rgb || "") || "9CA3AF";
-                loaded.push({ id: "1" + String.fromCharCode(65 + idx), mat, rem: "", nm: normMat(mat), col: "#" + hex, nc: hex });
-              }
+          const sr = await fetch("/cfs-gate/slots", { cache: "no-store" });
+          if (sr.ok) {
+            const sj = await sr.json();
+            (sj.slots || []).forEach((sl) => {
+              loaded.push({ id: sl.id, mat: sl.mat, rem: "", nm: normMat(sl.mat), col: sl.col, nc: sl.nc });
             });
           }
         } catch (e) {}
