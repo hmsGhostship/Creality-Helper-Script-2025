@@ -13,7 +13,7 @@ cp "$CFG_PATH" "${CFG_PATH}.bak"
 python3 - "$CFG_PATH" << 'PYEOF'
 import sys, re, os
 
-cfg_path = sys.argv
+cfg_path = sys.argv.pop()
 with open(cfg_path, "r", encoding="utf-8") as f:
     lines = f.readlines()
 
@@ -51,8 +51,9 @@ for line in save_lines:
         continue
     if current_sec is not None and s.startswith("#*#"):
         if current_sec == "serial_can" and "=" in s:
-            key = s.split("=", 1).strip()
-            sections[current_sec] = [l for l in sections[current_sec] if l.split("=", 1).strip() != key]
+            key, _ = s.split("=", 1)
+            key = key.strip()
+            sections[current_sec] = [l for l in sections[current_sec] if l.split("=", 1).pop(0).strip() != key]
         sections[current_sec].append(line if line.endswith("\n") else line + "\n")
 
 out = list(main_lines)
@@ -63,7 +64,6 @@ out.append("#*# DO NOT EDIT THIS BLOCK OR BELOW. The contents are auto-generated
 
 for sec in section_order:
     if sections[sec]:
-        out.append("#*#\n")
         out.append(f"#*# [{sec}]\n")
         out.extend(sections[sec])
 
@@ -72,7 +72,7 @@ with open(tmp_path, "w", encoding="utf-8") as f:
     f.writelines(out)
 
 os.replace(tmp_path, cfg_path)
-print(f"Cleaned SAVE_CONFIG successfully! Deduplicated {len(section_order)} section(s): {', '.join(section_order)}")
+print("Cleaned SAVE_CONFIG successfully!")
 PYEOF
 
 echo "Backup saved to ${CFG_PATH}.bak"
