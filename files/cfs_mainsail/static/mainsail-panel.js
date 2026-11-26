@@ -2005,6 +2005,24 @@ if (!window.__cfsAutoMapPoller) {
           });
           return;
         }
+        const onlyOnMismatch = localStorage.getItem("cfs_auto_map_modal") === "0";
+        if (onlyOnMismatch) {
+          try {
+            const cr = await fetch("/cfs-gate/check?filename=" + encodeURIComponent(st.filename), { cache: "no-store" });
+            if (cr.ok) {
+              const cd = await cr.json();
+              if (cd && cd.match === true) {
+                window.__cfsAutoMapOpenFor = st.filename;
+                await fetch("/printer/gcode/script", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ script: "SAVE_VARIABLE VARIABLE=cfs_auto_map VALUE=0\n_CFS_CONFIRM_MAP" })
+                });
+                return;
+              }
+            }
+          } catch (e) {}
+        }
         if (window.__cfsAutoMapOpenFor !== st.filename && typeof window.openMapAndPrintModal === "function") {
           window.__cfsAutoMapOpenFor = st.filename;
           window.openMapAndPrintModal(st.filename, true);

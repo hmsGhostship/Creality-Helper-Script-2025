@@ -281,6 +281,25 @@ class Handler(BaseHTTPRequestHandler):
             fn = _PENDING_ORCA_PRINT.get("filename", "")
             self._send_json(200, {"filename": fn})
             return
+        if urlparse(self.path).path == "/cfs-gate/check":
+            from urllib.parse import parse_qs
+            qs = parse_qs(urlparse(self.path).query)
+            fn = (qs.get("filename") or [""]).pop(0)
+            gpath = os.path.join("/usr/data/printer_data/gcodes", fn.lstrip("/"))
+            try:
+                with open(gpath, "rb") as gf:
+                    head = gf.read(65536)
+                    gf.seek(0, os.SEEK_END)
+                    sz = gf.tell()
+                    tail = b""
+                    if sz > 65536:
+                        gf.seek(max(0, sz - 65536))
+                        tail = gf.read(65536)
+                matched = _cfs_has_matching_materials(head + b"\n" + tail)
+            except Exception:
+                matched = True
+            self._send_json(200, {"match": bool(matched), "enabled": _PENDING_ORCA_PRINT.get("enabled", True)})
+            return
         p = urlparse(self.path).path
         if p == "/api/materials":
             try:
