@@ -13,7 +13,7 @@ cp "$CFG_PATH" "${CFG_PATH}.bak"
 python3 - "$CFG_PATH" << 'PYEOF'
 import sys, re, os
 
-cfg_path = sys.argv[1]
+cfg_path = sys.argv
 with open(cfg_path, "r", encoding="utf-8") as f:
     lines = f.readlines()
 
@@ -37,7 +37,7 @@ current_sec = None
 
 for line in save_lines:
     s = line.strip()
-    if not s or s.startswith("#*# <---") or s.startswith("#*# DO NOT EDIT"):
+    if not s or s == "#*#" or s.startswith("#*# <---") or s.startswith("#*# DO NOT EDIT"):
         continue
     m = re.match(r"^#\*#\s*\[([^\]]+)\]\s*$", s)
     if m:
@@ -51,8 +51,8 @@ for line in save_lines:
         continue
     if current_sec is not None and s.startswith("#*#"):
         if current_sec == "serial_can" and "=" in s:
-            key = s.split("=", 1)[0].strip()
-            sections[current_sec] = [l for l in sections[current_sec] if l.split("=", 1)[0].strip() != key]
+            key = s.split("=", 1).strip()
+            sections[current_sec] = [l for l in sections[current_sec] if l.split("=", 1).strip() != key]
         sections[current_sec].append(line if line.endswith("\n") else line + "\n")
 
 out = list(main_lines)
