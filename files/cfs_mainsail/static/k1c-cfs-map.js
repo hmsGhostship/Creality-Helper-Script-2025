@@ -261,7 +261,26 @@ window.openMapAndPrintModal = async function(prefillPath = "", fromAutoTrigger =
         const tc = h.length === 6 && (parseInt(h.slice(0,2),16)*299 + parseInt(h.slice(2,4),16)*587 + parseInt(h.slice(4,6),16)*114)/1000 > 145 ? "#111827" : "#ffffff";
         return { t, mat, nm: normMat(mat), col, nc: h, tc };
       });
-      render(list, getLoadedSlots());
+      let loaded = getLoadedSlots();
+      if (!loaded.length) {
+        try {
+          const br = await fetch("/nexusp-api/server/database/item?namespace=color_box&key=box_info", { cache: "no-store" });
+          if (br.ok) {
+            const bj = await br.json();
+            const rawVal = (((bj.result || {}).value) || {});
+            const boxObj = typeof rawVal === "string" ? JSON.parse(rawVal) : rawVal;
+            const t1 = (boxObj.T1 && boxObj.T1.list) || [];
+            t1.forEach((sl, idx) => {
+              const mat = String(sl.type || "").trim();
+              if (Number(sl.enable) === 1 && mat && mat.toLowerCase() !== "empty") {
+                const hex = parseColorAny(sl.color || sl.rgb || "") || "9CA3AF";
+                loaded.push({ id: "1" + String.fromCharCode(65 + idx), mat, rem: "", nm: normMat(mat), col: "#" + hex, nc: hex });
+              }
+            });
+          }
+        } catch (e) {}
+      }
+      render(list, loaded);
     } catch (err) {
       cardsEl.innerHTML = `<div style="color:#ef4444;font-size:13px;">Fehler: ${err.message}</div>`;
     }
