@@ -1,7 +1,23 @@
 
 import re as _re, urllib.request as _ureq
 
-_PENDING_ORCA_PRINT = {"filename": "", "enabled": True}
+_GATE_STATE_FILE = "/usr/data/printer_data/database/cfs_gate_state.json"
+def _load_gate_enabled():
+    try:
+        with open(_GATE_STATE_FILE, "r", encoding="utf-8") as f:
+            return bool(json.load(f).get("enabled", True))
+    except Exception:
+        return True
+
+def _save_gate_enabled(val):
+    try:
+        os.makedirs(os.path.dirname(_GATE_STATE_FILE), exist_ok=True)
+        with open(_GATE_STATE_FILE, "w", encoding="utf-8") as f:
+            json.dump({"enabled": bool(val)}, f)
+    except Exception:
+        pass
+
+_PENDING_ORCA_PRINT = {"filename": "", "enabled": _load_gate_enabled()}
 
 
 def _cfs_has_matching_materials(gcode_bytes):
@@ -28,7 +44,14 @@ def _cfs_has_matching_materials(gcode_bytes):
         if not row:
             return False
         slots = json.loads(row[0]).get("T1", {}).get("list", [])
-        avail = [str(s.get("type", "")).strip().upper().replace("-", "") for s in slots if s.get("enable") == 1 and str(s.get("type", "")).strip()]
+        def _base_mat(m):
+            u = _re.sub(r"[^A-Z0-9]", "", str(m or "").upper())
+            for p in ("PLACF", "PETGCF", "PACF", "PLA", "PETG", "ABS", "ASA", "TPU"):
+                if u.startswith(p):
+                    return p
+            return u
+        avail = [_base_mat(s.get("type", "")) for s in slots if s.get("enable") == 1 and str(s.get("type", "")).strip()]
+        req_mats = [_base_mat(m) for m in req_mats]
         pool = list(avail)
         for rm in req_mats:
             if rm in pool:
@@ -334,6 +357,7 @@ class Handler(BaseHTTPRequestHandler):
             cl = int(self.headers.get("Content-Length", "0") or "0")
             body = json.loads(self.rfile.read(cl).decode("utf-8") or "{}")
             _PENDING_ORCA_PRINT["enabled"] = bool(body.get("enabled", True))
+            _save_gate_enabled(_PENDING_ORCA_PRINT["enabled"])
             self._send_json(200, {"ok": True, "enabled": _PENDING_ORCA_PRINT["enabled"]})
             return
         p = urlparse(self.path).path
