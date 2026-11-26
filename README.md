@@ -76,6 +76,7 @@ It completely bypasses the legacy port `9999` socket by communicating directly w
   * **Automatic G-Code & Live Slot Matching:** Parses all filaments actually used in the selected G-Code (material type and slicer color) and auto-assigns them to the closest matching loaded CFS channel (`1A`–`1D`) by RGB color distance and compatible material (`PLA`, `Hyper PLA`, `PLA+`, `PETG`, `ABS`, `ASA`, `TPU`, etc.), independent of slicer tool order or slot position.
   * **Pre-Start Slicer Upload Gate & Missing-Material Safety Net:** Intercepts slicer uploads (`Send & Print` from OrcaSlicer / Creality Print) before Klipper starts printing. In **`Open on Print`** mode, the mapping dialog always opens before printing; in **`Only on Mismatch`** mode, matching spools start immediately while any missing filament automatically holds the print and opens the mapping dialog with a warning banner until a valid slot is loaded or selected.
   * **Printer-Synced Mode Switch & FLY-LLL Plus Compatibility:** The **`Open on Print` / `Only on Mismatch`** toggle is synchronized server-side across all connected browsers and devices. When `nexusp` / CFS macros are deactivated (e.g. via **FLY-LLL Plus** `NEXUSP_OFF_EXTERNAL_SPOOL`), the auto-open gate pauses automatically; users printing from an external spoolholder without FLY-LLL Plus can simply switch the toggle to **`Only on Mismatch`**.
+  * **Required Slicer Host/Port Configuration (`:4409` / `:4408`):** Because `k1c-cfs-map.js` runs inside the browser web interface, the automatic pre-start **`Map & Print`** upload gate only intercepts `Send & Print` jobs when **OrcaSlicer** is configured to connect to the **Mainsail (`http://<printer-ip>:4409`)** or **Fluidd (`http://<printer-ip>:4408`)** frontend ports (rather than raw Moonraker API ports `:7125` / `:7126`).
 * **Pre-Print Filament Guard (`Option 21` – Klipper Safety Net):** Validates loaded CFS materials directly inside Klipper before print execution, protecting prints started outside the web browser (e.g., directly from the printer touchscreen or print history) while seamlessly honoring slot assignments already confirmed via `Map & Print`.
 
 > 💡 *Note: After installing or removing the addon, please perform a hard reload (**Ctrl + F5**) in your web browser to force Chrome to load the newly injected script tags.*
@@ -207,6 +208,15 @@ TIMELAPSE_TAKE_FRAME
 ```
 
 > ⚠️ **Crucial Operational Note:** By default, the timelapse engine initializes in a secure **Deep Sleep (OFF)** state upon printer boot to prevent any unwanted or accidental background recordings. Before starting a print where you want a timelapse video to be generated, you **MUST** click the **`TIMELAPSE_LAYER_CONTROL`** button on your Mainsail/Fluidd dashboard once. This will un-toggle the safety block and confirm via the console: `Timelapse: Layer changing snapshots 🟩 ENABLED 🟩`.
+
+#### 6. OrcaSlicer Printer Connection (Mainsail & Fluidd Setup)
+To ensure **Send & Print** uploads trigger the automatic **`Map & Print`** dialog and live camera streams work seamlessly:
+1. Click the **Wi-Fi / Connection icon** next to your printer profile in OrcaSlicer.
+2. Select **Octo/Klipper** as **Host Type**.
+3. Enter your printer's IP address together with the active web frontend port (**important:** use `:4409` or `:4408`, **not** `:7125` / `:7126`):
+   * **Mainsail:** `http://<printer-ip>:4409`
+   * **Fluidd:** `http://<printer-ip>:4408`
+4. Leave **API Key** empty and click **Test** -> **OK**.
 
 ---
 *Disclaimer: This software is provided "as is" without warranty of any kind. Use it at your own risk.*
