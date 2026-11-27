@@ -292,7 +292,7 @@ DEFAULT_SETTINGS = {"allow_cf": False, "allow_edit_stock": False, "spoolman_host
 
 def _sm_url(cfg, b=None):
     b = b or {}
-    h = str(b.get("spoolman_host", cfg.get("spoolman_host", "")) or "").strip().replace("http://","").replace("https://","").split("/").strip()
+    h = str(b.get("spoolman_host", cfg.get("spoolman_host", "")) or "").strip().replace("http://","").replace("https://","").split("/")[0].strip()
     pt = str(b.get("spoolman_port", cfg.get("spoolman_port", 7912)) or "7912").strip()
     if ":" in h: h, pt = h.rsplit(":", 1)
     if not h: raise ValueError("Spoolman Host/IP not set in Settings")
