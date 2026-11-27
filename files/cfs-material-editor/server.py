@@ -307,17 +307,29 @@ def _sm_req(u, path, method="GET", body=None):
         raw = resp.read().decode("utf-8")
         return json.loads(raw) if raw else {}
 
-def sync_to_spoolman(scope="custom", target_id=None, body=None):
+def spoolman_preview(body=None):
     u = _sm_url(load_settings(), body)
-    items = load_db().get("result", {}).get("list", [])
-    vendors = {str(v.get("name","")).lower(): v.get("id") for v in _sm_req(u, "/vendor")}
-    exist = {(str((f.get("vendor") or {}).get("name","")).lower(), str(f.get("name","")).lower()) for f in _sm_req(u, "/filament")}
-    added = skipped = 0
-    for it in items:
+    exist = {(str((f.get("vendor") or {}).get("name","")).strip().lower(), str(f.get("name","")).strip().lower()) for f in _sm_req(u, "/filament")}
+    out = []
+    for it in load_db().get("result", {}).get("list", []):
         b, kv = it.get("base", {}), it.get("kvParam", {})
         pid = str(b.get("id", "")).strip()
-        if target_id and pid != str(target_id).strip(): continue
-        if not target_id and scope == "custom" and not (pid.isdigit() and int(pid) >= 90000): continue
+        br = str(b.get("brand") or kv.get("filament_vendor") or "Generic").strip()
+        nm = str(b.get("name") or "PLA").strip()
+        out.append({"id": pid, "custom": pid.isdigit() and int(pid) >= 90000, "brand": br, "name": nm, "type": str(b.get("meterialType") or "PLA"), "nozzle": str(kv.get("nozzle_temperature") or "210"), "bed": str(kv.get("textured_plate_temp") or "60"), "exists": (br.lower(), nm.lower()) in exist})
+    return out
+
+def sync_to_spoolman(ids=None, body=None):
+    u = _sm_url(load_settings(), body)
+    sel = {str(x).strip() for x in (ids or [])}
+    if not sel: return {"added": 0, "skipped": 0}
+    vendors = {str(v.get("name","")).strip().lower(): v.get("id") for v in _sm_req(u, "/vendor")}
+    exist = {(str((f.get("vendor") or {}).get("name","")).strip().lower(), str(f.get("name","")).strip().lower()) for f in _sm_req(u, "/filament")}
+    added = skipped = 0
+    for it in load_db().get("result", {}).get("list", []):
+        b, kv = it.get("base", {}), it.get("kvParam", {})
+        pid = str(b.get("id", "")).strip()
+        if pid not in sel: continue
         br = str(b.get("brand") or kv.get("filament_vendor") or "Generic").strip()
         nm = str(b.get("name") or "PLA").strip()
         vid = vendors.get(br.lower()) or _sm_req(u, "/vendor", "POST", {"name": br}).get("id")
@@ -632,8 +644,10 @@ class Handler(BaseHTTPRequestHandler):
             elif p == "/api/spoolman_test":
                 info = _sm_req(_sm_url(load_settings(), body), "/info")
                 self._send_json(200, {"ok": True, "version": info.get("version", "ok")})
+            elif p == "/api/spoolman_preview":
+                self._send_json(200, {"ok": True, "items": spoolman_preview(body)})
             elif p == "/api/spoolman_sync":
-                self._send_json(200, {"ok": True, **sync_to_spoolman(body.get("scope","custom"), body.get("id"), body)})
+                self._send_json(200, {"ok": True, **sync_to_spoolman(body.get("ids"), body)})
             elif p == "/api/restore_backup":
                 shutil.copy2(BACKUP_PATH, DB_PATH)
                 self._send_json(200, {"ok": True})
