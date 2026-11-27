@@ -103,6 +103,11 @@
       <span><strong>Allow editing stock profiles (Creality / Generic)</strong><br><span style="color:#aaa;font-size:12px">Disabled by default to protect factory entries. Use Clone to create an editable custom copy (90001+), or enable this option to modify stock entries directly.</span></span>
     </label>
   </div>
+  <div style="margin:12px 0;padding:10px;background:#111;border:1px solid #333;border-radius:6px">
+    <div style="font-size:13px;font-weight:600;color:#eee;margin-bottom:6px">Spoolman External Database</div>
+    <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px"><input id="s_sm_host" placeholder="Host / IP (e.g. 192.168.178.95)" style="flex:1"><input id="s_sm_port" type="number" placeholder="7912" style="width:90px"><button type="button" onclick="testSpoolman()">Test</button></div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center"><button type="button" class="ok" onclick="syncSpoolman('custom')">Sync Custom (90001+) &rarr; Spoolman</button><button type="button" onclick="syncSpoolman('all')">Sync All &rarr; Spoolman</button><span id="smStatus" style="font-size:12px;color:#aaa"></span></div>
+  </div>
   <div style="margin:12px 0;padding:10px;background:#111;border:1px solid #333;border-radius:6px;display:flex;justify-content:space-between;align-items:center">
     <span style="font-size:12px;color:#aaa">Database Maintenance</span>
     <button id="btnBak" class="warn" style="display:none" onclick="closeSettings();restoreBak()">Restore Factory Original (.bak)</button>
@@ -164,11 +169,13 @@ function runAction(v){
   else if(v==='bat')window.location.href='api/download_bat';
   else if(v==='backup')window.location.href='api/export';
 }
-let SETTINGS={allow_cf:false,allow_edit_stock:false};
-function openSettings(){document.getElementById('s_allow_cf').checked=!!SETTINGS.allow_cf;document.getElementById('s_edit_stock').checked=!!SETTINGS.allow_edit_stock;document.getElementById('setModal').classList.add('open')}
+let SETTINGS={allow_cf:false,allow_edit_stock:false,spoolman_host:'',spoolman_port:7912};
+async function testSpoolman(){const st=$('smStatus');st.style.color='#aaa';st.textContent='Testing...';const r=await(await fetch('api/spoolman_test',{method:'POST',body:JSON.stringify({spoolman_host:$('s_sm_host').value.trim(),spoolman_port:Number($('s_sm_port').value)||7912})})).json();st.style.color=r.ok?'#4ade80':'#f87171';st.textContent=r.ok?'Connected ('+r.version+')':r.error;}
+async function syncSpoolman(scope,id){const p={scope:scope||'custom'};if(id)p.id=id;if($('setModal').classList.contains('open')){p.spoolman_host=$('s_sm_host').value.trim();p.spoolman_port=Number($('s_sm_port').value)||7912;}const r=await(await fetch('api/spoolman_sync',{method:'POST',body:JSON.stringify(p)})).json();if(!r.ok)return alert(r.error);msg(`Spoolman: ${r.added} added, ${r.skipped} skipped`);}
+function openSettings(){document.getElementById('s_allow_cf').checked=!!SETTINGS.allow_cf;document.getElementById('s_edit_stock').checked=!!SETTINGS.allow_edit_stock;$('s_sm_host').value=SETTINGS.spoolman_host||'';$('s_sm_port').value=SETTINGS.spoolman_port||7912;$('smStatus').textContent='';$('setModal').classList.add('open')}
 function closeSettings(){document.getElementById('setModal').classList.remove('open')}
 async function saveSettings(){
-  const r=await (await fetch('api/settings',{method:'POST',body:JSON.stringify({settings:{allow_cf:document.getElementById('s_allow_cf').checked,allow_edit_stock:document.getElementById('s_edit_stock').checked}})})).json();
+  const r=await (await fetch('api/settings',{method:'POST',body:JSON.stringify({settings:{allow_cf:document.getElementById('s_allow_cf').checked,allow_edit_stock:document.getElementById('s_edit_stock').checked,spoolman_host:$('s_sm_host').value.trim(),spoolman_port:Number($('s_sm_port').value)||7912}})})).json();
   if(!r.ok)return alert(r.error);
   SETTINGS=r.settings;closeSettings();applySettingsUI();render();msg('Settings saved');
 }
@@ -223,7 +230,7 @@ function render(){
     <td>${x.nozzle_temp}°C</td><td>${x.bed_temp}°C</td><td>${x.max_vol} mm³/s</td>
     <td style="display:flex;gap:6px">
       ${(x.custom||SETTINGS.allow_edit_stock)?`<button onclick='openEdit(${JSON.stringify(x)},false)'>Edit</button>`:""}
-      <button onclick='openEdit(${JSON.stringify(x)},true)'>Clone</button>
+      <button onclick='openEdit(${JSON.stringify(x)},true)'>Clone</button><button onclick="syncSpoolman('single','${x.id}')">Spoolman</button>
       ${x.custom?`<button class="del" onclick="delItem('${x.id}')">Delete</button>`:''}
     </td></tr>`).join('');
 }

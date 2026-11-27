@@ -288,7 +288,44 @@ def sync_all_targets(data):
             con.close()
 
 SETTINGS_PATH = os.path.join(WEB_ROOT, "settings.json")
-DEFAULT_SETTINGS = {"allow_cf": False, "allow_edit_stock": False}
+DEFAULT_SETTINGS = {"allow_cf": False, "allow_edit_stock": False, "spoolman_host": "", "spoolman_port": 7912}
+
+def _sm_url(cfg, b=None):
+    b = b or {}
+    h = str(b.get("spoolman_host", cfg.get("spoolman_host", "")) or "").strip().replace("http://","").replace("https://","").split("/").strip()
+    pt = str(b.get("spoolman_port", cfg.get("spoolman_port", 7912)) or "7912").strip()
+    if ":" in h: h, pt = h.rsplit(":", 1)
+    if not h: raise ValueError("Spoolman Host/IP not set in Settings")
+    return f"http://{h}:{pt}/api/v1"
+
+def _sm_req(u, path, method="GET", body=None):
+    import urllib.request
+    d = json.dumps(body).encode("utf-8") if body is not None else None
+    r = urllib.request.Request(u + path, data=d, method=method)
+    if d is not None: r.add_header("Content-Type", "application/json")
+    with urllib.request.urlopen(r, timeout=8) as resp:
+        raw = resp.read().decode("utf-8")
+        return json.loads(raw) if raw else {}
+
+def sync_to_spoolman(scope="custom", target_id=None, body=None):
+    u = _sm_url(load_settings(), body)
+    items = load_db().get("result", {}).get("list", [])
+    vendors = {str(v.get("name","")).lower(): v.get("id") for v in _sm_req(u, "/vendor")}
+    exist = {(str((f.get("vendor") or {}).get("name","")).lower(), str(f.get("name","")).lower()) for f in _sm_req(u, "/filament")}
+    added = skipped = 0
+    for it in items:
+        b, kv = it.get("base", {}), it.get("kvParam", {})
+        pid = str(b.get("id", "")).strip()
+        if target_id and pid != str(target_id).strip(): continue
+        if not target_id and scope == "custom" and not (pid.isdigit() and int(pid) >= 90000): continue
+        br = str(b.get("brand") or kv.get("filament_vendor") or "Generic").strip()
+        nm = str(b.get("name") or "PLA").strip()
+        vid = vendors.get(br.lower()) or _sm_req(u, "/vendor", "POST", {"name": br}).get("id")
+        vendors[br.lower()] = vid
+        if (br.lower(), nm.lower()) in exist: skipped += 1; continue
+        _sm_req(u, "/filament", "POST", {"name": nm, "vendor_id": vid, "material": str(b.get("meterialType") or "PLA"), "density": float(b.get("density") or 1.24), "diameter": float(b.get("diameter") or 1.75), "weight": 1000, "spool_weight": 200, "settings_extruder_temp": int(float(kv.get("nozzle_temperature") or 210)), "settings_bed_temp": int(float(kv.get("textured_plate_temp") or 60)), "comment": f"Creality DB ID: {pid}"})
+        exist.add((br.lower(), nm.lower())); added += 1
+    return {"added": added, "skipped": skipped}
 
 PENDING_FILE = "/tmp/cfs_editor_pending.json"
 
@@ -592,6 +629,11 @@ class Handler(BaseHTTPRequestHandler):
                 self._send_json(200, {"ok": True, "added": added, "updated": updated, "skipped_cf": skipped_cf})
             elif p == "/api/settings":
                 self._send_json(200, {"ok": True, "settings": save_settings(body.get("settings", body))})
+            elif p == "/api/spoolman_test":
+                info = _sm_req(_sm_url(load_settings(), body), "/info")
+                self._send_json(200, {"ok": True, "version": info.get("version", "ok")})
+            elif p == "/api/spoolman_sync":
+                self._send_json(200, {"ok": True, **sync_to_spoolman(body.get("scope","custom"), body.get("id"), body)})
             elif p == "/api/restore_backup":
                 shutil.copy2(BACKUP_PATH, DB_PATH)
                 self._send_json(200, {"ok": True})
