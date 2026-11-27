@@ -164,6 +164,12 @@ LIVE_EOF
 
         install_fluidd_status_bar
 
+        # Ensure CFS upload hook sanitizes non-ASCII object names for Adaptive Bed Mesh
+        if [ -f "/usr/data/helper-script/files/cfs-material-editor/server.py" ] && [ -d "/usr/data/cfs-material-editor" ]; then
+          cp -f "/usr/data/helper-script/files/cfs-material-editor/server.py" "/usr/data/cfs-material-editor/server.py"
+          [ -x "/etc/init.d/S99cfs_material_editor" ] && /etc/init.d/S99cfs_material_editor restart >/dev/null 2>&1 || true
+        fi
+
         echo "Calibration Toolbox installed successfully."
         echo "Info: Restarting Klipper service..."
         restart_klipper

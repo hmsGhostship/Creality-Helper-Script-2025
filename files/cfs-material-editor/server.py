@@ -94,6 +94,27 @@ def _cfs_has_matching_materials(gcode_bytes):
         return True
 
 
+
+def _sanitize_obj_ascii(raw_name):
+    import unicodedata
+    s = raw_name.strip().strip('"').strip("'")
+    for k, v in (("ä","ae"),("ö","oe"),("ü","ue"),("Ä","Ae"),("Ö","Oe"),("Ü","Ue"),("ß","ss")):
+        s = s.replace(k, v)
+    s = unicodedata.normalize("NFKD", s).encode("ascii", "ignore").decode("ascii")
+    s = _re.sub(r"[^A-Za-z0-9_-]+", "_", s).strip("_")
+    return s or "object"
+
+def _sanitize_gcode_bytes(raw_bytes):
+    try:
+        txt = raw_bytes.decode("utf-8", errors="replace")
+        pat = _re.compile(r"(?m)^((?:EXCLUDE_OBJECT(?:_DEFINE|_START|_END)?)\b[^\r\n]*?\bNAME=)([\x22][^\x22]*[\x22]|\S+)")
+        new_txt = pat.sub(lambda m: m.group(1) + _sanitize_obj_ascii(m.group(2)), txt)
+        if new_txt != txt:
+            return new_txt.encode("utf-8")
+    except Exception:
+        pass
+    return raw_bytes
+
 def _forward_upload_no_autoprint(handler, target_path="/server/files/upload"):
     from urllib.parse import parse_qs, urlencode, urlsplit, urlunsplit
     ctype = handler.headers.get("Content-Type", "")
@@ -119,7 +140,11 @@ def _forward_upload_no_autoprint(handler, target_path="/server/files/upload"):
             fn_m = _re.search(r'filename="([^"]+)"', hdr_str)
             if fn_m:
                 uploaded_name = fn_m.group(1)
-                gcode_bytes = val[:-2] if val.endswith(b"\r\n") else val
+                raw_val = val[:-2] if val.endswith(b"\r\n") else val
+                if uploaded_name.lower().endswith((".gcode", ".gco", ".g")):
+                    raw_val = _sanitize_gcode_bytes(raw_val)
+                    val = raw_val + (b"\r\n" if val.endswith(b"\r\n") else b"")
+                gcode_bytes = raw_val
             if 'name="print"' in hdr_str:
                 if val.rstrip(b"\r\n").strip().lower() in (b"true", b"1", b"yes"):
                     want_print = True
