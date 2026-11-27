@@ -107,13 +107,50 @@ def _sanitize_obj_ascii(raw_name):
 def _sanitize_gcode_bytes(raw_bytes):
     try:
         txt = raw_bytes.decode("utf-8", errors="replace")
-        pat = _re.compile(r"(?m)^((?:EXCLUDE_OBJECT(?:_DEFINE|_START|_END)?)\b[^\r\n]*?\bNAME=)([\x22][^\x22]*[\x22]|\S+)")
+        pat = _re.compile(r'(?m)^((?:EXCLUDE_OBJECT(?:_DEFINE|_START|_END)?)\b[^\r\n]*?\bNAME=)("[^"]*"|\S+)')
         new_txt = pat.sub(lambda m: m.group(1) + _sanitize_obj_ascii(m.group(2)), txt)
         if new_txt != txt:
             return new_txt.encode("utf-8")
     except Exception:
         pass
     return raw_bytes
+
+
+def _start_gcode_ascii_watcher():
+    import threading, time
+    def _loop():
+        seen = {}
+        gdir = "/usr/data/printer_data/gcodes"
+        while True:
+            try:
+                if os.path.isdir(gdir):
+                    for fn in os.listdir(gdir):
+                        if not fn.lower().endswith((".gcode", ".gco", ".g")):
+                            continue
+                        fp = os.path.join(gdir, fn)
+                        try:
+                            st = os.stat(fp)
+                        except Exception:
+                            continue
+                        sig = (st.st_mtime_ns, st.st_size)
+                        if seen.get(fp) == sig:
+                            continue
+                        with open(fp, "rb") as f:
+                            raw = f.read()
+                        clean = _sanitize_gcode_bytes(raw)
+                        if clean != raw:
+                            tmp = fp + ".tmp_ascii"
+                            with open(tmp, "wb") as f:
+                                f.write(clean)
+                            os.replace(tmp, fp)
+                            st = os.stat(fp)
+                            sig = (st.st_mtime_ns, st.st_size)
+                        seen[fp] = sig
+            except Exception:
+                pass
+            time.sleep(0.4)
+    t = threading.Thread(target=_loop, daemon=True)
+    t.start()
 
 def _forward_upload_no_autoprint(handler, target_path="/server/files/upload"):
     from urllib.parse import parse_qs, urlencode, urlsplit, urlunsplit
@@ -554,4 +591,5 @@ class Handler(BaseHTTPRequestHandler):
             self._send_json(500, {"ok": False, "error": str(e)})
 
 if __name__ == "__main__":
+    _start_gcode_ascii_watcher()
     ThreadingHTTPServer(("0.0.0.0", PORT), Handler).serve_forever()
