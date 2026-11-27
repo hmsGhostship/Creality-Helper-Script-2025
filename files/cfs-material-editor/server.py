@@ -330,6 +330,12 @@ def load_db():
 
 def save_db(data):
     ensure_backup()
+    try:
+        res = data.setdefault("result", {})
+        cur_v = int(res.get("version", 0) or 0)
+        res["version"] = max(cur_v + 1, int(__import__("time").time()))
+    except Exception:
+        pass
     fd, tmp_path = tempfile.mkstemp(prefix=".matdb_", suffix=".tmp", dir=os.path.dirname(DB_PATH))
     try:
         with os.fdopen(fd, "w", encoding="utf-8") as f:
