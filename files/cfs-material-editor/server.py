@@ -322,10 +322,10 @@ def spoolman_preview(body=None):
 def sync_to_spoolman(ids=None, body=None):
     u = _sm_url(load_settings(), body)
     sel = {str(x).strip() for x in (ids or [])}
-    if not sel: return {"added": 0, "skipped": 0}
+    if not sel: return {"added": 0, "updated": 0}
     vendors = {str(v.get("name","")).strip().lower(): v.get("id") for v in _sm_req(u, "/vendor")}
-    exist = {(str((f.get("vendor") or {}).get("name","")).strip().lower(), str(f.get("name","")).strip().lower()) for f in _sm_req(u, "/filament")}
-    added = skipped = 0
+    exist_map = {(str((f.get("vendor") or {}).get("name","")).strip().lower(), str(f.get("name","")).strip().lower()): f.get("id") for f in _sm_req(u, "/filament")}
+    added = updated = 0
     for it in load_db().get("result", {}).get("list", []):
         b, kv = it.get("base", {}), it.get("kvParam", {})
         pid = str(b.get("id", "")).strip()
@@ -334,10 +334,16 @@ def sync_to_spoolman(ids=None, body=None):
         nm = str(b.get("name") or "PLA").strip()
         vid = vendors.get(br.lower()) or _sm_req(u, "/vendor", "POST", {"name": br}).get("id")
         vendors[br.lower()] = vid
-        if (br.lower(), nm.lower()) in exist: skipped += 1; continue
-        _sm_req(u, "/filament", "POST", {"name": nm, "vendor_id": vid, "material": str(b.get("meterialType") or "PLA"), "density": float(b.get("density") or 1.24), "diameter": float(b.get("diameter") or 1.75), "weight": 1000, "spool_weight": 200, "settings_extruder_temp": int(float(kv.get("nozzle_temperature") or 210)), "settings_bed_temp": int(float(kv.get("textured_plate_temp") or 60)), "comment": f"Creality DB ID: {pid}"})
-        exist.add((br.lower(), nm.lower())); added += 1
-    return {"added": added, "skipped": skipped}
+        payload = {"name": nm, "vendor_id": vid, "material": str(b.get("meterialType") or "PLA"), "density": float(b.get("density") or 1.24), "diameter": float(b.get("diameter") or 1.75), "weight": 1000, "spool_weight": 200, "settings_extruder_temp": int(float(kv.get("nozzle_temperature") or 210)), "settings_bed_temp": int(float(kv.get("textured_plate_temp") or 60)), "comment": f"Creality DB ID: {pid}"}
+        fid = exist_map.get((br.lower(), nm.lower()))
+        if fid:
+            _sm_req(u, f"/filament/{fid}", "PATCH", payload)
+            updated += 1
+        else:
+            res_f = _sm_req(u, "/filament", "POST", payload)
+            exist_map[(br.lower(), nm.lower())] = res_f.get("id")
+            added += 1
+    return {"added": added, "updated": updated}
 
 PENDING_FILE = "/tmp/cfs_editor_pending.json"
 

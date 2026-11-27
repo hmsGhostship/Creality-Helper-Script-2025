@@ -194,19 +194,19 @@ async function openSmModal(){
   SM_ITEMS=r.items||[];$('smScope').value='custom';renderSmList();$('smModal').classList.add('open');
 }
 function closeSmModal(){$('smModal').classList.remove('open')}
-function toggleAllSm(v){document.querySelectorAll('.smCb:not(:disabled)').forEach(cb=>cb.checked=v)}
+function toggleAllSm(v){document.querySelectorAll('.smCb').forEach(cb=>cb.checked=v)}
 function renderSmList(){
   const sc=$('smScope').value;
   const list=SM_ITEMS.filter(x=>sc==='all'||x.custom);
-  $('smList').innerHTML=list.length?list.map(x=>`<label style="display:flex;align-items:center;gap:10px;padding:7px 8px;border-bottom:1px solid #222;cursor:${x.exists?'default':'pointer'};font-size:13px;opacity:${x.exists?0.65:1}"><input type="checkbox" class="smCb" value="${x.id}" ${x.exists?'disabled':'checked'} style="width:auto"><span style="min-width:52px;color:#888">${x.id}</span><strong style="min-width:75px;color:#fff">${x.brand}</strong><span style="flex:1;color:#ddd">${x.name} <span style="color:#888">(${x.type}, ${x.nozzle}&deg;C / ${x.bed}&deg;C)</span></span><span style="font-size:11px;padding:2px 6px;border-radius:4px;background:${x.exists?'#262626':'#1e3a2f'};color:${x.exists?'#9ca3af':'#4ade80'}">${x.exists?'In Spoolman':'Ready'}</span></label>`).join(''):'<div style="padding:14px;color:#aaa;font-size:13px">No matching profiles found.</div>';
-  const avail=list.filter(x=>!x.exists).length;$('smAll').checked=avail>0;$('smAll').disabled=avail===0;
+  $('smList').innerHTML=list.length?list.map(x=>`<label style="display:flex;align-items:center;gap:10px;padding:7px 8px;border-bottom:1px solid #222;cursor:pointer;font-size:13px"><input type="checkbox" class="smCb" value="${x.id}" ${x.exists?'':'checked'} style="width:auto"><span style="min-width:52px;color:#888">${x.id}</span><strong style="min-width:75px;color:#fff">${x.brand}</strong><span style="flex:1;color:#ddd">${x.name} <span style="color:#888">(${x.type}, ${x.nozzle}&deg;C / ${x.bed}&deg;C)</span></span><span style="font-size:11px;padding:2px 6px;border-radius:4px;background:${x.exists?'#262626':'#1e3a2f'};color:${x.exists?'#9ca3af':'#4ade80'}">${x.exists?'In Spoolman':'Ready'}</span></label>`).join(''):'<div style="padding:14px;color:#aaa;font-size:13px">No matching profiles found.</div>';
+  $('smAll').checked=list.some(x=>!x.exists);$('smAll').disabled=list.length===0;
 }
 async function pushSelectedSpoolman(){
   const ids=Array.from(document.querySelectorAll('.smCb:checked')).map(cb=>cb.value);
   if(!ids.length)return alert('Please select at least one filament.');
   const r=await(await fetch('api/spoolman_sync',{method:'POST',body:JSON.stringify({ids})})).json();
   if(!r.ok)return alert(r.error);
-  closeSmModal();msg(`Spoolman: ${r.added} added, ${r.skipped} skipped`);
+  closeSmModal();msg(`Spoolman: ${r.added} added, ${r.updated||0} updated`);
 }
 function openSettings(){document.getElementById('s_allow_cf').checked=!!SETTINGS.allow_cf;document.getElementById('s_edit_stock').checked=!!SETTINGS.allow_edit_stock;$('s_sm_host').value=SETTINGS.spoolman_host||'';$('s_sm_port').value=SETTINGS.spoolman_port||7912;$('smStatus').textContent='';$('setModal').classList.add('open')}
 function closeSettings(){document.getElementById('setModal').classList.remove('open')}
