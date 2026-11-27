@@ -525,8 +525,9 @@ class Handler(BaseHTTPRequestHandler):
                 save_db(data)
                 self._send_json(200, {"ok": True})
             elif p == "/api/import_pack7":
+                sel_ids = [str(x) for x in (body.get("ids") or [r[0] for r in PRESET_PACK_7])]
                 existing = {str(i.get("base", {}).get("id", "")) for i in items}
-                added = sum(1 for r in PRESET_PACK_7 if r[0] not in existing and not items.append(build_entry(tpl, *r)))
+                added = sum(1 for r in PRESET_PACK_7 if r[0] in sel_ids and r[0] not in existing and not items.append(build_entry(tpl, *r)))
                 save_db(data)
                 mark_pending(sel_ids)
                 self._send_json(200, {"ok": True, "added": added})
