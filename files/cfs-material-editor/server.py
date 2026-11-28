@@ -288,7 +288,7 @@ def sync_all_targets(data):
             con.close()
 
 SETTINGS_PATH = os.path.join(WEB_ROOT, "settings.json")
-DEFAULT_SETTINGS = {"allow_cf": False, "allow_edit_stock": False, "spoolman_host": "", "spoolman_port": 7912, "spoolman_mode": "off"}
+DEFAULT_SETTINGS = {"allow_cf": False, "allow_edit_stock": False, "spoolman_host": "", "spoolman_port": 7912, "spoolman_mode": "manual"}
 
 def _sm_url(cfg, b=None):
     b = b or {}
@@ -580,10 +580,37 @@ class Handler(BaseHTTPRequestHandler):
             self.end_headers()
             self.wfile.write(raw)
             return
+        if p == "/i18n.js":
+            js_p = os.path.join(WEB_ROOT, "i18n.js")
+            raw_js = open(js_p, "rb").read() if os.path.exists(js_p) else b""
+            self.send_response(200)
+            self.send_header("Content-Type", "application/javascript; charset=utf-8")
+            self.send_header("Cache-Control", "no-store")
+            self.send_header("Content-Length", str(len(raw_js)))
+            self.end_headers()
+            self.wfile.write(raw_js)
+            return
+        if p == "/api/ui_lang":
+            langs = {}
+            try:
+                con = sqlite3.connect("/usr/data/printer_data/database/moonraker-sql.db")
+                for ns, k, field in (("mainsail", "general", "language"), ("fluidd", "uiSettings", "locale")):
+                    row = con.execute("SELECT value FROM namespace_store WHERE namespace=? AND key=?", (ns, k)).fetchone()
+                    if row and row is not None:
+                        raw = row.decode("utf-8", errors="ignore") if isinstance(row, (bytes, bytearray)) else str(row)
+                        m = _re.search(r'"' + field + r'"\s*:\s*"([a-zA-Z_-]+)"', raw)
+                        if m:
+                            langs[ns] = m.group(1)
+                con.close()
+            except Exception:
+                pass
+            self._send_json(200, {"ok": True, "lang": langs.get("mainsail") or langs.get("fluidd") or "", **langs})
+            return
         idx = os.path.join(WEB_ROOT, "index.html")
         with open(idx, "rb") as f: html = f.read()
         self.send_response(200)
         self.send_header("Content-Type", "text/html; charset=utf-8")
+        self.send_header("Cache-Control", "no-store")
         self.send_header("Content-Length", str(len(html)))
         self.end_headers()
         self.wfile.write(html)

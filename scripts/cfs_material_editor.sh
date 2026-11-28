@@ -26,7 +26,8 @@ function install_cfs_material_editor(){
         echo -e "${white}"
         mkdir -p "$CFS_MAT_EDITOR_DIR"
         cp -f "${HELPER_SCRIPT_FOLDER}/files/cfs-material-editor/server.py" "$CFS_MAT_EDITOR_DIR/server.py"
-        cp -f "${HELPER_SCRIPT_FOLDER}/files/cfs-material-editor/index.html" "$CFS_MAT_EDITOR_DIR/index.html"
+        cp -f "${HELPER_SCRIPT_FOLDER}/files/cfs-material-editor/index.html
+    cp -f "$HS_FILES_DIR/cfs-material-editor/i18n.js" /usr/data/cfs-material-editor/i18n.js 2>/dev/null || true" "$CFS_MAT_EDITOR_DIR/index.html"
         cp -f "${HELPER_SCRIPT_FOLDER}/files/cfs-material-editor/Send_Filament_to_K1C.bat" "$CFS_MAT_EDITOR_DIR/Send_Filament_to_K1C.bat"
         chmod 755 "$CFS_MAT_EDITOR_DIR/server.py"
         cat << 'SVC' > "$CFS_MAT_EDITOR_SVC"
