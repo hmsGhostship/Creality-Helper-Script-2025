@@ -56,6 +56,7 @@
         <option id="optSpoolman" value="spoolman" disabled>Sync Selection to Spoolman...</option>
       </select>
       <input id="orcaFile" type="file" accept=".json" multiple style="display:none" onchange="importOrca(this.files)">
+      <button id="btnSmMode" onclick="triggerHeaderSpoolmanSync()" disabled title="Spoolman sync mode (configure in Settings)" style="display:inline-flex;align-items:center;gap:6px;opacity:.55;cursor:not-allowed"><span id="smDot" style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#64748b"></span><span id="smModeTxt">Spoolman: Off</span></button>
       <button onclick="openSettings()" title="Configure editor preferences and database restore">&#9881; Settings</button>
     </div>
   </div>
@@ -120,6 +121,14 @@
   <div style="margin:12px 0;padding:10px;background:#111;border:1px solid #333;border-radius:6px">
     <div style="font-size:13px;font-weight:600;color:#eee;margin-bottom:6px">Spoolman External Database</div>
     <div style="display:flex;gap:8px;align-items:center"><input id="s_sm_host" placeholder="Host / IP (e.g. 192.168.178.95)" style="flex:1"><input id="s_sm_port" type="number" placeholder="7912" style="width:90px"><button type="button" onclick="testSpoolman()">Test</button></div>
+    <div style="margin-top:10px;display:flex;justify-content:space-between;align-items:center;gap:10px">
+      <label for="s_sm_mode" style="font-size:12px;color:#ccc;font-weight:600">Sync Behavior</label>
+      <select id="s_sm_mode" style="padding:6px 10px;font-size:12px">
+        <option value="off">Off (Manual only)</option>
+        <option value="autopush">AutoPush (Add &amp; Edit)</option>
+        <option value="autosync">AutoSync (Add, Edit &amp; Delete)</option>
+      </select>
+    </div>
     <div id="smStatus" style="font-size:12px;color:#aaa;margin-top:6px"></div>
   </div>
   <div style="margin:12px 0;padding:10px;background:#111;border:1px solid #333;border-radius:6px;display:flex;justify-content:space-between;align-items:center">
@@ -152,6 +161,22 @@
     </div>
   </div>
 </div>
+<div id="delModal" class="modal" onclick="if(event.target===this)closeDelModal()">
+  <div class="box" style="max-width:460px">
+    <h3 style="margin:0 0 8px 0;color:#fca5a5">Remove Filament</h3>
+    <div id="delText" style="font-size:13px;color:#ddd;line-height:1.5"></div>
+    <div style="margin:14px 0;padding:10px;background:#111;border:1px solid #333;border-radius:6px">
+      <label id="delSmLabel" style="display:flex;align-items:flex-start;gap:8px;cursor:pointer;color:#eee;font-size:13px">
+        <input id="delSmCheck" type="checkbox" style="width:auto;margin-top:3px">
+        <span><strong>Also remove from Spoolman</strong><br><span id="delSmHint" style="color:#94a3b8;font-size:12px"></span></span>
+      </label>
+    </div>
+    <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:14px">
+      <button onclick="closeDelModal()">Cancel</button>
+      <button class="del" style="padding:8px 14px;font-size:.88rem" onclick="confirmDelete()">Remove</button>
+    </div>
+  </div>
+</div>
 <div id="toast" class="toast"></div>
 <script>
 async function openPackModal(){
@@ -177,6 +202,7 @@ async function installSelectedPacks(){
   const r=await (await fetch('api/import_pack7',{method:'POST',body:JSON.stringify({ids})})).json();
   if(!r.ok)return alert(r.error);
   closePackModal();msg(`${r.added} preset(s) added`);load();
+setInterval(checkSpoolmanOnline,15000);
 }
 function runAction(v){
   if(v==='orca')document.getElementById('orcaFile').click();
@@ -184,7 +210,33 @@ function runAction(v){
   else if(v==='backup')window.location.href='api/export';
   else if(v==='spoolman')openSmModal();
 }
-let SETTINGS={allow_cf:false,allow_edit_stock:false,spoolman_host:'',spoolman_port:7912};
+let SETTINGS={allow_cf:false,allow_edit_stock:false,spoolman_host:'',spoolman_port:7912,spoolman_mode:'off'};
+let SM_ONLINE=false;
+let PENDING_DEL_ID=null;
+async function checkSpoolmanOnline(){
+  if(!(SETTINGS.spoolman_host&&SETTINGS.spoolman_host.trim())){SM_ONLINE=false;applySettingsUI();return false;}
+  try{
+    const r=await(await fetch('api/spoolman_status',{method:'POST',body:'{}'})).json();
+    SM_ONLINE=!!(r&&r.online);
+  }catch(_){SM_ONLINE=false;}
+  applySettingsUI();
+  return SM_ONLINE;
+}
+async function triggerHeaderSpoolmanSync(){
+  const mode=SETTINGS.spoolman_mode||'off';
+  if(mode==='off')return;
+  const online=await checkSpoolmanOnline();
+  if(!online)return alert('Spoolman is offline or unreachable. Sync aborted.');
+  const ids=ITEMS.filter(x=>x.custom).map(x=>x.id);
+  if(!ids.length)return msg('No custom profiles (90001+) to sync');
+  const btn=$('btnSmMode');btn.disabled=true;
+  try{
+    const r=await(await fetch('api/spoolman_sync',{method:'POST',body:JSON.stringify({ids,full_sync:(mode==='autosync')})})).json();
+    if(!r.ok)return alert(r.error);
+    const delTxt=(mode==='autosync'&&r.deleted)?`, ${r.deleted} removed`:'';
+    msg(`Spoolman ${mode}: ${r.added} added, ${r.updated||0} updated${delTxt}`);
+  }finally{applySettingsUI();}
+}
 async function testSpoolman(){const st=$('smStatus');st.style.color='#aaa';st.textContent='Testing...';const r=await(await fetch('api/spoolman_test',{method:'POST',body:JSON.stringify({spoolman_host:$('s_sm_host').value.trim(),spoolman_port:Number($('s_sm_port').value)||7912})})).json();st.style.color=r.ok?'#4ade80':'#f87171';st.textContent=r.ok?'Connected ('+r.version+')':r.error;}
 let SM_ITEMS=[];
 async function openSmModal(){
@@ -208,17 +260,37 @@ async function pushSelectedSpoolman(){
   if(!r.ok)return alert(r.error);
   closeSmModal();msg(`Spoolman: ${r.added} added, ${r.updated||0} updated`);
 }
-function openSettings(){document.getElementById('s_allow_cf').checked=!!SETTINGS.allow_cf;document.getElementById('s_edit_stock').checked=!!SETTINGS.allow_edit_stock;$('s_sm_host').value=SETTINGS.spoolman_host||'';$('s_sm_port').value=SETTINGS.spoolman_port||7912;$('smStatus').textContent='';$('setModal').classList.add('open')}
+function openSettings(){document.getElementById('s_allow_cf').checked=!!SETTINGS.allow_cf;document.getElementById('s_edit_stock').checked=!!SETTINGS.allow_edit_stock;$('s_sm_host').value=SETTINGS.spoolman_host||'';$('s_sm_port').value=SETTINGS.spoolman_port||7912;$('s_sm_mode').value=SETTINGS.spoolman_mode||'off';$('smStatus').textContent='';$('setModal').classList.add('open')}
 function closeSettings(){document.getElementById('setModal').classList.remove('open')}
 async function saveSettings(){
-  const r=await (await fetch('api/settings',{method:'POST',body:JSON.stringify({settings:{allow_cf:document.getElementById('s_allow_cf').checked,allow_edit_stock:document.getElementById('s_edit_stock').checked,spoolman_host:$('s_sm_host').value.trim(),spoolman_port:Number($('s_sm_port').value)||7912}})})).json();
+  const r=await (await fetch('api/settings',{method:'POST',body:JSON.stringify({settings:{allow_cf:document.getElementById('s_allow_cf').checked,allow_edit_stock:document.getElementById('s_edit_stock').checked,spoolman_host:$('s_sm_host').value.trim(),spoolman_port:Number($('s_sm_port').value)||7912,spoolman_mode:$('s_sm_mode').value||'off'}})})).json();
   if(!r.ok)return alert(r.error);
-  SETTINGS=r.settings;closeSettings();applySettingsUI();render();msg('Settings saved');
+  const prevMode=SETTINGS.spoolman_mode||'off';SETTINGS=r.settings;closeSettings();const on=await checkSpoolmanOnline();render();if(on&&SETTINGS.spoolman_mode!=='off'&&prevMode==='off'){await triggerHeaderSpoolmanSync();}else{msg('Settings saved');}
 }
 function applySettingsUI(){
   const sel=document.getElementById('f_type');
   Array.from(sel.options).forEach(o=>{if(o.value.includes('-CF')||o.value.includes('-GF'))o.hidden=!SETTINGS.allow_cf});
-  const optSm=$('optSpoolman');if(optSm)optSm.disabled=!(SETTINGS.spoolman_host&&SETTINGS.spoolman_host.trim());
+  const hasHost=!!(SETTINGS.spoolman_host&&SETTINGS.spoolman_host.trim());
+  const optSm=$('optSpoolman');if(optSm)optSm.disabled=!hasHost||!SM_ONLINE;
+  const btn=$('btnSmMode'),dot=$('smDot'),txt=$('smModeTxt');
+  if(!btn)return;
+  const mode=SETTINGS.spoolman_mode||'off';
+  const labelMap={off:'Spoolman: Off',autopush:'Spoolman: AutoPush',autosync:'Spoolman: AutoSync'};
+  txt.textContent=labelMap[mode]||'Spoolman: Off';
+  if(!hasHost){
+    dot.style.background='#64748b';btn.disabled=true;btn.style.opacity='.5';btn.style.cursor='not-allowed';
+    btn.title='Spoolman Host/IP not configured in Settings';
+  }else if(!SM_ONLINE){
+    dot.style.background='#ef4444';btn.disabled=true;btn.style.opacity='.6';btn.style.cursor='not-allowed';
+    btn.title='Spoolman is offline ('+SETTINGS.spoolman_host+':'+(SETTINGS.spoolman_port||7912)+')';
+  }else if(mode==='off'){
+    dot.style.background='#10b981';btn.disabled=true;btn.style.opacity='.55';btn.style.cursor='not-allowed';
+    btn.title='Spoolman is online, but Sync Mode is set to Off in Settings';
+  }else{
+    dot.style.background='#10b981';btn.disabled=false;btn.style.opacity='1';btn.style.cursor='pointer';
+    btn.style.borderColor=(mode==='autosync')?'#3b82f6':'#10b981';
+    btn.title='Spoolman is online – Click to run manual '+mode+' now';
+  }
 }
 let ITEMS=[];
 let SORT_COL='default',SORT_DIR=-1;
@@ -250,7 +322,7 @@ function msg(t){const el=$('toast');el.textContent=t;el.style.display='block';se
 async function load(){
   const r=await (await fetch('api/materials')).json();
   if(!r.ok)return alert(r.error);
-  ITEMS=r.items;SETTINGS=r.settings||SETTINGS;applySettingsUI();$('btnBak').style.display=r.has_backup?'inline-block':'none';const rb=$('rebootBanner');if(rb)rb.style.display=(r.pending_count>0)?'block':'none';
+  ITEMS=r.items;SETTINGS=r.settings||SETTINGS;applySettingsUI();checkSpoolmanOnline();$('btnBak').style.display=r.has_backup?'inline-block':'none';const rb=$('rebootBanner');if(rb)rb.style.display=(r.pending_count>0)?'block':'none';
   const brands=[...new Set(ITEMS.map(x=>x.brand))].sort();
   const types=[...new Set(ITEMS.map(x=>x.type))].sort();
   $('fBrand').innerHTML='<option value="">All Brands</option>'+brands.map(b=>`<option>${b}</option>`).join('');
@@ -284,9 +356,43 @@ function closeM(){$('modal').classList.remove('open')}
 async function saveItem(){
   const p={id:$('f_id').value,brand:$('f_brand').value,name:$('f_name').value,type:$('f_type').value,nozzle_temp:$('f_noz').value,nozzle_init:$('f_nozi').value,bed_temp:$('f_bed').value,max_vol:$('f_vol').value,dry_temp:$('f_dryt').value,dry_time:$('f_dryh').value};
   const r=await (await fetch('api/save',{method:'POST',body:JSON.stringify(p)})).json();
-  if(!r.ok)return alert(r.error);closeM();msg('Saved (ID '+r.id+') – reload printer UI if needed');load();
+  if(!r.ok)return alert(r.error);
+  closeM();
+  let extra='';
+  if(r.spoolman&&!r.spoolman.error)extra=` · Spoolman synced (${r.spoolman.added} added, ${r.spoolman.updated} updated)`;
+  else if(r.spoolman&&r.spoolman.error)extra=' · Spoolman error: '+r.spoolman.error;
+  msg('Saved (ID '+r.id+')'+extra);load();
 }
-async function delItem(id){if(!confirm('Delete entry '+id+'?'))return;await fetch('api/delete',{method:'POST',body:JSON.stringify({id})});msg('Deleted');load();}
+async function delItem(id){
+  const item=ITEMS.find(x=>String(x.id)===String(id));
+  PENDING_DEL_ID=id;
+  $('delText').innerHTML=item?`Do you really want to remove <strong>${item.brand} – ${item.name}</strong> (ID <code>${item.id}</code>) from the printer database?`:`Do you really want to remove entry <code>${id}</code>?`;
+  await checkSpoolmanOnline();
+  const mode=SETTINGS.spoolman_mode||'off';
+  const cb=$('delSmCheck'),lbl=$('delSmLabel'),hint=$('delSmHint');
+  if(mode==='off'||!SM_ONLINE){
+    cb.checked=false;cb.disabled=true;lbl.style.opacity='.5';lbl.style.cursor='not-allowed';
+    hint.textContent=!SM_ONLINE?'Spoolman is offline or not configured.':'Spoolman Sync Mode is set to Off.';
+  }else{
+    cb.disabled=false;lbl.style.opacity='1';lbl.style.cursor='pointer';
+    cb.checked=(mode==='autosync');
+    hint.textContent=(mode==='autosync')?'Pre-selected because AutoSync is active.':'Optional (AutoPush only pushes additions/edits by default).';
+  }
+  $('delModal').classList.add('open');
+}
+function closeDelModal(){$('delModal').classList.remove('open');PENDING_DEL_ID=null;}
+async function confirmDelete(){
+  if(!PENDING_DEL_ID)return;
+  const id=PENDING_DEL_ID;
+  const delSm=$('delSmCheck').checked&&!$('delSmCheck').disabled;
+  closeDelModal();
+  const r=await(await fetch('api/delete',{method:'POST',body:JSON.stringify({id,delete_spoolman:delSm})})).json();
+  if(!r.ok)return alert(r.error);
+  let extra='';
+  if(r.spoolman&&!r.spoolman.error)extra=` · Removed from Spoolman (${r.spoolman.deleted})`;
+  else if(r.spoolman&&r.spoolman.error)extra=' · Spoolman error: '+r.spoolman.error;
+  msg('Deleted'+extra);load();
+}
 async function importOrca(fileList){
   if(!fileList||!fileList.length)return;
   const files=await Promise.all([...fileList].map(f=>f.text()));

@@ -288,7 +288,7 @@ def sync_all_targets(data):
             con.close()
 
 SETTINGS_PATH = os.path.join(WEB_ROOT, "settings.json")
-DEFAULT_SETTINGS = {"allow_cf": False, "allow_edit_stock": False, "spoolman_host": "", "spoolman_port": 7912}
+DEFAULT_SETTINGS = {"allow_cf": False, "allow_edit_stock": False, "spoolman_host": "", "spoolman_port": 7912, "spoolman_mode": "off"}
 
 def _sm_url(cfg, b=None):
     b = b or {}
@@ -344,6 +344,60 @@ def sync_to_spoolman(ids=None, body=None):
             exist_map[(br.lower(), nm.lower())] = res_f.get("id")
             added += 1
     return {"added": added, "updated": updated}
+
+def spoolman_online_status(body=None):
+    cfg = load_settings()
+    b = body or {}
+    h = str(b.get("spoolman_host", cfg.get("spoolman_host", "")) or "").strip()
+    if not h:
+        return {"online": False, "reason": "not_configured"}
+    try:
+        u = _sm_url(cfg, b)
+        import urllib.request
+        r = urllib.request.Request(u + "/info", method="GET")
+        with urllib.request.urlopen(r, timeout=2) as resp:
+            raw = resp.read().decode("utf-8")
+            info = json.loads(raw) if raw else {}
+        return {"online": True, "version": info.get("version", "ok")}
+    except Exception as e:
+        return {"online": False, "reason": str(e)}
+
+def full_sync_spoolman(body=None):
+    u = _sm_url(load_settings(), body)
+    custom_items = [it for it in load_db().get("result", {}).get("list", []) if str(it.get("base", {}).get("id", "")).isdigit() and int(it["base"]["id"]) >= 90000]
+    custom_ids = [str(it["base"]["id"]).strip() for it in custom_items]
+    res = sync_to_spoolman(custom_ids, body)
+    valid_keys = {(str((it.get("base") or {}).get("brand") or (it.get("kvParam") or {}).get("filament_vendor") or "Generic").strip().lower(), str((it.get("base") or {}).get("name") or "PLA").strip().lower()) for it in custom_items}
+    deleted = 0
+    for f in _sm_req(u, "/filament"):
+        fid = f.get("id")
+        cm = str(f.get("comment", "") or "")
+        if fid and "Creality DB ID:" in cm:
+            f_br = str((f.get("vendor") or {}).get("name", "")).strip().lower()
+            f_nm = str(f.get("name", "")).strip().lower()
+            if (f_br, f_nm) not in valid_keys:
+                _sm_req(u, f"/filament/{fid}", "DELETE")
+                deleted += 1
+    res["deleted"] = deleted
+    return res
+
+def delete_from_spoolman(brand, name, pid="", body=None):
+    u = _sm_url(load_settings(), body)
+    br_l = str(brand or "").strip().lower()
+    nm_l = str(name or "").strip().lower()
+    pid_s = str(pid or "").strip()
+    deleted = 0
+    for f in _sm_req(u, "/filament"):
+        fid = f.get("id")
+        if not fid:
+            continue
+        f_br = str((f.get("vendor") or {}).get("name", "")).strip().lower()
+        f_nm = str(f.get("name", "")).strip().lower()
+        f_cm = str(f.get("comment", "") or "")
+        if (f_br == br_l and f_nm == nm_l) or (pid_s and f"Creality DB ID: {pid_s}" in f_cm):
+            _sm_req(u, f"/filament/{fid}", "DELETE")
+            deleted += 1
+    return {"deleted": deleted}
 
 PENDING_FILE = "/tmp/cfs_editor_pending.json"
 
@@ -572,21 +626,44 @@ class Handler(BaseHTTPRequestHandler):
                     items.append(entry)
                 save_db(data)
                 mark_pending((pid,))
-                self._send_json(200, {"ok": True, "id": pid})
+                sm_res = None
+                cfg_s = load_settings()
+                if cfg_s.get("spoolman_mode") in ("autopush", "autosync") and spoolman_online_status().get("online"):
+                    try:
+                        sm_res = full_sync_spoolman() if cfg_s.get("spoolman_mode") == "autosync" else sync_to_spoolman([pid])
+                    except Exception as _sme:
+                        sm_res = {"error": str(_sme)}
+                self._send_json(200, {"ok": True, "id": pid, "spoolman": sm_res})
             elif p == "/api/delete":
                 pid = str(body.get("id", "")).strip()
                 if not (pid.isdigit() and int(pid) >= 90000):
                     self._send_json(400, {"ok": False, "error": "Stock entries are protected."}); return
+                target = next((i for i in items if str(i.get("base", {}).get("id", "")) == pid), None)
                 data["result"]["list"] = [i for i in items if str(i.get("base", {}).get("id", "")) != pid]
                 save_db(data)
-                self._send_json(200, {"ok": True})
+                sm_res = None
+                if body.get("delete_spoolman") and target and spoolman_online_status().get("online"):
+                    try:
+                        tb, tkv = target.get("base", {}), target.get("kvParam", {})
+                        br = str(tb.get("brand") or tkv.get("filament_vendor") or "Generic").strip()
+                        nm = str(tb.get("name") or "PLA").strip()
+                        sm_res = delete_from_spoolman(br, nm, pid)
+                    except Exception as _sme:
+                        sm_res = {"error": str(_sme)}
+                self._send_json(200, {"ok": True, "spoolman": sm_res})
             elif p == "/api/import_pack7":
                 sel_ids = [str(x) for x in (body.get("ids") or [r[0] for r in PRESET_PACK_7])]
                 existing = {str(i.get("base", {}).get("id", "")) for i in items}
                 added = sum(1 for r in PRESET_PACK_7 if r[0] in sel_ids and r[0] not in existing and not items.append(build_entry(tpl, *r)))
                 save_db(data)
                 mark_pending(sel_ids)
-                self._send_json(200, {"ok": True, "added": added})
+                sm_res = None
+                if load_settings().get("spoolman_mode") in ("autopush", "autosync") and spoolman_online_status().get("online"):
+                    try:
+                        sm_res = sync_to_spoolman(sel_ids)
+                    except Exception as _sme:
+                        sm_res = {"error": str(_sme)}
+                self._send_json(200, {"ok": True, "added": added, "spoolman": sm_res})
             elif p == "/api/import_orca":
                 files = body.get("files", [])
                 cfg_s = load_settings()
@@ -643,17 +720,27 @@ class Handler(BaseHTTPRequestHandler):
                         items.append(build_entry(tpl, pid, brand, full_name, mtype, t_noz, t_ini, t_bed, mvol, dens, dry_t, 6))
                         added += 1
                 save_db(data)
-                mark_pending(tuple(str(i.get("base", {}).get("id", "")) for i in items if str(i.get("base", {}).get("id", "")).isdigit() and int(i["base"]["id"]) >= 90000))
-                self._send_json(200, {"ok": True, "added": added, "updated": updated, "skipped_cf": skipped_cf})
+                cust_ids = [str(i.get("base", {}).get("id", "")) for i in items if str(i.get("base", {}).get("id", "")).isdigit() and int(i["base"]["id"]) >= 90000]
+                mark_pending(tuple(cust_ids))
+                sm_res = None
+                if load_settings().get("spoolman_mode") in ("autopush", "autosync") and spoolman_online_status().get("online"):
+                    try:
+                        sm_res = sync_to_spoolman(cust_ids)
+                    except Exception as _sme:
+                        sm_res = {"error": str(_sme)}
+                self._send_json(200, {"ok": True, "added": added, "updated": updated, "skipped_cf": skipped_cf, "spoolman": sm_res})
             elif p == "/api/settings":
                 self._send_json(200, {"ok": True, "settings": save_settings(body.get("settings", body))})
+            elif p == "/api/spoolman_status":
+                self._send_json(200, {"ok": True, **spoolman_online_status(body)})
             elif p == "/api/spoolman_test":
                 info = _sm_req(_sm_url(load_settings(), body), "/info")
                 self._send_json(200, {"ok": True, "version": info.get("version", "ok")})
             elif p == "/api/spoolman_preview":
                 self._send_json(200, {"ok": True, "items": spoolman_preview(body)})
             elif p == "/api/spoolman_sync":
-                self._send_json(200, {"ok": True, **sync_to_spoolman(body.get("ids"), body)})
+                res = full_sync_spoolman(body) if body.get("full_sync") else sync_to_spoolman(body.get("ids"), body)
+                self._send_json(200, {"ok": True, **res})
             elif p == "/api/restore_backup":
                 shutil.copy2(BACKUP_PATH, DB_PATH)
                 self._send_json(200, {"ok": True})
