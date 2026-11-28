@@ -43,3 +43,14 @@ To uninstall, run **`2) Remove Menu` -> `20) Remove CFS-C Material Database Edit
 - Reboot the printer once after adding new brands so the **Creality Touchscreen** reloads the updated brand list.
 
 > **Safety Note:** Do not route abrasive carbon-fiber or glass-fiber filaments (`PLA-CF`, `PETG-CF`, `PA-CF`) through the CFS-C—always print CF/GF materials from the external spool holder.
+
+
+## Spoolman Integration & Live Online Check
+* **Automatic Online Health Check:** The editor continuously checks whether your configured Spoolman server (`Host / IP` + `Port`) is reachable and displays a live green/red status indicator in the top bar. If Spoolman is offline or unconfigured, sync actions are safely blocked.
+* **Three Sync Modes (`Settings -> Sync Behavior`):**
+  * **`Select & Push` (Default):** Manual mode. Clicking **`Spoolman: Select & Push`** in the top bar opens a selection dialog to pick which profiles to push to Spoolman.
+  * **`AutoPush`:** Automatically pushes newly added, cloned, edited, or imported filaments (`90001+`) to Spoolman. Deletions in the editor leave Spoolman untouched unless explicitly checked in the confirmation dialog.
+  * **`AutoSync`:** Full automatic synchronization. Switching to `AutoSync` or saving/deleting profiles pushes all custom `90001+` profiles and removes deleted `Creality DB ID` entries from Spoolman (pre-checked in the confirmation modal).
+
+## Automatic Multi-Language Support (21 Languages)
+* Automatically detects your active **Mainsail** or **Fluidd** UI language (with browser locale fallback) and live-translates all controls, tables, and modals across all 21 Mainsail/Fluidd languages—or lets you pick a fixed language in **Settings -> Language / Sprache**.
