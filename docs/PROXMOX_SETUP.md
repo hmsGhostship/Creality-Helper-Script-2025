@@ -1,4 +1,4 @@
-# Proxmox LXC Setup Guide (Spoolman & Mobile Companion App)
+# Proxmox LXC Setup Guide (Spoolman & K1C CFS-C Mobile App)
 
 Running **Spoolman** and the **K1C CFS-C Mobile App** inside a lightweight **Proxmox LXC container** keeps both services available 24/7 on your local network without needing a Windows/Mac PC running—and gives the Expo Go mobile app a direct bridged LAN IP so no cloud tunnel or Expo account is required.
 
@@ -53,7 +53,7 @@ Running **Spoolman** and the **K1C CFS-C Mobile App** inside a lightweight **Pro
 
 ---
 
-## 3. Install & Autostart the Mobile Companion App (`app/`)
+## 3. Install & Autostart the K1C CFS-C Mobile App (`app/`)
 
 1. **Install Node.js (v20 LTS):**
    ```bash
