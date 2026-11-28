@@ -33,6 +33,8 @@ Additional support for **K1 2025 CFS-C** by [@hmsGhostship](https://github.com) 
 
 Detailed configuration guides, G-code templates, and feature manuals have been organized into dedicated guides:
 
+* **[🏠 Proxmox LXC Setup Guide (Spoolman & Mobile App)](docs/PROXMOX_SETUP.md)**
+  * Step-by-step guide to host Spoolman (`:7912`) via Docker and the K1C CFS-C Mobile App (`:8081`) in a Proxmox LXC container.
 * **[⚙️ OrcaSlicer Configuration & Multi-Color Guide](docs/ORCASLICER.md)**
   * Machine Start/Change G-Code (CFS-C & Native Klipper), flushing volumes, timelapse layer macro, and `:4409` / `:4408` connection setup for `Map & Print`.
 * **[🗄️ CFS-C Material Database Editor & Spoolman Sync](docs/CFS_MATERIAL_EDITOR.md)**
