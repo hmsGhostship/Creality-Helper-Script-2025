@@ -3,6 +3,8 @@
 A lightweight web interface to add, clone, edit, and back up custom filament profiles in Creality's `material_database.json` on **K1 / K1C / K1 Max / K1 SE (2025 CFS-C)** printers.
 All changes are automatically synchronized across the printer's configuration files and SQLite lookup tables so custom brands appear directly on the **Creality Touchscreen** as well as in the **Fluidd / Mainsail CFS-C panel**.
 
+<img width="1190" height="782" alt="grafik" src="https://github.com/user-attachments/assets/690bb0d9-e011-4c3b-9e5c-f7f4c57a989c" />
+
 ## 1. Installation & Removal
 
 1. Open SSH on your printer and launch the Helper Script: `/usr/data/helper-script/helper.sh`
